@@ -82,6 +82,13 @@ Run as a local HTTP service for external integration:
 python3 server.py --port 8000
 ```
 
+To allow `/run` to post results to Asana, set `ASANA_ACCESS_TOKEN` before starting the server:
+
+```bash
+export ASANA_ACCESS_TOKEN="your-personal-access-token"
+python3 server.py --port 8000
+```
+
 ### Endpoints
 
 - **GET /health**
