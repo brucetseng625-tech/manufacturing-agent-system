@@ -1,11 +1,12 @@
 
 import json
 import os
+from data_loader import load_json_or_csv
 
 from skills.schedule_conflict_check import check_schedule_conflict
 
 
-def load_json(mock_data_dir, filename):
+def load_json_or_csv(mock_data_dir, filename):
     with open(os.path.join(mock_data_dir, filename), encoding="utf-8") as file:
         return json.load(file)
 
@@ -14,11 +15,11 @@ def analyze_delivery_risk(order_id, mock_data_dir):
     """
     MVP Skill: Analyze if an order can ship on time based on mock data.
     """
-    orders = load_json(mock_data_dir, "orders.json")
-    work_orders = load_json(mock_data_dir, "work_orders.json")
-    materials = load_json(mock_data_dir, "materials.json")
-    machines = load_json(mock_data_dir, "machines.json")
-    operators = load_json(mock_data_dir, "operators.json")
+    orders = load_json_or_csv(mock_data_dir, "orders.json")
+    work_orders = load_json_or_csv(mock_data_dir, "work_orders.json")
+    materials = load_json_or_csv(mock_data_dir, "materials.json")
+    machines = load_json_or_csv(mock_data_dir, "machines.json")
+    operators = load_json_or_csv(mock_data_dir, "operators.json")
 
     order = next((o for o in orders if o["order_id"] == order_id), None)
     if not order:

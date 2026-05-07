@@ -2,6 +2,7 @@
 import json
 import os
 from datetime import datetime
+from data_loader import load_json_or_csv
 
 
 PRIORITY_RANK = {
@@ -11,7 +12,7 @@ PRIORITY_RANK = {
 }
 
 
-def load_json(mock_data_dir, filename):
+def load_json_or_csv(mock_data_dir, filename):
     with open(os.path.join(mock_data_dir, filename), encoding="utf-8") as file:
         return json.load(file)
 
@@ -38,8 +39,8 @@ def check_schedule_conflict(order_ids, mock_data_dir):
     """
     MVP Skill: Check if given orders have schedule conflicts on the same machine.
     """
-    schedule = load_json(mock_data_dir, "schedule.json")
-    orders = load_json(mock_data_dir, "orders.json")
+    schedule = load_json_or_csv(mock_data_dir, "schedule.json")
+    orders = load_json_or_csv(mock_data_dir, "orders.json")
 
     target_order_ids = set(order_ids)
     if len(target_order_ids) == 1:

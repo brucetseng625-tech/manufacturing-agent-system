@@ -1,0 +1,3 @@
+order_id,customer,product,quantity,due_date,priority
+ORD-CSV-001,Test Corp,Widget A,100,2026-06-01,High
+ORD-CSV-002,Demo Inc,Widget B,200,2026-06-05,Normal

@@ -1,0 +1,2 @@
+order_id,material,required_qty,available_qty,status
+ORD-CSV-001,Steel,50,50,Ready

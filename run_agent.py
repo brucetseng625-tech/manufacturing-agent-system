@@ -3,6 +3,7 @@ import json
 import os
 import re
 import sys
+import argparse
 from skills.delivery_risk import analyze_delivery_risk
 from skills.schedule_conflict_check import check_schedule_conflict
 
@@ -48,12 +49,12 @@ def print_schedule_report(result):
     print(f"Status: {result['status'].upper()}")
     if result["conflicts"]:
         for c in result["conflicts"]:
-            print(f"\nCONFLICT on {c['machine_id']}")
+            print(f"\n️ CONFLICT on {c['machine_id']}")
             print(f"   Time: {c['overlap_start']} ~ {c['overlap_end']}")
             print(f"   Orders: {', '.join(c['orders'])}")
-            print(f"   Winner: {c['winner']} (priority/due-date rule)")
-            print(f"   Loser: {c['loser']}")
-            print(f"   Suggestion: {c['suggestion']}")
+            print(f"   👑 Winner: {c['winner']} (Priority)")
+            print(f"   🐢 Loser: {c['loser']}")
+            print(f"    Suggestion: {c['suggestion']}")
     else:
         print("No conflicts found for the selected orders.")
     print()
@@ -64,14 +65,20 @@ def print_schedule_report(result):
 
 
 def main():
-    if len(sys.argv) < 2:
-        print('Usage: python3 run_agent.py "Query"')
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description="Manufacturing Agent CLI")
+    parser.add_argument("--data-dir", default=None, help="Path to data directory (default: mock_data)")
+    parser.add_argument("query", nargs="+", help="Natural language query")
+    args = parser.parse_args()
 
-    query = " ".join(sys.argv[1:])
-    mock_data_dir = os.path.join(os.path.dirname(__file__), "mock_data")
+    query = " ".join(args.query)
+    
+    if args.data_dir:
+        mock_data_dir = args.data_dir
+    else:
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "mock_data")
 
     print(f"Agent received: '{query}'")
+    print(f"Data Source: {mock_data_dir}")
 
     order_ids = extract_order_ids(query)
     if not order_ids:

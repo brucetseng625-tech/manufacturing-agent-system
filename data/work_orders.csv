@@ -1,0 +1,2 @@
+wo_id,order_id,status,machine_id,progress_percent,estimated_completion
+WO-CSV-001-A,ORD-CSV-001,Planned,CNC-01,0,2026-05-30
