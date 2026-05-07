@@ -1,14 +1,7 @@
 
-import json
-import os
 from data_loader import load_json_or_csv
 
 from skills.schedule_conflict_check import check_schedule_conflict
-
-
-def load_json_or_csv(mock_data_dir, filename):
-    with open(os.path.join(mock_data_dir, filename), encoding="utf-8") as file:
-        return json.load(file)
 
 
 def analyze_delivery_risk(order_id, mock_data_dir):

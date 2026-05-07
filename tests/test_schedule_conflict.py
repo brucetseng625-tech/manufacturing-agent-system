@@ -28,3 +28,8 @@ class ScheduleConflictTest(unittest.TestCase):
         mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
         result = check_schedule_conflict(["ORD-1003"], mock_data_dir)
         self.assertEqual(result["status"], "no_conflict")
+
+    def test_schedule_conflict_supports_csv_data_dir(self):
+        csv_data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
+        result = check_schedule_conflict(["ORD-CSV-001"], csv_data_dir)
+        self.assertEqual(result["status"], "no_conflict")

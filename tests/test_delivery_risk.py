@@ -35,6 +35,16 @@ class DeliveryRiskTest(unittest.TestCase):
 
         self.assertEqual(result, {"error": "Order ORD-9999 not found"})
 
+    def test_delivery_risk_supports_csv_data_dir(self):
+        csv_data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
+
+        result = analyze_delivery_risk("ORD-CSV-001", csv_data_dir)
+
+        self.assertEqual(result["decision"], "can_ship_on_time")
+        self.assertEqual(result["confidence"], "High")
+        self.assertEqual(result["blockers"], ["No critical blockers found in current mock data."])
+        self.assertIn("Schedule conflict status: no_conflict.", result["evidence"])
+
 
 if __name__ == "__main__":
     unittest.main()

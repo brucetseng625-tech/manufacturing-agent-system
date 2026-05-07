@@ -1,6 +1,4 @@
 
-import json
-import os
 from datetime import datetime
 from data_loader import load_json_or_csv
 
@@ -10,11 +8,6 @@ PRIORITY_RANK = {
     "Normal": 2,
     "Low": 1,
 }
-
-
-def load_json_or_csv(mock_data_dir, filename):
-    with open(os.path.join(mock_data_dir, filename), encoding="utf-8") as file:
-        return json.load(file)
 
 
 def choose_winner(reservation1, reservation2, order1, order2):
