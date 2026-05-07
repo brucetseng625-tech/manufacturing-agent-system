@@ -6,11 +6,44 @@ import sys
 import argparse
 from skills.delivery_risk import analyze_delivery_risk
 from skills.schedule_conflict_check import check_schedule_conflict
+from data_loader import load_json_or_csv
+from data_validator import validate_dataset
 
 
 def extract_order_ids(query):
     match = re.findall(r"\bORD-[A-Z0-9-]+\b", query, re.IGNORECASE)
     return [m.upper() for m in match]
+
+
+def validate_data_dir(data_dir):
+    """Pre-flight check: validate data consistency."""
+    file_names = ["orders.json", "work_orders.json", "materials.json", 
+                  "machines.json", "operators.json", "schedule.json"]
+    # Also check CSV if JSON not present, but loader handles fallback.
+    # We just validate whatever files exist.
+    
+    # To validate, we need to load them.
+    # We can iterate and validate.
+    errors = []
+    
+    # Map file names to schema keys
+    schema_map = {
+        "orders.json": "orders", "orders.csv": "orders",
+        "work_orders.json": "work_orders", "work_orders.csv": "work_orders",
+        "materials.json": "materials", "materials.csv": "materials",
+        "machines.json": "machines", "machines.csv": "machines",
+        "operators.json": "operators", "operators.csv": "operators",
+        "schedule.json": "schedule", "schedule.csv": "schedule"
+    }
+    
+    for filename, schema_key in schema_map.items():
+        filepath = os.path.join(data_dir, filename)
+        if os.path.exists(filepath):
+            data = load_json_or_csv(data_dir, filename) # This loads JSON or CSV
+            errs = validate_dataset(schema_key, data)
+            errors.extend(errs)
+            
+    return errors
 
 
 def print_decision_report(result):
@@ -73,12 +106,24 @@ def main():
     query = " ".join(args.query)
     
     if args.data_dir:
-        mock_data_dir = args.data_dir
+        data_dir = args.data_dir
     else:
-        mock_data_dir = os.path.join(os.path.dirname(__file__), "mock_data")
+        data_dir = os.path.join(os.path.dirname(__file__), "mock_data")
 
     print(f"Agent received: '{query}'")
-    print(f"Data Source: {mock_data_dir}")
+    print(f"Data Source: {data_dir}")
+    
+    # Data Validation Step
+    print("\n🛡️  Data Validation Check...")
+    errors = validate_data_dir(data_dir)
+    if errors:
+        print("\n❌ Data Validation Failed:")
+        for err in errors:
+            print(f"  - {err}")
+        print("\n⚠️  Agent will attempt to run, but results may be unreliable.")
+        # We don't exit here to allow "best effort" run, but we warn clearly.
+    else:
+        print("✅ Data Validation Passed.")
 
     order_ids = extract_order_ids(query)
     if not order_ids:
@@ -87,13 +132,13 @@ def main():
     # Routing
     if "衝突" in query or "conflict" in query.lower() or len(order_ids) > 1:
         print("Routing to: schedule-conflict-check skill")
-        result = check_schedule_conflict(order_ids, mock_data_dir)
+        result = check_schedule_conflict(order_ids, data_dir)
         print_schedule_report(result)
         print("\nRaw JSON")
         print(json.dumps(result, indent=2, ensure_ascii=False))
     elif "準時" in query or "出貨" in query or "delivery" in query.lower():
         print("Routing to: delivery-risk-analysis skill")
-        result = analyze_delivery_risk(order_ids[0], mock_data_dir)
+        result = analyze_delivery_risk(order_ids[0], data_dir)
         if "error" in result:
             print(result["error"])
             sys.exit(1)
