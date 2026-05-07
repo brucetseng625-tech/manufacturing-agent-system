@@ -1,0 +1,14 @@
+[
+  {
+    "operator_id": "OP-01",
+    "skill": "CNC Milling",
+    "shift": "Day",
+    "status": "Available"
+  },
+  {
+    "operator_id": "OP-02",
+    "skill": "Quality Check",
+    "shift": "Night",
+    "status": "Absent"
+  }
+]

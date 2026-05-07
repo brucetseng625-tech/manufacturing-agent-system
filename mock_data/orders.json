@@ -1,0 +1,18 @@
+[
+  {
+    "order_id": "ORD-1001",
+    "customer": "Global Tech",
+    "product": "精密軸承 A1",
+    "quantity": 500,
+    "due_date": "2026-05-15",
+    "priority": "High"
+  },
+  {
+    "order_id": "ORD-1002",
+    "customer": "Local Auto",
+    "product": "連接器 C3",
+    "quantity": 2000,
+    "due_date": "2026-05-20",
+    "priority": "Normal"
+  }
+]

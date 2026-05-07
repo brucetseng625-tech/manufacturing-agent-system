@@ -1,0 +1,16 @@
+[
+  {
+    "order_id": "ORD-1001",
+    "material": "Steel Alloy 4140",
+    "required_qty": 100,
+    "available_qty": 120,
+    "status": "Ready"
+  },
+  {
+    "order_id": "ORD-1001",
+    "material": "Coating Fluid X",
+    "required_qty": 50,
+    "available_qty": 20,
+    "status": "Shortage"
+  }
+]

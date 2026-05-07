@@ -1,0 +1,18 @@
+[
+  {
+    "wo_id": "WO-1001-A",
+    "order_id": "ORD-1001",
+    "status": "In Progress",
+    "machine_id": "CNC-01",
+    "progress_percent": 60,
+    "estimated_completion": "2026-05-14"
+  },
+  {
+    "wo_id": "WO-1001-B",
+    "order_id": "ORD-1001",
+    "status": "Queued",
+    "machine_id": "CNC-02",
+    "progress_percent": 0,
+    "estimated_completion": "2026-05-16"
+  }
+]
