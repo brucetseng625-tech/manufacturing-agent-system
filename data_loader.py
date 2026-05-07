@@ -29,6 +29,11 @@ def load_json_or_csv(data_dir, filename):
                 if 'required_qty' in row: row['required_qty'] = int(row['required_qty'])
                 if 'available_qty' in row: row['available_qty'] = int(row['available_qty'])
                 if 'load_percent' in row: row['load_percent'] = int(row['load_percent'])
+                # Quote fields conversion
+                if 'unit_price' in row: row['unit_price'] = float(row['unit_price'])
+                if 'lead_time_days' in row: row['lead_time_days'] = int(row['lead_time_days'])
+                if 'moq' in row: row['moq'] = int(row['moq'])
+                if 'quality_rating' in row: row['quality_rating'] = float(row['quality_rating'])
                 data.append(row)
         return data
         

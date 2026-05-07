@@ -58,6 +58,49 @@ def print_schedule_report(result):
         print(f"- {item}")
     print("=" * 44)
 
+def print_quote_report(result):
+    """View: Print quote comparison report."""
+    print("\n" + "=" * 44)
+    print("QUOTE COMPARISON REPORT")
+    print("=" * 44)
+    if "materials" in result:
+        for m in result["materials"]:
+            print(f"\nMaterial: {m['material']}")
+            print(f"Recommended: {m['recommended_supplier']}")
+            print(f"Decision: {m['decision']}")
+            print(f"Confidence: {m['confidence']}")
+            print(f"Price Spread: ${m['price_spread']}")
+            lt = m['lead_time_summary']
+            print(f"Lead Time: Avg {lt['avg_days']}d (Min: {lt['min_days']}d, Max: {lt['max_days']}d)")
+            print("Risks:")
+            print(f"  High Risk Suppliers: {m['risks']['high_risk_suppliers']}")
+            print("Evidence:")
+            for e in m["evidence"]:
+                print(f"- {e}")
+            print(f"Recommendation: {m['recommendation']}")
+    else:
+        print(f"Material: {result['material']}")
+        print(f"Recommended: {result['recommended_supplier']}")
+        print(f"Decision: {result['decision']}")
+        print(f"Confidence: {result['confidence']}")
+        print(f"Price Spread: ${result['price_spread']}")
+        lt = result['lead_time_summary']
+        print(f"Lead Time: Avg {lt['avg_days']}d (Min: {lt['min_days']}d, Max: {lt['max_days']}d)")
+        print("Risks:")
+        print(f"  High Risk Suppliers: {result['risks']['high_risk_suppliers']}")
+        print("Evidence:")
+        for e in result["evidence"]:
+            print(f"- {e}")
+        print(f"Recommendation: {result['recommendation']}")
+        print()
+        print("Supplier Reply Draft")
+        print(result["supplier_reply_draft"])
+    print()
+    print("Trace")
+    for item in result["trace"]:
+        print(f"- {item}")
+    print("=" * 44)
+
 def main():
     parser = argparse.ArgumentParser(description="Manufacturing Agent CLI")
     parser.add_argument("--data-dir", default=None, help="Path to data directory (default: mock_data)")
@@ -108,6 +151,11 @@ def main():
         elif skill == "schedule-conflict-check":
             print("Routing to: schedule-conflict-check skill")
             print_schedule_report(data)
+            print("\nRaw JSON")
+            print(json.dumps(data, indent=2, ensure_ascii=False))
+        elif skill == "quote-comparison-summary":
+            print("Routing to: quote-comparison-summary skill")
+            print_quote_report(data)
             print("\nRaw JSON")
             print(json.dumps(data, indent=2, ensure_ascii=False))
 

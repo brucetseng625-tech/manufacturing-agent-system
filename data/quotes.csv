@@ -1,0 +1,6 @@
+quote_id,material,supplier,unit_price,currency,lead_time_days,moq,quality_rating,risk_level,valid_until
+Q-1001,Steel,Supplier A,50.0,USD,5,100,4.5,low,2026-06-01
+Q-1002,Steel,Supplier B,45.0,USD,10,200,4.0,medium,2026-05-15
+Q-1003,Steel,Supplier C,60.0,USD,3,50,4.8,low,2026-07-01
+Q-2001,Aluminum,Supplier A,30.0,USD,7,150,4.2,low,2026-06-15
+Q-2002,Aluminum,Supplier D,25.0,USD,14,300,3.5,high,2026-05-20

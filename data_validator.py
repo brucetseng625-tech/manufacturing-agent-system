@@ -25,6 +25,10 @@ SCHEMAS = {
     "schedule": {
         "required": ["order_id", "machine_id", "start", "end"],
         "types": {}
+    },
+    "quotes": {
+        "required": ["quote_id", "material", "supplier", "unit_price", "currency", "lead_time_days", "moq", "quality_rating", "risk_level", "valid_until"],
+        "types": {"unit_price": float, "lead_time_days": int, "moq": int, "quality_rating": float}
     }
 }
 
@@ -69,6 +73,7 @@ def validate_dataset(name, data):
         elif name == "work_orders": date_fields = ["estimated_completion"]
         elif name == "machines": date_fields = ["next_maintenance"]
         elif name == "schedule": date_fields = ["start", "end"]
+        elif name == "quotes": date_fields = ["valid_until"]
         
         for field in date_fields:
             if field in record and isinstance(record[field], str):

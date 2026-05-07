@@ -1,0 +1,62 @@
+[
+  {
+    "quote_id": "Q-1001",
+    "material": "Steel",
+    "supplier": "Supplier A",
+    "unit_price": 50.0,
+    "currency": "USD",
+    "lead_time_days": 5,
+    "moq": 100,
+    "quality_rating": 4.5,
+    "risk_level": "low",
+    "valid_until": "2026-06-01"
+  },
+  {
+    "quote_id": "Q-1002",
+    "material": "Steel",
+    "supplier": "Supplier B",
+    "unit_price": 45.0,
+    "currency": "USD",
+    "lead_time_days": 10,
+    "moq": 200,
+    "quality_rating": 4.0,
+    "risk_level": "medium",
+    "valid_until": "2026-05-15"
+  },
+  {
+    "quote_id": "Q-1003",
+    "material": "Steel",
+    "supplier": "Supplier C",
+    "unit_price": 60.0,
+    "currency": "USD",
+    "lead_time_days": 3,
+    "moq": 50,
+    "quality_rating": 4.8,
+    "risk_level": "low",
+    "valid_until": "2026-07-01"
+  },
+  {
+    "quote_id": "Q-2001",
+    "material": "Aluminum",
+    "supplier": "Supplier A",
+    "unit_price": 30.0,
+    "currency": "USD",
+    "lead_time_days": 7,
+    "moq": 150,
+    "quality_rating": 4.2,
+    "risk_level": "low",
+    "valid_until": "2026-06-15"
+  },
+  {
+    "quote_id": "Q-2002",
+    "material": "Aluminum",
+    "supplier": "Supplier D",
+    "unit_price": 25.0,
+    "currency": "USD",
+    "lead_time_days": 14,
+    "moq": 300,
+    "quality_rating": 3.5,
+    "risk_level": "high",
+    "valid_until": "2026-05-20"
+  }
+]

@@ -6,6 +6,7 @@ from data_validator import validate_dataset
 # Import existing skills
 from skills.delivery_risk import analyze_delivery_risk
 from skills.schedule_conflict_check import check_schedule_conflict
+from skills.quote_comparison_summary import handle_quote_comparison
 
 class SkillRegistry:
     """
@@ -42,6 +43,18 @@ class SkillRegistry:
             "requires_order_id": True,
             "triggers_on_multi_order": False,
             "data_files": ["orders.json", "work_orders.json", "materials.json", "machines.json", "operators.json", "schedule.json"]
+        })
+        
+        # 3. Quote Comparison Summary
+        # Triggers on keywords, does not require order ID
+        self.register({
+            "name": "quote-comparison-summary",
+            "intent": "quote_comparison_summary",
+            "keywords": ["報價", "quote", "supplier", "供應商", "price", "採購", "cost", "cost comparison"],
+            "handler": handle_quote_comparison,
+            "requires_order_id": False,
+            "triggers_on_multi_order": False,
+            "data_files": ["quotes.json"]
         })
     
     def register(self, skill_config):
