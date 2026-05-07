@@ -74,6 +74,27 @@ class AsanaClientTest(unittest.TestCase):
         self.assertIn("Blockers: 1", comment)
         self.assertIn("Material shortage: Steel", comment)
 
+    def test_format_success_report_quote_summary(self):
+        response = {
+            "intent": "quote_comparison_summary",
+            "data": {
+                "material": "Steel",
+                "recommended_supplier": "Supplier A",
+                "decision": "Recommended: Supplier A for Steel",
+                "confidence": "high",
+                "price_spread": 15.0,
+                "trace": ["loaded 3 quotes for Steel"],
+            },
+        }
+
+        comment = format_success_report(response)
+
+        self.assertIn("quote_comparison_summary", comment)
+        self.assertIn("Materials Compared: 1", comment)
+        self.assertIn("Steel", comment)
+        self.assertIn("Supplier A", comment)
+        self.assertIn("Price Spread: 15.0", comment)
+
     def test_format_error_report_validation(self):
         response = {
             "type": "validation_failed",

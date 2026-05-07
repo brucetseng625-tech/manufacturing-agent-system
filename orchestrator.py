@@ -87,7 +87,7 @@ def route_query(query, data_dir):
     
     # 3. Execute Skill
     try:
-        result_data = get_registry().execute(matched_skill, order_ids, data_dir)
+        result_data = get_registry().execute(matched_skill, order_ids, data_dir, query)
     except Exception as e:
         return {
             **response_base,

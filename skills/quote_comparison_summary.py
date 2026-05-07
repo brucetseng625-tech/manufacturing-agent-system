@@ -1,6 +1,18 @@
 from data_loader import load_json_or_csv
 
-def handle_quote_comparison(order_ids, data_dir):
+
+def _requested_material(query, available_materials):
+    if not query:
+        return None
+
+    query_lower = query.lower()
+    for material in available_materials:
+        if material.lower() in query_lower:
+            return material
+    return None
+
+
+def handle_quote_comparison(order_ids, data_dir, query=None):
     """
     Analyze quotes for a specific material (extracted from query context or defaults).
     Compares suppliers based on price, lead time, risk, and quality.
@@ -17,10 +29,10 @@ def handle_quote_comparison(order_ids, data_dir):
         if mat not in materials:
             materials[mat] = []
         materials[mat].append(q)
-    
-    # For now, analyze all materials or pick one if specified in order_ids (hack for MVP)
-    # We'll return a summary for all materials found, or just the first one if we want to keep it simple.
-    # Let's return a summary for all materials.
+
+    material_filter = _requested_material(query, materials.keys())
+    if material_filter:
+        materials = {material_filter: materials[material_filter]}
     
     summary = []
     for mat, mat_quotes in materials.items():

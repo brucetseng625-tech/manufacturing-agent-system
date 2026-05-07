@@ -77,6 +77,19 @@ def format_success_report(response):
             f"Conflicts Found: {len(data.get('conflicts', []))}",
         ])
         trace = data.get("trace", [])
+    elif intent == "quote_comparison_summary":
+        materials = data.get("materials", [data])
+        lines.append(f"Materials Compared: {len(materials)}")
+        for material in materials[:5]:
+            lines.extend([
+                f"- {material.get('material')}: recommend `{material.get('recommended_supplier')}`",
+                f"  Decision: {material.get('decision')}",
+                f"  Confidence: {material.get('confidence')}",
+                f"  Price Spread: {material.get('price_spread')}",
+            ])
+        trace = data.get("trace", [])
+        if not trace and len(materials) == 1:
+            trace = materials[0].get("trace", [])
 
     if trace:
         lines.extend(["", "Trace:"])

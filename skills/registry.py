@@ -54,6 +54,7 @@ class SkillRegistry:
             "handler": handle_quote_comparison,
             "requires_order_id": False,
             "triggers_on_multi_order": False,
+            "passes_query": True,
             "data_files": ["quotes.json"]
         })
     
@@ -96,7 +97,7 @@ class SkillRegistry:
         
         return None
     
-    def execute(self, skill_config, order_ids, data_dir):
+    def execute(self, skill_config, order_ids, data_dir, query=None):
         """
         Execute a matched skill.
         
@@ -104,6 +105,8 @@ class SkillRegistry:
             dict: Skill result or error.
         """
         handler = skill_config["handler"]
+        if skill_config.get("passes_query"):
+            return handler(order_ids, data_dir, query)
         return handler(order_ids, data_dir)
     
     # --- Built-in Handlers ---

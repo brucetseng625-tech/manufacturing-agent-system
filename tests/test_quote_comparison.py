@@ -26,6 +26,8 @@ class QuoteComparisonTest(unittest.TestCase):
         self.assertEqual(result["status"], "success")
         self.assertEqual(result["skill"], "quote-comparison-summary")
         self.assertEqual(result["order_ids"], [])
+        self.assertEqual(result["data"]["material"], "Steel")
+        self.assertNotIn("materials", result["data"])
 
     def test_skill_csv_mode(self):
         """Skill reads correctly from CSV data."""
@@ -38,27 +40,27 @@ class QuoteComparisonTest(unittest.TestCase):
         
         self.assertEqual(result["status"], "success")
         self.assertEqual(result["skill"], "quote-comparison-summary")
-        # Verify data is loaded (should have materials)
-        if "materials" in result["data"]:
-            self.assertGreater(len(result["data"]["materials"]), 0)
-        else:
-            self.assertIsNotNone(result["data"].get("material"))
+        self.assertEqual(result["data"]["material"], "Steel")
 
     def test_skill_recommendation_logic(self):
         """Skill recommends lowest risk/reasonable price supplier."""
         mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
-        result = handle_quote_comparison([], mock_data_dir)
+        result = handle_quote_comparison([], mock_data_dir, "Steel 報價")
         
         self.assertNotIn("error", result)
-        if "materials" in result:
-            steel_data = next((m for m in result["materials"] if m["material"] == "Steel"), None)
-            self.assertIsNotNone(steel_data)
-            self.assertIn("recommended_supplier", steel_data)
-            self.assertIn("price_spread", steel_data)
-            self.assertIn("risks", steel_data)
-        else:
-            self.assertIn("recommended_supplier", result)
-            self.assertIn("price_spread", result)
+        self.assertEqual(result["material"], "Steel")
+        self.assertIn("recommended_supplier", result)
+        self.assertIn("price_spread", result)
+        self.assertIn("risks", result)
+
+    def test_unspecified_material_returns_all_materials(self):
+        """Generic quote query returns all material summaries."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("幫我比較供應商報價", mock_data_dir)
+
+        self.assertEqual(result["status"], "success")
+        self.assertIn("materials", result["data"])
+        self.assertGreater(len(result["data"]["materials"]), 1)
 
     def test_validation_catches_quote_errors(self):
         """Validation detects missing fields or bad types in quotes."""
