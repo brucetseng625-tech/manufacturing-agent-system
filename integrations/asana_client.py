@@ -1,7 +1,8 @@
 
 import os
 import json
-import requests
+import urllib.error
+import urllib.request
 
 ASANA_API_URL = "https://app.asana.com/api/1.0"
 
@@ -18,48 +19,70 @@ def post_comment(task_gid, comment_text):
     Returns True if successful, False otherwise.
     Does not raise exceptions for network errors; logs and returns False.
     """
-    token = get_token()
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json"
-    }
-    url = f"{ASANA_API_URL}/tasks/{task_gid}/stories"
-    payload = {"data": {"text": comment_text}}
-    
     try:
-        resp = requests.post(url, headers=headers, json=payload, timeout=10)
-        resp.raise_for_status()
+        token = get_token()
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+        url = f"{ASANA_API_URL}/tasks/{task_gid}/stories"
+        payload = json.dumps({"data": {"text": comment_text}}).encode("utf-8")
+        request = urllib.request.Request(url, data=payload, headers=headers, method="POST")
+
+        with urllib.request.urlopen(request, timeout=10):
+            pass
         return True
-    except requests.exceptions.RequestException as e:
-        print(f"⚠️  Failed to post Asana comment: {e}")
+    except (ValueError, urllib.error.HTTPError, urllib.error.URLError) as e:
+        print(f"Failed to post Asana comment: {e}")
         return False
 
 def format_success_report(response):
     """Format orchestrator success response into a comment."""
     intent = response.get("intent", "unknown")
     data = response.get("data", {})
+    trace = []
     
     lines = [
         "**Agent Execution Result**",
+        f"Query: {response.get('query', '')}",
         f"Intent: `{intent}`",
-        f"Status: ✅ Success",
+        f"Order IDs: `{', '.join(response.get('order_ids', []))}`",
+        "Status: Success",
         ""
     ]
     
     if intent == "delivery_risk_analysis":
+        blockers = data.get("blockers", [])
+        actionable_blockers = [
+            blocker
+            for blocker in blockers
+            if not str(blocker).startswith("No critical blockers")
+        ]
         lines.extend([
             f"Order: {data.get('order_id')}",
             f"Decision: `{data.get('decision')}`",
             f"Confidence: {data.get('confidence')}",
-            f"Blockers: {len(data.get('blockers', []))}",
+            f"Blockers: {len(actionable_blockers)}",
         ])
+        if actionable_blockers:
+            lines.append("Top Blockers:")
+            for blocker in actionable_blockers[:5]:
+                lines.append(f"- {blocker}")
+        trace = data.get("trace", [])
     elif intent == "schedule_conflict_check":
         status = data.get("status", "unknown")
         lines.extend([
             f"Conflict Status: `{status}`",
             f"Conflicts Found: {len(data.get('conflicts', []))}",
         ])
-        
+        trace = data.get("trace", [])
+
+    if trace:
+        lines.extend(["", "Trace:"])
+        for item in trace[:8]:
+            lines.append(f"- {item}")
+
     return "\n".join(lines)
 
 def format_error_report(response):
@@ -69,7 +92,9 @@ def format_error_report(response):
     
     lines = [
         "**Agent Execution Result**",
-        f"Status: ❌ Failed",
+        f"Query: {response.get('query', '')}",
+        f"Order IDs: `{', '.join(response.get('order_ids', []))}`",
+        "Status: Failed",
         f"Error Type: `{error_type}`",
         ""
     ]

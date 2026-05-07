@@ -84,7 +84,7 @@ def main():
         
         # Post error to Asana if requested
         if args.asana_task:
-            print(f"\n📤 Posting error to Asana Task {args.asana_task}...")
+            print(f"\nPosting error to Asana Task {args.asana_task}...")
             comment = format_error_report(response)
             post_comment(args.asana_task, comment)
             
@@ -108,13 +108,13 @@ def main():
 
     # Post to Asana if requested
     if args.asana_task:
-        print(f"\n Posting result to Asana Task {args.asana_task}...")
+        print(f"\nPosting result to Asana Task {args.asana_task}...")
         comment = format_success_report(response)
         success = post_comment(args.asana_task, comment)
         if success:
-            print("✅ Asana comment posted.")
+            print("Asana comment posted.")
         else:
-            print("⚠️  Failed to post Asana comment (check token/network).")
+            print("Failed to post Asana comment (check token/network).")
 
 if __name__ == "__main__":
     main()

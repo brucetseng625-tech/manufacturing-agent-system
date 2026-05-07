@@ -2,6 +2,7 @@
 import os
 import unittest
 from unittest.mock import patch, MagicMock
+import urllib.error
 from integrations.asana_client import (
     get_token, 
     post_comment, 
@@ -20,22 +21,25 @@ class AsanaClientTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 get_token()
 
-    @patch("integrations.asana_client.requests.post")
-    def test_post_comment_success(self, mock_post):
-        mock_post.return_value.status_code = 200
-        mock_post.return_value.raise_for_status = MagicMock()
-        
+    @patch("integrations.asana_client.urllib.request.urlopen")
+    def test_post_comment_success(self, mock_urlopen):
+        mock_urlopen.return_value.__enter__.return_value = MagicMock()
+
         with patch.dict(os.environ, {"ASANA_ACCESS_TOKEN": "fake-token"}):
             result = post_comment("123456", "Test comment")
             self.assertTrue(result)
-            mock_post.assert_called_once()
+            mock_urlopen.assert_called_once()
 
-    @patch("integrations.asana_client.requests.post")
-    def test_post_comment_network_error(self, mock_post):
-        import requests
-        mock_post.side_effect = requests.exceptions.ConnectionError("Network error")
-        
+    @patch("integrations.asana_client.urllib.request.urlopen")
+    def test_post_comment_network_error(self, mock_urlopen):
+        mock_urlopen.side_effect = urllib.error.URLError("Network error")
+
         with patch.dict(os.environ, {"ASANA_ACCESS_TOKEN": "fake-token"}):
+            result = post_comment("123456", "Test comment")
+            self.assertFalse(result)
+
+    def test_post_comment_missing_token_returns_false(self):
+        with patch.dict(os.environ, {}, clear=True):
             result = post_comment("123456", "Test comment")
             self.assertFalse(result)
 
@@ -46,13 +50,29 @@ class AsanaClientTest(unittest.TestCase):
                 "order_id": "ORD-1001",
                 "decision": "can_ship_on_time",
                 "confidence": "High",
-                "blockers": []
+                "blockers": ["No critical blockers found in current mock data."]
             }
         }
         comment = format_success_report(response)
         self.assertIn("delivery_risk_analysis", comment)
         self.assertIn("ORD-1001", comment)
         self.assertIn("can_ship_on_time", comment)
+        self.assertIn("Status: Success", comment)
+        self.assertIn("Blockers: 0", comment)
+
+    def test_format_success_report_delivery_lists_actionable_blockers(self):
+        response = {
+            "intent": "delivery_risk_analysis",
+            "data": {
+                "order_id": "ORD-1001",
+                "decision": "at_risk",
+                "confidence": "Medium",
+                "blockers": ["Material shortage: Steel"]
+            }
+        }
+        comment = format_success_report(response)
+        self.assertIn("Blockers: 1", comment)
+        self.assertIn("Material shortage: Steel", comment)
 
     def test_format_error_report_validation(self):
         response = {
@@ -62,3 +82,4 @@ class AsanaClientTest(unittest.TestCase):
         comment = format_error_report(response)
         self.assertIn("validation_failed", comment)
         self.assertIn("Missing required field", comment)
+        self.assertIn("Status: Failed", comment)
