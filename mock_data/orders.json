@@ -14,5 +14,13 @@
     "quantity": 2000,
     "due_date": "2026-05-20",
     "priority": "Normal"
+  },
+  {
+    "order_id": "ORD-1003",
+    "customer": "Beta Manufacturing",
+    "product": "支架 B2",
+    "quantity": 300,
+    "due_date": "2026-05-22",
+    "priority": "Low"
   }
 ]

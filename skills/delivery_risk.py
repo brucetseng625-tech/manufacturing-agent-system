@@ -2,6 +2,8 @@
 import json
 import os
 
+from skills.schedule_conflict_check import check_schedule_conflict
+
 
 def load_json(mock_data_dir, filename):
     with open(os.path.join(mock_data_dir, filename), encoding="utf-8") as file:
@@ -73,6 +75,15 @@ def analyze_delivery_risk(order_id, mock_data_dir):
             f"{operator['status']}."
         )
 
+    schedule_report = check_schedule_conflict([order_id], mock_data_dir)
+    evidence.append(f"Schedule conflict status: {schedule_report['status']}.")
+    for conflict in schedule_report["conflicts"]:
+        blockers.append(
+            f"Schedule conflict: {', '.join(conflict['orders'])} overlap on "
+            f"{conflict['machine_id']} from {conflict['overlap_start']} to "
+            f"{conflict['overlap_end']}. Suggested action: {conflict['suggestion']}"
+        )
+
     if not blockers:
         decision = "can_ship_on_time"
         confidence = "High"
@@ -119,6 +130,7 @@ def analyze_delivery_risk(order_id, mock_data_dir):
             "loaded materials",
             "loaded machines",
             "loaded operators",
+            "checked schedule conflicts",
             "evaluated delivery risk",
         ],
     }

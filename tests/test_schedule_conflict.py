@@ -26,5 +26,5 @@ class ScheduleConflictTest(unittest.TestCase):
 
     def test_no_conflict(self):
         mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
-        result = check_schedule_conflict(["ORD-1001"], mock_data_dir)
+        result = check_schedule_conflict(["ORD-1003"], mock_data_dir)
         self.assertEqual(result["status"], "no_conflict")

@@ -41,8 +41,11 @@ def check_schedule_conflict(order_ids, mock_data_dir):
     schedule = load_json(mock_data_dir, "schedule.json")
     orders = load_json(mock_data_dir, "orders.json")
 
-    # Filter reservations for given orders
-    relevant_reservations = [r for r in schedule if r["order_id"] in order_ids]
+    target_order_ids = set(order_ids)
+    if len(target_order_ids) == 1:
+        relevant_reservations = schedule
+    else:
+        relevant_reservations = [r for r in schedule if r["order_id"] in target_order_ids]
 
     conflicts = []
     # Check pairwise conflicts
@@ -60,6 +63,9 @@ def check_schedule_conflict(order_ids, mock_data_dir):
             t2_end = datetime.fromisoformat(r2["end"])
 
             if t1_start < t2_end and t2_start < t1_end:
+                if target_order_ids.isdisjoint({r1["order_id"], r2["order_id"]}):
+                    continue
+
                 # Conflict found
                 order1 = next((o for o in orders if o["order_id"] == r1["order_id"]), None)
                 order2 = next((o for o in orders if o["order_id"] == r2["order_id"]), None)
