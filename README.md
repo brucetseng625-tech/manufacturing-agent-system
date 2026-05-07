@@ -60,3 +60,16 @@ The report includes:
 - recommendation
 - customer reply draft
 - trace
+
+## Asana Integration
+
+Post agent results to Asana task comments:
+
+```bash
+export ASANA_ACCESS_TOKEN="your-personal-access-token"
+python3 run_agent.py --asana-task 123456789 "ORD-1001 能不能準時出？"
+```
+
+- Results are posted as comments to the specified task GID.
+- Both success and failure results are reported.
+- Token must be set via environment variable (never commit tokens).
