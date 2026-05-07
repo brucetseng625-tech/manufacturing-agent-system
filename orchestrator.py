@@ -40,26 +40,34 @@ def route_query(query, data_dir):
     4. Dispatches to skill.
     5. Returns result or error.
     """
+    order_ids = extract_order_ids(query)
+    if not order_ids:
+        order_ids = ["ORD-1001"]
+
+    response_base = {
+        "query": query,
+        "data_dir": data_dir,
+        "order_ids": order_ids,
+    }
+
     # 1. Validation
     validation_errors = validate_data_dir(data_dir)
     if validation_errors:
         return {
+            **response_base,
             "status": "error",
             "type": "validation_failed",
             "details": validation_errors
         }
-
-    # 2. Extraction
-    order_ids = extract_order_ids(query)
-    if not order_ids:
-        order_ids = ["ORD-1001"]
 
     # 3. Routing
     if "衝突" in query or "conflict" in query.lower() or len(order_ids) > 1:
         skill_name = "schedule-conflict-check"
         result_data = check_schedule_conflict(order_ids, data_dir)
         return {
+            **response_base,
             "status": "success",
+            "intent": "schedule_conflict_check",
             "skill": skill_name,
             "data": result_data
         }
@@ -68,17 +76,21 @@ def route_query(query, data_dir):
         result_data = analyze_delivery_risk(order_ids[0], data_dir)
         if "error" in result_data:
             return {
+                **response_base,
                 "status": "error",
                 "type": "skill_error",
                 "details": result_data["error"]
             }
         return {
+            **response_base,
             "status": "success",
+            "intent": "delivery_risk_analysis",
             "skill": skill_name,
             "data": result_data
         }
     else:
         return {
+            **response_base,
             "status": "error",
             "type": "unknown_intent",
             "details": "MVP only supports delivery risk and schedule conflict queries."

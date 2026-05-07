@@ -9,7 +9,9 @@ class OrchestratorTest(unittest.TestCase):
         result = route_query("ORD-1001 能不能準時出？", mock_data_dir)
         
         self.assertEqual(result["status"], "success")
+        self.assertEqual(result["intent"], "delivery_risk_analysis")
         self.assertEqual(result["skill"], "delivery-risk-analysis")
+        self.assertEqual(result["order_ids"], ["ORD-1001"])
         self.assertEqual(result["data"]["order_id"], "ORD-1001")
 
     def test_route_query_conflict_intent(self):
@@ -17,7 +19,9 @@ class OrchestratorTest(unittest.TestCase):
         result = route_query("檢查 ORD-1001 和 ORD-1002 有沒有排程衝突", mock_data_dir)
         
         self.assertEqual(result["status"], "success")
+        self.assertEqual(result["intent"], "schedule_conflict_check")
         self.assertEqual(result["skill"], "schedule-conflict-check")
+        self.assertEqual(result["order_ids"], ["ORD-1001", "ORD-1002"])
 
     def test_route_query_validation_failure(self):
         # Create a temp dir with bad data
@@ -31,6 +35,7 @@ class OrchestratorTest(unittest.TestCase):
             
             self.assertEqual(result["status"], "error")
             self.assertEqual(result["type"], "validation_failed")
+            self.assertEqual(result["order_ids"], ["ORD-BAD"])
             self.assertIn("Missing required field", " ".join(result["details"]))
 
     def test_extract_order_ids_csv_style(self):

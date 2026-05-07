@@ -80,6 +80,7 @@ def main():
         else:
             print(f"  {response['details']}")
         sys.exit(1)
+    print("Data Validation Passed.")
 
     # Render
     skill = response["skill"]
