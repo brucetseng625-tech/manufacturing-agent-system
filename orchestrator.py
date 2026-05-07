@@ -34,6 +34,11 @@ def validate_data_dir(data_dir):
 def route_query(query, data_dir):
     """
     Main orchestrator logic.
+    1. Validates data.
+    2. Extracts order IDs.
+    3. Classifies intent.
+    4. Dispatches to skill.
+    5. Returns result or error.
     """
     # 1. Validation
     validation_errors = validate_data_dir(data_dir)

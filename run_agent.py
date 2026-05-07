@@ -6,6 +6,7 @@ import argparse
 from orchestrator import route_query
 
 def print_decision_report(result):
+    """View: Print delivery risk report."""
     print("\n" + "=" * 44)
     print("DECISION REPORT")
     print("=" * 44)
@@ -34,6 +35,7 @@ def print_decision_report(result):
     print("=" * 44)
 
 def print_schedule_report(result):
+    """View: Print schedule conflict report."""
     print("\n" + "=" * 44)
     print("SCHEDULE CONFLICT REPORT")
     print("=" * 44)

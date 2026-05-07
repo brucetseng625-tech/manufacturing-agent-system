@@ -20,8 +20,10 @@ class OrchestratorTest(unittest.TestCase):
         self.assertEqual(result["skill"], "schedule-conflict-check")
 
     def test_route_query_validation_failure(self):
+        # Create a temp dir with bad data
         import tempfile
         with tempfile.TemporaryDirectory() as bad_dir:
+            # orders.csv missing required fields
             with open(os.path.join(bad_dir, "orders.csv"), "w") as f:
                 f.write("order_id\nORD-BAD\n")
             
