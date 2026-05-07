@@ -18,10 +18,19 @@ def extract_order_ids(query):
     match = re.findall(r"\bORD-[A-Z0-9-]+\b", query, re.IGNORECASE)
     return [m.upper() for m in match]
 
-def validate_data_dir(data_dir):
+def validate_data_dir(data_dir, data_files=None):
     """Pre-flight check: validate data consistency."""
     errors = []
-    for filename, schema_key in SCHEMA_MAP.items():
+    schema_items = SCHEMA_MAP.items()
+    if data_files is not None:
+        scoped_files = {}
+        for filename in data_files:
+            base_name = os.path.splitext(filename)[0]
+            scoped_files[f"{base_name}.json"] = base_name
+            scoped_files[f"{base_name}.csv"] = base_name
+        schema_items = scoped_files.items()
+
+    for filename, schema_key in schema_items:
         filepath = os.path.join(data_dir, filename)
         if os.path.exists(filepath):
             data = load_json_or_csv(data_dir, filename)
@@ -46,17 +55,7 @@ def route_query(query, data_dir):
         "order_ids": order_ids,
     }
     
-    # 1. Validation
-    validation_errors = validate_data_dir(data_dir)
-    if validation_errors:
-        return {
-            **response_base,
-            "status": "error",
-            "type": "validation_failed",
-            "details": validation_errors
-        }
-    
-    # 3. Skill Matching via Registry
+    # 1. Skill Matching via Registry
     matched_skill = get_registry().match_skill(query, order_ids)
     
     if matched_skill is None:
@@ -75,8 +74,18 @@ def route_query(query, data_dir):
             "type": "missing_order_id",
             "details": f"Order ID is required for {matched_skill['name']} skill."
         }
+
+    # 2. Validation scoped to the matched skill.
+    validation_errors = validate_data_dir(data_dir, matched_skill.get("data_files"))
+    if validation_errors:
+        return {
+            **response_base,
+            "status": "error",
+            "type": "validation_failed",
+            "details": validation_errors
+        }
     
-    # 4. Execute Skill
+    # 3. Execute Skill
     try:
         result_data = get_registry().execute(matched_skill, order_ids, data_dir)
     except Exception as e:
