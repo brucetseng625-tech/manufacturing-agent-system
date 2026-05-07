@@ -48,12 +48,12 @@ def print_schedule_report(result):
     print(f"Status: {result['status'].upper()}")
     if result["conflicts"]:
         for c in result["conflicts"]:
-            print(f"\n️ CONFLICT on {c['machine_id']}")
+            print(f"\nCONFLICT on {c['machine_id']}")
             print(f"   Time: {c['overlap_start']} ~ {c['overlap_end']}")
             print(f"   Orders: {', '.join(c['orders'])}")
-            print(f"   👑 Winner: {c['winner']} (Priority)")
-            print(f"    Loser: {c['loser']}")
-            print(f"   📝 Suggestion: {c['suggestion']}")
+            print(f"   Winner: {c['winner']} (priority/due-date rule)")
+            print(f"   Loser: {c['loser']}")
+            print(f"   Suggestion: {c['suggestion']}")
     else:
         print("No conflicts found for the selected orders.")
     print()
