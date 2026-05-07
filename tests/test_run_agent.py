@@ -2,7 +2,7 @@ import unittest
 import tempfile
 from pathlib import Path
 
-from run_agent import extract_order_ids, validate_data_dir
+from orchestrator import extract_order_ids, validate_data_dir
 
 
 class RunAgentTest(unittest.TestCase):
