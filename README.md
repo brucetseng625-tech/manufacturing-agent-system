@@ -79,7 +79,7 @@ python3 run_agent.py --asana-task 123456789 "ORD-1001 能不能準時出？"
 Run as a local HTTP service for external integration:
 
 ```bash
-python3 server.py
+python3 server.py --port 8000
 ```
 
 ### Endpoints

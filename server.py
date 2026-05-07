@@ -2,6 +2,7 @@
 import json
 import os
 import sys
+import argparse
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
 
@@ -17,9 +18,9 @@ class AgentHandler(BaseHTTPRequestHandler):
 
     def _send_json_response(self, status_code, data):
         self.send_response(status_code)
-        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Type", "application/json; charset=utf-8")
         self.end_headers()
-        self.wfile.write(json.dumps(data).encode("utf-8"))
+        self.wfile.write(json.dumps(data, ensure_ascii=False).encode("utf-8"))
 
     def do_GET(self):
         parsed_path = urlparse(self.path)
@@ -62,7 +63,10 @@ class AgentHandler(BaseHTTPRequestHandler):
             result = {
                 "status": "error",
                 "type": "internal_error",
-                "details": str(e)
+                "details": str(e),
+                "query": query,
+                "data_dir": data_dir,
+                "order_ids": [],
             }
 
         # Asana Integration
@@ -102,5 +106,12 @@ def run_server(port=DEFAULT_PORT):
     httpd.serve_forever()
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", DEFAULT_PORT))
-    run_server(port)
+    parser = argparse.ArgumentParser(description="Manufacturing Agent HTTP server")
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=int(os.environ.get("PORT", DEFAULT_PORT)),
+        help="Port to listen on",
+    )
+    args = parser.parse_args()
+    run_server(args.port)
