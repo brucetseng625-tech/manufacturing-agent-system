@@ -73,3 +73,31 @@ python3 run_agent.py --asana-task 123456789 "ORD-1001 能不能準時出？"
 - Results are posted as comments to the specified task GID.
 - Both success and failure results are reported.
 - Token must be set via environment variable (never commit tokens).
+
+## Web API / Local Service
+
+Run as a local HTTP service for external integration:
+
+```bash
+python3 server.py
+```
+
+### Endpoints
+
+- **GET /health**
+  ```bash
+  curl http://localhost:8000/health
+  ```
+  Response: `{"status": "ok"}`
+
+- **POST /run**
+  ```bash
+  curl -X POST http://localhost:8000/run     -H "Content-Type: application/json"     -d '{
+      "query": "ORD-1001 能不能準時出？",
+      "data_dir": "mock_data",
+      "asana_task": "123456789"
+    }'
+  ```
+  - **query**: Natural language query.
+  - **data_dir**: Path to data directory (optional, defaults to mock_data).
+  - **asana_task**: Asana Task GID (optional, posts result to task).
