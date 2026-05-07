@@ -15,6 +15,12 @@ Enterprise workflow layer for manufacturing decision support.
 python3 run_agent.py "這張急單 ORD-1001 能不能準時出？"
 ```
 
+Run with CSV sample data:
+
+```bash
+python3 run_agent.py --data-dir data "這張急單 ORD-CSV-001 能不能準時出？"
+```
+
 ## Test
 
 ```bash
@@ -32,6 +38,18 @@ It reads mock data from:
 - `mock_data/materials.json`
 - `mock_data/machines.json`
 - `mock_data/operators.json`
+- `mock_data/schedule.json`
+
+It can also read CSV exports from:
+
+- `data/orders.csv`
+- `data/work_orders.csv`
+- `data/materials.csv`
+- `data/machines.csv`
+- `data/operators.csv`
+- `data/schedule.csv`
+
+Before running an agent workflow, the CLI validates required fields, empty values, numeric fields, and date/datetime formats. If validation fails, the run stops with clear errors.
 
 The report includes:
 

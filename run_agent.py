@@ -114,16 +114,15 @@ def main():
     print(f"Data Source: {data_dir}")
     
     # Data Validation Step
-    print("\n🛡️  Data Validation Check...")
+    print("\nData Validation Check...")
     errors = validate_data_dir(data_dir)
     if errors:
-        print("\n❌ Data Validation Failed:")
+        print("\nData Validation Failed:")
         for err in errors:
             print(f"  - {err}")
-        print("\n⚠️  Agent will attempt to run, but results may be unreliable.")
-        # We don't exit here to allow "best effort" run, but we warn clearly.
+        sys.exit(1)
     else:
-        print("✅ Data Validation Passed.")
+        print("Data Validation Passed.")
 
     order_ids = extract_order_ids(query)
     if not order_ids:
