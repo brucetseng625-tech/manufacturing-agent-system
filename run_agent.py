@@ -5,6 +5,7 @@ import sys
 import argparse
 from orchestrator import route_query
 from integrations.asana_client import post_comment, format_success_report, format_error_report
+from audit_logger import log_run
 
 def print_decision_report(result):
     """View: Print delivery risk report."""
@@ -74,6 +75,9 @@ def main():
     print("\nData Validation Check...")
     response = route_query(query, data_dir)
 
+    exit_code = 0
+    asana_posted = None
+
     if response["status"] == "error":
         print(f"\nOperation Failed ({response['type']}):")
         if isinstance(response['details'], list):
@@ -86,35 +90,41 @@ def main():
         if args.asana_task:
             print(f"\nPosting error to Asana Task {args.asana_task}...")
             comment = format_error_report(response)
-            post_comment(args.asana_task, comment)
+            asana_posted = post_comment(args.asana_task, comment)
             
-        sys.exit(1)
-    print("Data Validation Passed.")
+        exit_code = 1
+    else:
+        print("Data Validation Passed.")
 
-    # Render
-    skill = response["skill"]
-    data = response["data"]
+        # Render
+        skill = response["skill"]
+        data = response["data"]
 
-    if skill == "delivery-risk-analysis":
-        print("Routing to: delivery-risk-analysis skill")
-        print_decision_report(data)
-        print("\nRaw JSON")
-        print(json.dumps(data, indent=2, ensure_ascii=False))
-    elif skill == "schedule-conflict-check":
-        print("Routing to: schedule-conflict-check skill")
-        print_schedule_report(data)
-        print("\nRaw JSON")
-        print(json.dumps(data, indent=2, ensure_ascii=False))
+        if skill == "delivery-risk-analysis":
+            print("Routing to: delivery-risk-analysis skill")
+            print_decision_report(data)
+            print("\nRaw JSON")
+            print(json.dumps(data, indent=2, ensure_ascii=False))
+        elif skill == "schedule-conflict-check":
+            print("Routing to: schedule-conflict-check skill")
+            print_schedule_report(data)
+            print("\nRaw JSON")
+            print(json.dumps(data, indent=2, ensure_ascii=False))
 
-    # Post to Asana if requested
-    if args.asana_task:
-        print(f"\nPosting result to Asana Task {args.asana_task}...")
-        comment = format_success_report(response)
-        success = post_comment(args.asana_task, comment)
-        if success:
-            print("Asana comment posted.")
-        else:
-            print("Failed to post Asana comment (check token/network).")
+        # Post to Asana if requested
+        if args.asana_task:
+            print(f"\nPosting result to Asana Task {args.asana_task}...")
+            comment = format_success_report(response)
+            asana_posted = post_comment(args.asana_task, comment)
+            if asana_posted:
+                print("Asana comment posted.")
+            else:
+                print("Failed to post Asana comment (check token/network).")
+
+    # Audit Log
+    log_run(response, "cli", args.asana_task, asana_posted)
+    
+    sys.exit(exit_code)
 
 if __name__ == "__main__":
     main()

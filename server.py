@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 
 from orchestrator import route_query
 from integrations.asana_client import post_comment, format_success_report, format_error_report
+from audit_logger import log_run
 
 DEFAULT_PORT = 8000
 
@@ -102,6 +103,9 @@ class AgentHandler(BaseHTTPRequestHandler):
                 status_code = 400
             else:
                 status_code = 500
+
+        # Audit Log
+        log_run(result, "http", asana_task, asana_posted)
 
         self._send_json_response(status_code, response_body)
 

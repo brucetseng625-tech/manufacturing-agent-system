@@ -123,3 +123,31 @@ python3 server.py --port 8000
 ```
 
 - `asana_posted`: `true` (success), `false` (post failed), or `null` (no asana_task provided).
+
+## Audit Log
+
+Every CLI or HTTP execution is automatically recorded in `logs/runs.jsonl` for tracking and debugging.
+
+### Log Format
+One JSON object per line (JSONL):
+```json
+{
+  "timestamp": "2026-05-07T14:30:00.123456+00:00",
+  "channel": "cli",
+  "query": "ORD-1001 出貨",
+  "data_dir": "mock_data",
+  "status": "success",
+  "intent": "delivery_risk_analysis",
+  "order_ids": ["ORD-1001"],
+  "skill": "delivery-risk-analysis",
+  "asana_task": "12345",
+  "asana_posted": true,
+  "error_type": null,
+  "trace": ["loaded orders", "checked risk"]
+}
+```
+
+- `channel`: `cli` or `http`.
+- `trace`: Execution steps from the skill (only for success).
+- `error_type`: Validation or system error type (only for errors).
+- Logs are excluded from Git via `.gitignore`.
