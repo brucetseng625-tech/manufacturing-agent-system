@@ -5,7 +5,7 @@ import tempfile
 import datetime
 from unittest.mock import patch
 
-from audit_logger import log_run
+from audit_logger import log_run, resolve_log_dir
 
 class AuditLoggerTest(unittest.TestCase):
     def test_log_run_success_cli(self):
@@ -94,3 +94,7 @@ class AuditLoggerTest(unittest.TestCase):
             
             # Restore permissions for cleanup
             os.chmod(bad_dir, 0o755)
+
+    def test_resolve_log_dir_uses_env_override(self):
+        with patch.dict(os.environ, {"AGENT_LOG_DIR": "/tmp/agent-runs"}):
+            self.assertEqual(resolve_log_dir(), "/tmp/agent-runs")

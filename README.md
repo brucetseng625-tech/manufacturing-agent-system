@@ -51,6 +51,8 @@ It can also read CSV exports from:
 
 Before running an agent workflow, the CLI validates required fields, empty values, numeric fields, and date/datetime formats. If validation fails, the run stops with clear errors.
 
+Each CLI or HTTP run writes a JSONL audit record to `logs/runs.jsonl` under the current working directory. Set `AGENT_LOG_DIR` to write logs elsewhere.
+
 The report includes:
 
 - delivery decision

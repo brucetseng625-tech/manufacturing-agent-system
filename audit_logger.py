@@ -3,7 +3,12 @@ import os
 import datetime
 import sys
 
-def log_run(result, channel, asana_task=None, asana_posted=None, log_dir="logs"):
+
+def resolve_log_dir(log_dir=None):
+    return log_dir or os.environ.get("AGENT_LOG_DIR") or os.path.abspath("logs")
+
+
+def log_run(result, channel, asana_task=None, asana_posted=None, log_dir=None):
     """
     Append a structured JSONL record for the current run.
     
@@ -15,8 +20,9 @@ def log_run(result, channel, asana_task=None, asana_posted=None, log_dir="logs")
         log_dir (str): Directory to store logs (default: "logs").
     """
     try:
-        os.makedirs(log_dir, exist_ok=True)
-        log_path = os.path.join(log_dir, "runs.jsonl")
+        resolved_log_dir = resolve_log_dir(log_dir)
+        os.makedirs(resolved_log_dir, exist_ok=True)
+        log_path = os.path.join(resolved_log_dir, "runs.jsonl")
         
         # Extract trace from data if available, else empty list
         trace = []
