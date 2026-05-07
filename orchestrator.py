@@ -1,11 +1,9 @@
-
 import json
 import os
 import re
 from data_loader import load_json_or_csv
 from data_validator import validate_dataset
-from skills.delivery_risk import analyze_delivery_risk
-from skills.schedule_conflict_check import check_schedule_conflict
+from skills.registry import get_registry
 
 SCHEMA_MAP = {
     "orders.json": "orders", "orders.csv": "orders",
@@ -33,23 +31,21 @@ def validate_data_dir(data_dir):
 
 def route_query(query, data_dir):
     """
-    Main orchestrator logic.
+    Main orchestrator logic using Skill Registry.
     1. Validates data.
     2. Extracts order IDs.
-    3. Classifies intent.
+    3. Matches skill via registry.
     4. Dispatches to skill.
     5. Returns result or error.
     """
     order_ids = extract_order_ids(query)
-    if not order_ids:
-        order_ids = ["ORD-1001"]
-
+    
     response_base = {
         "query": query,
         "data_dir": data_dir,
         "order_ids": order_ids,
     }
-
+    
     # 1. Validation
     validation_errors = validate_data_dir(data_dir)
     if validation_errors:
@@ -59,39 +55,51 @@ def route_query(query, data_dir):
             "type": "validation_failed",
             "details": validation_errors
         }
-
-    # 3. Routing
-    if "衝突" in query or "conflict" in query.lower() or len(order_ids) > 1:
-        skill_name = "schedule-conflict-check"
-        result_data = check_schedule_conflict(order_ids, data_dir)
-        return {
-            **response_base,
-            "status": "success",
-            "intent": "schedule_conflict_check",
-            "skill": skill_name,
-            "data": result_data
-        }
-    elif "準時" in query or "出貨" in query or "delivery" in query.lower():
-        skill_name = "delivery-risk-analysis"
-        result_data = analyze_delivery_risk(order_ids[0], data_dir)
-        if "error" in result_data:
-            return {
-                **response_base,
-                "status": "error",
-                "type": "skill_error",
-                "details": result_data["error"]
-            }
-        return {
-            **response_base,
-            "status": "success",
-            "intent": "delivery_risk_analysis",
-            "skill": skill_name,
-            "data": result_data
-        }
-    else:
+    
+    # 3. Skill Matching via Registry
+    matched_skill = get_registry().match_skill(query, order_ids)
+    
+    if matched_skill is None:
         return {
             **response_base,
             "status": "error",
             "type": "unknown_intent",
-            "details": "MVP only supports delivery risk and schedule conflict queries."
+            "details": "No skill matched your query. Try keywords like '準時', '出貨', '衝突', or provide multiple order IDs."
         }
+    
+    # Check if skill requires order ID but none provided
+    if matched_skill.get("requires_order_id") and not order_ids:
+        return {
+            **response_base,
+            "status": "error",
+            "type": "missing_order_id",
+            "details": f"Order ID is required for {matched_skill['name']} skill."
+        }
+    
+    # 4. Execute Skill
+    try:
+        result_data = get_registry().execute(matched_skill, order_ids, data_dir)
+    except Exception as e:
+        return {
+            **response_base,
+            "status": "error",
+            "type": "skill_error",
+            "details": str(e)
+        }
+    
+    # 5. Return Success
+    if "error" in result_data:
+        return {
+            **response_base,
+            "status": "error",
+            "type": "skill_error",
+            "details": result_data["error"]
+        }
+    
+    return {
+        **response_base,
+        "status": "success",
+        "intent": matched_skill["intent"],
+        "skill": matched_skill["name"],
+        "data": result_data
+    }

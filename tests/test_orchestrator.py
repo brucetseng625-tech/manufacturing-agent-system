@@ -40,3 +40,29 @@ class OrchestratorTest(unittest.TestCase):
 
     def test_extract_order_ids_csv_style(self):
         self.assertEqual(extract_order_ids("ORD-CSV-001 出貨"), ["ORD-CSV-001"])
+
+    def test_route_query_unknown_intent(self):
+        """Unknown intent returns unknown_intent error."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("幫我查天氣", mock_data_dir)
+        
+        self.assertEqual(result["status"], "error")
+        self.assertEqual(result["type"], "unknown_intent")
+        self.assertEqual(result["order_ids"], [])
+
+    def test_route_query_missing_order_id(self):
+        """Query with delivery keywords but no order ID returns missing_order_id."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("準時出貨", mock_data_dir)
+        
+        self.assertEqual(result["status"], "error")
+        self.assertEqual(result["type"], "missing_order_id")
+        self.assertEqual(result["order_ids"], [])
+
+    def test_route_query_multi_order_triggers_conflict(self):
+        """Multiple order IDs auto-route to schedule_conflict_check."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("ORD-1001 和 ORD-1002", mock_data_dir)
+        
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["intent"], "schedule_conflict_check")

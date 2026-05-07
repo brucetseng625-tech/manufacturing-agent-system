@@ -153,3 +153,38 @@ One JSON object per line (JSONL):
 - `trace`: Execution steps from the skill (only for success).
 - `error_type`: Validation or system error type (only for errors).
 - Logs are excluded from Git via `.gitignore`.
+
+## How to Add a Skill
+
+To add a new skill (e.g., `quote-comparison`, `sales-analysis`), follow these steps:
+
+1. **Create the skill module** in `skills/your_skill.py`:
+   ```python
+   def handle_your_skill(order_ids, data_dir):
+       # Your logic here
+       return {"decision": "result", "trace": ["step1", "step2"]}
+   ```
+
+2. **Register the skill** in `skills/registry.py`:
+   ```python
+   from skills.your_skill import handle_your_skill
+   
+   self.register({
+       "name": "quote-comparison",           # Skill identifier
+       "intent": "quote_comparison",         # Intent string for response
+       "keywords": ["報價", "quote", "price"],# Trigger keywords
+       "handler": handle_your_skill,         # Function to call
+       "requires_order_id": True,            # Does it need order ID?
+       "triggers_on_multi_order": False,     # Auto-route if multiple orders?
+       "data_files": ["orders.json"]         # Required data files
+   })
+   ```
+
+3. **Add tests** in `tests/test_your_skill.py`.
+
+4. **Run all tests** to ensure nothing breaks:
+   ```bash
+   python3 -B -m unittest discover -s tests
+   ```
+
+No changes needed in `orchestrator.py`, `server.py`, or `run_agent.py` — the registry handles routing automatically.
