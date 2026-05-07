@@ -55,6 +55,9 @@ class ServerTest(unittest.TestCase):
             self.assertEqual(data["status"], "success")
             self.assertEqual(data["intent"], "delivery_risk_analysis")
             self.assertEqual(data["data"]["order_id"], "ORD-1001")
+            # New fields check
+            self.assertIsNone(data.get("asana_task"))
+            self.assertIsNone(data.get("asana_posted"))
 
     @patch("server.route_query")
     def test_run_validation_error(self, mock_route):
@@ -76,16 +79,19 @@ class ServerTest(unittest.TestCase):
             self.assertEqual(e.code, 400)
             self.assertEqual(data["status"], "error")
             self.assertIn("Missing field", data["error"])
+            self.assertIsNone(data.get("asana_posted"))
 
     @patch("server.post_comment")
     @patch("server.route_query")
-    def test_run_with_asana_integration(self, mock_route, mock_post):
+    def test_run_asana_success_posted(self, mock_route, mock_post):
+        """Success + Asana posted"""
         mock_route.return_value = {
             "status": "success",
             "intent": "delivery_risk_analysis",
             "order_ids": ["ORD-1001"],
             "data": {"order_id": "ORD-1001"}
         }
+        mock_post.return_value = True
         
         url = f"http://localhost:{self.port}/run"
         payload = json.dumps({
@@ -95,11 +101,69 @@ class ServerTest(unittest.TestCase):
         }).encode("utf-8")
         req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
         
-        with urllib.request.urlopen(req):
-            pass
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read())
+            self.assertEqual(data["asana_task"], "12345")
+            self.assertTrue(data["asana_posted"])
             
         mock_post.assert_called_once()
-        self.assertIn("12345", str(mock_post.call_args))
+
+    @patch("server.post_comment")
+    @patch("server.route_query")
+    def test_run_asana_success_failed(self, mock_route, mock_post):
+        """Success + Asana failed (should return asana_posted=False but status=success)"""
+        mock_route.return_value = {
+            "status": "success",
+            "intent": "delivery_risk_analysis",
+            "order_ids": ["ORD-1001"],
+            "data": {"order_id": "ORD-1001"}
+        }
+        mock_post.side_effect = Exception("API Error")
+        
+        url = f"http://localhost:{self.port}/run"
+        payload = json.dumps({
+            "query": "ORD-1001 出貨", 
+            "data_dir": "mock_data",
+            "asana_task": "12345"
+        }).encode("utf-8")
+        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+        
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read())
+            self.assertEqual(response.status, 200)
+            self.assertEqual(data["status"], "success")
+            self.assertEqual(data["asana_task"], "12345")
+            self.assertFalse(data["asana_posted"])
+
+    @patch("server.post_comment")
+    @patch("server.route_query")
+    def test_run_asana_validation_error_posted(self, mock_route, mock_post):
+        """Validation Error + Asana posted"""
+        mock_route.return_value = {
+            "status": "error",
+            "type": "validation_failed",
+            "details": ["Missing field"],
+            "order_ids": ["ORD-BAD"]
+        }
+        mock_post.return_value = True
+
+        url = f"http://localhost:{self.port}/run"
+        payload = json.dumps({
+            "query": "ORD-BAD 出貨", 
+            "data_dir": "mock_data",
+            "asana_task": "12345"
+        }).encode("utf-8")
+        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+        
+        try:
+            urllib.request.urlopen(req)
+        except urllib.error.HTTPError as e:
+            data = json.loads(e.read())
+            self.assertEqual(e.code, 400)
+            self.assertEqual(data["asana_task"], "12345")
+            self.assertTrue(data["asana_posted"])
+            
+        mock_post.assert_called_once()
 
     def test_run_invalid_json(self):
         url = f"http://localhost:{self.port}/run"

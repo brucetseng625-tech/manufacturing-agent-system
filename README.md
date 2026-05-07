@@ -101,3 +101,18 @@ python3 server.py --port 8000
   - **query**: Natural language query.
   - **data_dir**: Path to data directory (optional, defaults to mock_data).
   - **asana_task**: Asana Task GID (optional, posts result to task).
+
+### Response Format
+
+```json
+{
+  "status": "success",
+  "intent": "delivery_risk_analysis",
+  "order_ids": ["ORD-1001"],
+  "data": { ... },
+  "asana_task": "123456789",
+  "asana_posted": true
+}
+```
+
+- `asana_posted`: `true` (success), `false` (post failed), or `null` (no asana_task provided).

@@ -70,19 +70,25 @@ class AgentHandler(BaseHTTPRequestHandler):
             }
 
         # Asana Integration
+        asana_posted = None
         if asana_task:
-            if result["status"] == "success":
-                comment = format_success_report(result)
-                post_comment(asana_task, comment)
-            else:
-                comment = format_error_report(result)
-                post_comment(asana_task, comment)
+            try:
+                if result["status"] == "success":
+                    comment = format_success_report(result)
+                else:
+                    comment = format_error_report(result)
+                asana_posted = post_comment(asana_task, comment)
+            except Exception as e:
+                # Log error but don't fail the agent run
+                asana_posted = False
 
         # Return response
         response_body = {
             "status": result["status"],
             "intent": result.get("intent"),
             "order_ids": result.get("order_ids"),
+            "asana_task": asana_task,
+            "asana_posted": asana_posted,
         }
         
         if result["status"] == "success":
