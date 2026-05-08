@@ -3,10 +3,14 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
+- `0d89cac` `docs: correct commit refs`
+
+Latest verified feature commit on `main`:
 - `32c3e93` `feat(p6): add circuit breaker for live provider`
 
-Latest roadmap sync commit on `main`:
+Latest roadmap sync commits on `main`:
 - `6e73349` `docs: sync next steps after circuit breaker phase`
+- `0d89cac` `docs: correct commit refs`
 - Full unit test status at handoff: `404 / 404 passed`
 - Smoke test status at handoff: `38 / 38 passed`
 - Setup verification status at handoff: `51 / 51 passed`
