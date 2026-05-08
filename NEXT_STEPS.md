@@ -51,6 +51,11 @@ Current post-P4 follow-up:
 - Config-driven via live_provider.circuit_breaker (failure_threshold + recovery_seconds)
 - AutoFailoverProvider uses circuit breaker in auto mode
 - Recovery probing after timeout allows live source reconnection
+- P6 Phase 4 implemented: Server Access Logging
+- Structured JSONLines access log at logs/access.log
+- Records timestamp, method, path, status_code, duration_ms, client, run_id
+- Config-driven via logging.access_log (MAS_ACCESS_LOG env)
+- Thread-safe file writes with flush
 - New endpoints: `GET /config`, `POST /config/reload`
 - CLI now supports `--show-config` for centralized config inspection
 
@@ -117,7 +122,7 @@ Goal: Add production-safe configuration and access controls on top of the comple
 | ~~P6~~ | ~~Config management layer~~ | ~~Centralize runtime configuration with file + env override~~ | ~~Loader, config endpoints, CLI view, tests~~ | ~~P5 complete~~ | ~~Codex~~ |
 | ~~P6~~ | ~~API token auth~~ | ~~Protect HTTP endpoints~~ | ~~Auth middleware, config integration, tests~~ | ~~Config layer available~~ | ~~Codex~~ |
 | ~~P6~~ | ~~Circuit breaker for live provider~~ | ~~Fail safely and recover automatically~~ | ~~Failure threshold, reset window, tests~~ | ~~Provider layer stable~~ | ~~Codex~~ |
-| P6 | Server access logging | Structured HTTP access log for audit/support | Access log format, request timing, tests | Observability layer available | Codex |
+| ~~P6~~ | ~~Server access logging~~ | ~~Structured HTTP access log for audit/support~~ | ~~Access log format, request timing, tests~~ | ~~Observability layer available~~ | ~~Codex~~ |
 
 ## Start Here
 

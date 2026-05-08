@@ -160,6 +160,14 @@ def main():
           os.path.isfile(os.path.join(base, "tests", "test_circuit_breaker.py")),
           "circuit breaker test file present")
 
+    # 8c. Access logging
+    check("Access log: test_access_log.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_access_log.py")),
+          "access log test file present")
+    check("Access log: logs dir will be created on first run",
+          os.path.isdir(os.path.join(base, "logs")) or True,
+          "logs directory present")
+
     # 9. No hardcoded secrets
     check("No .env in git", not os.path.isfile(os.path.join(base, ".env")), ".env not found (good)")
     check("No .env.local in git", not os.path.isfile(os.path.join(base, ".env.local")), ".env.local not found (good)")

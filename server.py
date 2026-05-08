@@ -2,7 +2,9 @@
 import json
 import os
 import sys
+import time
 import argparse
+import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
@@ -23,6 +25,30 @@ from config import (
     reload_config,
     resolve_repo_path,
 )
+
+# ─── Access Logger ───────────────────────────────────────────────────────────
+_access_log_lock = threading.Lock()
+_access_log_file = None
+_access_log_enabled = False
+
+
+def _ensure_access_log(log_dir):
+    global _access_log_file, _access_log_enabled
+    if _access_log_enabled and _access_log_file is None:
+        os.makedirs(log_dir, exist_ok=True)
+        _access_log_file = open(os.path.join(log_dir, "access.log"), "a", encoding="utf-8")
+        _access_log_enabled = True
+
+
+def _write_access_log(entry):
+    if not _access_log_enabled or _access_log_file is None:
+        return
+    with _access_log_lock:
+        try:
+            _access_log_file.write(json.dumps(entry) + "\n")
+            _access_log_file.flush()
+        except Exception:
+            pass
 
 DEFAULT_PORT = 8000
 VALID_DATA_SOURCES = ("local", "live", "auto")
@@ -64,6 +90,7 @@ class AgentHandler(BaseHTTPRequestHandler):
         pass
 
     def _send_json_response(self, status_code, data):
+        self._status_code = status_code
         self.send_response(status_code)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.end_headers()
@@ -89,7 +116,34 @@ class AgentHandler(BaseHTTPRequestHandler):
         if content_length > 0:
             self.rfile.read(content_length)
 
+    def _log_access(self, start_time, path, method):
+        """Record structured access log entry."""
+        if not _access_log_enabled:
+            return
+        duration_ms = round((time.monotonic() - start_time) * 1000, 1)
+        client = self.client_address[0] if self.client_address else "unknown"
+        # Try to get run_id from thread-local context if available
+        run_id = getattr(self, "_run_id", None)
+        entry = {
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "method": method,
+            "path": path,
+            "status_code": getattr(self, "_status_code", 0),
+            "duration_ms": duration_ms,
+            "client": client,
+        }
+        if run_id:
+            entry["run_id"] = run_id
+        _write_access_log(entry)
+
     def do_GET(self):
+        start = time.monotonic()
+        try:
+            self._dispatch_get()
+        finally:
+            self._log_access(start, self.path, "GET")
+
+    def _dispatch_get(self):
         parsed_path = urlparse(self.path)
         path = parsed_path.path
 
@@ -324,6 +378,13 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._send_error_response(500, "internal_error", "Failed to query history", str(e))
 
     def do_POST(self):
+        start = time.monotonic()
+        try:
+            self._dispatch_post()
+        finally:
+            self._log_access(start, self.path, "POST")
+
+    def _dispatch_post(self):
         parsed_path = urlparse(self.path)
         path = parsed_path.path
 
@@ -541,7 +602,17 @@ class AgentHandler(BaseHTTPRequestHandler):
 
         self._send_json_response(status_code, response_body)
 
-def run_server(port=DEFAULT_PORT):
+def run_server(port=DEFAULT_PORT, enable_access_log=None, log_dir=None):
+    global _access_log_enabled, _access_log_file
+    if enable_access_log is None:
+        enable_access_log = get_config_value("logging.access_log", False, raw=True)
+    if log_dir is None:
+        log_dir = resolve_repo_path(get_config_value("paths.log_dir", "logs"))
+    
+    _access_log_enabled = bool(enable_access_log)
+    if _access_log_enabled:
+        _ensure_access_log(log_dir)
+    
     server_address = ("", port)
     httpd = HTTPServer(server_address, AgentHandler)
     print(f"Agent Server running on port {port}")
