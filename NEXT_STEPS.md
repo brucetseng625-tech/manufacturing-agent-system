@@ -5,6 +5,13 @@ Last updated: 2026-05-08
 Current latest completed GitHub commit on `main`:
 - `c424f82` `feat: add observability and traceability — run IDs, structured logs, Asana trace linking`
 
+Latest validated local follow-up (not yet pushed):
+- `09a695f` `feat: add recovery planning team workflow`
+- Full unit test status for local follow-up: `304 / 304 passed`
+- Smoke test status for local follow-up: `33 / 33 passed`
+- Setup verification status for local follow-up: `42 / 42 passed`
+- Working tree after local follow-up validation: clean
+
 Accepted P4 completion context:
 - `016a200` `feat: implement configurable rules / policy layer`
 - `09cb43c` `feat: add deployment readiness — runbook, smoke tests, setup verification`
@@ -58,7 +65,7 @@ When a new Codex / AI session starts, do this first:
 1. Pull latest `main`
 2. Read this file
 3. Check `skills/registry.py`, `run_agent.py`, `integrations/asana_client.py`
-4. Start with the top unfinished item in the Priority 1 section unless the user explicitly reprioritizes
+4. Start with the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 ## Roadmap Table
 
@@ -89,10 +96,10 @@ First actions:
 1. Pull latest main
 2. Read NEXT_STEPS.md
 3. Confirm latest completed commit
-4. Continue from the next unfinished item after P4 unless the user reprioritizes
+4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-Continue from the next unfinished phase after P4 based on the current roadmap
+If `09a695f` has already been pushed, start from the next roadmap phase after the recovery planning team workflow. Otherwise, validate/push `09a695f` first.
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them
