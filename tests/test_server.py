@@ -219,6 +219,7 @@ class ServerTest(unittest.TestCase):
             self.assertIn("delivery-risk-analysis", names)
             # Check at least one team
             self.assertTrue(any("team:" in n for n in names))
+            self.assertIn("team:recovery-planning", names)
 
     def test_get_skills_item_structure(self):
         """Each skill/team item has expected fields."""

@@ -3,21 +3,21 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `23f40d4` `fix: correct supplier followup shortage blockers`
+- `c424f82` `feat: add observability and traceability — run IDs, structured logs, Asana trace linking`
 
-Accepted P3 completion context:
-- Base feature commit: `ef55c0d` `feat: add supplier-followup-draft skill for supplier communication`
-- Acceptance fix commit: `23f40d4` `fix: correct supplier followup shortage blockers`
-- Full test status at handoff: `259 / 259 passed`
-- Smoke tests confirmed:
-  - `ORD-1001 供應商跟進草稿` -> `supplier-followup-draft`
-  - `ORD-1001 supplier followup draft` -> `supplier-followup-draft`
-  - Missing order ID returns `missing_order_id`
-  - `/skills` correctly lists `supplier-followup-draft`
-- Acceptance fix summary:
-  - Supplier draft body correctly stated `shortage 30 units`
-  - `Top Blockers` had incorrectly shown `shortage: 0 units`
-  - This is now fixed so both surfaces are consistent
+Accepted P4 completion context:
+- `016a200` `feat: implement configurable rules / policy layer`
+- `09cb43c` `feat: add deployment readiness — runbook, smoke tests, setup verification`
+- `c424f82` `feat: add observability and traceability — run IDs, structured logs, Asana trace linking`
+- Full unit test status at handoff: `301 / 301 passed`
+- Smoke test status at handoff: `30 / 30 passed`
+- Setup verification status at handoff: `42 / 42 passed`
+- Working tree at handoff: clean
+
+Current post-P4 follow-up:
+- Additional planning refinements implemented as an integrated recovery planning team workflow
+- New team workflow: `team:recovery-planning`
+- Scope: bundle shortage recovery, expedite options, capacity rebalance, and supplier follow-up into one coordinated planning entrypoint
 
 Current completed scope:
 - delivery-risk-analysis
@@ -46,8 +46,10 @@ Current completed scope:
 - material-shortage-recovery skill
 - capacity-rebalance skill
 - supplier-followup-draft skill
-|- configurable rules / policy layer
-|- observability and traceability
+- configurable rules / policy layer
+- deployment readiness
+- observability and traceability
+- recovery planning team workflow
 
 ## Start Here
 
@@ -62,7 +64,7 @@ When a new Codex / AI session starts, do this first:
 
 | Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
 | --- | --- | --- | --- | --- | --- |
-| P4 | Configurable rules / policy layer | Move decision rules out of hardcoded logic | Rule config structure, loader, tests | Existing skills stable | Codex |
+| ~~P4~~ | ~~Configurable rules / policy layer~~ | ~~Move decision rules out of hardcoded logic~~ | ~~Rule config structure, loader, tests~~ | ~~Existing skills stable~~ | ~~Codex~~ |
 | ~~P4~~ | ~~Deployment readiness~~ | ~~Prepare for actual internal use~~ | ~~Runbook, config docs, server mode validation~~ | ~~API and error handling maturity~~ | ~~Codex~~ |
 | ~~P4~~ | ~~Observability and traceability~~ | ~~Make runs easier to audit and support~~ | ~~Run IDs, structured logs, Asana trace linking~~ | ~~Audit log and API available~~ | ~~Codex~~ |
 
@@ -70,10 +72,10 @@ When a new Codex / AI session starts, do this first:
 
 | Order | Work Item | Why Now |
 | --- | --- | --- |
-| 1 | Configurable rules / policy layer | Best next step now that the major P3 skill surface is complete |
+| ~~1~~ | ~~Configurable rules / policy layer~~ | ~~Best next step now that the major P3 skill surface is complete~~ |
 | ~~2~~ | ~~Deployment readiness~~ | ~~Natural follow-on once policy boundaries and runtime expectations are clearer~~ |
 | ~~3~~ | ~~Observability and traceability~~ | ~~High leverage after workflow surface has stabilized~~ |
-| 4 | Additional planning refinements | Reserve for future expansion after core platform hardening |
+| ~~4~~ | ~~Additional planning refinements~~ | ~~Reserve for future expansion after core platform hardening~~ |
 
 ## Ready-To-Use Prompt For The Next AI
 
@@ -87,17 +89,17 @@ First actions:
 1. Pull latest main
 2. Read NEXT_STEPS.md
 3. Confirm latest completed commit
-4. Continue from the top Priority 1 item unless the user reprioritizes
+4. Continue from the next unfinished item after P4 unless the user reprioritizes
 
 Current expected next task:
-Implement Configurable Rules / Policy Layer on top of the current routing, schema, and provider layers
+Continue from the next unfinished phase after P4 based on the current roadmap
 
 Requirements:
-- Reuse the existing routing, schema, team execution, API, and provider layers instead of replacing them
-- Move hardcoded decision thresholds, routing weights/priorities, escalation rules, and rule selections into a configurable policy structure without changing the current user-facing workflow contracts
+- Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them
+- Do not re-open completed P4 work unless a new blocking issue is found
 - Keep the unified schema, history, dashboard, CLI output, and Asana formatting behavior compatible
-- Prefer a minimal, incremental design that can later support per-skill or per-team policy overrides
-- Add tests for config loading, default fallback behavior, and at least one concrete policy override path
+- Prefer minimal, incremental changes
+- Add tests
 - Update README and NEXT_STEPS.md if needed
 - Run tests and report results
 ```

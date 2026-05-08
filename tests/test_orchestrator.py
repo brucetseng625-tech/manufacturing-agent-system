@@ -204,6 +204,27 @@ class OrchestratorTest(unittest.TestCase):
         self.assertEqual(result["status"], "error")
         self.assertEqual(result["type"], "missing_order_id")
 
+    def test_team_recovery_planning(self):
+        """Explicit recovery planning keywords should trigger integrated planning team workflow."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("ORD-1001 recovery planning", mock_data_dir)
+
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["skill"], "team:recovery-planning")
+        self.assertTrue(result.get("is_team"))
+        self.assertIn("shortage", result["data"]["results"])
+        self.assertIn("expedite", result["data"]["results"])
+        self.assertIn("capacity", result["data"]["results"])
+        self.assertIn("supplier", result["data"]["results"])
+
+    def test_team_recovery_planning_missing_order_id(self):
+        """Recovery planning workflow without order ID returns missing_order_id."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("recovery planning", mock_data_dir)
+
+        self.assertEqual(result["status"], "error")
+        self.assertEqual(result["type"], "missing_order_id")
+
     def test_team_execution_trace(self):
         """Team execution should include trace for each step."""
         mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
@@ -214,6 +235,18 @@ class OrchestratorTest(unittest.TestCase):
         self.assertTrue(len(trace) >= 2)
         self.assertIn("executed delivery-risk-analysis via team workflow", trace)
         self.assertIn("executed sales-response-draft via team workflow", trace)
+
+    def test_team_recovery_planning_trace(self):
+        """Recovery planning team trace should include all planning steps."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("ORD-1001 recovery planning", mock_data_dir)
+
+        self.assertEqual(result["status"], "success")
+        trace = result["data"]["trace"]
+        self.assertIn("executed material-shortage-recovery via team workflow", trace)
+        self.assertIn("executed expedite-options via team workflow", trace)
+        self.assertIn("executed capacity-rebalance via team workflow", trace)
+        self.assertIn("executed supplier-followup-draft via team workflow", trace)
 
     def test_team_summary_in_result(self):
         """Team result should include summary with success/failed counts."""

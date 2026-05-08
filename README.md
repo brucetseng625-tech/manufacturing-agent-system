@@ -55,6 +55,12 @@ The current workflows route queries to:
 - `capacity-rebalance`
 - `supplier-followup-draft`
 
+The current team workflows include:
+
+- `team:comprehensive-analysis`
+- `team:risk-response`
+- `team:recovery-planning`
+
 It reads mock data from:
 
 - `mock_data/orders.json`
@@ -234,6 +240,7 @@ Each event includes timestamp, event type, and associated run_id for correlation
 Team workflows execute their steps **in parallel** using `ThreadPoolExecutor` for maximum throughput:
 
 - **Parallel Execution**: All steps in a team run concurrently (e.g., `comprehensive-analysis` runs risk, sales, and internal analysis simultaneously).
+- **Integrated Planning Pack**: `recovery-planning` bundles `material-shortage-recovery`, `expedite-options`, `capacity-rebalance`, and `supplier-followup-draft` for one coordinated recovery/planning view.
 - **Deterministic Ordering**: Despite parallel execution, `results` keys, trace entries, and CLI output always follow the original step definition order.
 - **Partial Failure**: If some steps fail, the team returns `partial_success: true` with successful results intact. If all steps fail, it returns `team_error`.
 - **Summary**: Each team result includes `summary.parallel: true`, `success_count`, and `failed_count`.
@@ -329,6 +336,21 @@ python3 server.py --port 8000
           {"skill": "delivery-risk-analysis", "alias": "risk"},
           {"skill": "sales-response-draft", "alias": "sales"},
           {"skill": "internal-action-summary", "alias": "internal"}
+        ]
+      },
+      {
+        "name": "team:recovery-planning",
+        "intent": "recovery_planning",
+        "type": "team",
+        "requires_order_id": true,
+        "keywords": ["恢復整合", "recovery coordination", "..."],
+        "exact_keywords": ["recovery planning", "恢復規劃包"],
+        "priority": 11,
+        "steps": [
+          {"skill": "material-shortage-recovery", "alias": "shortage"},
+          {"skill": "expedite-options", "alias": "expedite"},
+          {"skill": "capacity-rebalance", "alias": "capacity"},
+          {"skill": "supplier-followup-draft", "alias": "supplier"}
         ]
       }
     ]

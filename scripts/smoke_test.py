@@ -111,7 +111,8 @@ def main():
 
         # 3. Team workflows listed
         teams = [s["name"] for s in data.get("items", []) if s.get("type") == "team"]
-        check("Team workflows listed", len(teams) >= 2, f"teams: {teams}")
+        check("Team workflows listed", len(teams) >= 3, f"teams: {teams}")
+        check("  Team: team:recovery-planning", "team:recovery-planning" in teams)
 
         # 4. Schema endpoint
         data = get("/schema", port)
@@ -138,6 +139,14 @@ def main():
         if data.get("status") == "success":
             results_data = data.get("data", {}).get("results", {})
             check("  Team results present", len(results_data) >= 2, f"steps: {list(results_data.keys())}")
+
+        # 8b. POST /run — recovery planning team workflow
+        data = post("/run", port, {"query": "ORD-1001 recovery planning"})
+        check("POST /run (recovery-planning team)", data.get("status") == "success", f"skill: {data.get('skill')}")
+        if data.get("status") == "success":
+            results_data = data.get("data", {}).get("results", {})
+            expected_steps = {"shortage", "expedite", "capacity", "supplier"}
+            check("  Recovery planning steps present", expected_steps.issubset(results_data.keys()), f"steps: {list(results_data.keys())}")
 
         # 9. POST /run — quote comparison
         data = post("/run", port, {"query": "報價比較"})

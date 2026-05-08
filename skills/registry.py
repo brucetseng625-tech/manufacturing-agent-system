@@ -197,6 +197,24 @@ class SkillRegistry:
             "requires_order_id": True,
             "priority": 9,
         })
+
+        # 3. Recovery Planning Pack
+        # Triggers on explicit integrated recovery/planning requests
+        # Chain: shortage recovery -> expedite -> capacity -> supplier follow-up
+        self.register_team({
+            "name": "recovery-planning",
+            "intent": "recovery_planning",
+            "keywords": ["恢復整合", "recovery coordination", "planning pack", "應變整合", "救援整合"],
+            "exact_keywords": ["recovery planning", "恢復規劃包", "整合恢復方案", "recovery planning pack"],
+            "steps": [
+                {"skill": "material-shortage-recovery", "alias": "shortage"},
+                {"skill": "expedite-options", "alias": "expedite"},
+                {"skill": "capacity-rebalance", "alias": "capacity"},
+                {"skill": "supplier-followup-draft", "alias": "supplier"},
+            ],
+            "requires_order_id": True,
+            "priority": 11,
+        })
         
     def register_team(self, team_config):
         """
