@@ -3,7 +3,7 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `1df3147` `feat: add pluggable data source provider layer with local/live/auto modes`
+- `666a613` `feat: add expedite-options skill for at-risk order recovery planning`
 
 Current completed scope:
 - delivery-risk-analysis
@@ -43,7 +43,7 @@ When a new Codex / AI session starts, do this first:
 
 | Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
 | --- | --- | --- | --- | --- | --- |
-| P3 | New recovery / planning skills | Expand practical manufacturing use cases | `expedite-options`, `material-shortage-recovery`, `capacity-rebalance`, `supplier-followup-draft` | Routing and schema should be stronger first | Feature AI |
+| P3 | New recovery / planning skills | Expand practical manufacturing use cases | `material-shortage-recovery`, `capacity-rebalance`, `supplier-followup-draft` | Routing and schema should be stronger first | Feature AI |
 | P4 | Configurable rules / policy layer | Move decision rules out of hardcoded logic | Rule config structure, loader, tests | Existing skills stable | Codex |
 | P4 | Deployment readiness | Prepare for actual internal use | Runbook, config docs, server mode validation | API and error handling maturity | Codex |
 | P4 | Observability and traceability | Make runs easier to audit and support | Run IDs, structured logs, Asana trace linking | Audit log and API available | Codex |
@@ -52,7 +52,7 @@ When a new Codex / AI session starts, do this first:
 
 | Order | Work Item | Why Now |
 | --- | --- | --- |
-| 1 | New recovery / planning skills | Best next step now that the provider layer and fallback story are in place |
+| 1 | New recovery / planning skills | Best next step now that expedite-options established the planning-skill pattern |
 | 2 | Configurable rules / policy layer | Good follow-on once the next wave of skills expands rule complexity |
 | 3 | Deployment readiness | Worth revisiting after the data source story is decided |
 | 4 | Observability and traceability | Useful once usage volume grows beyond local testing |
@@ -76,7 +76,7 @@ Add the next recovery / planning skill on top of the current routing, schema, an
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, and provider layers instead of replacing them
-- Implement one high-value planning skill such as `expedite-options`, `material-shortage-recovery`, `capacity-rebalance`, or `supplier-followup-draft`
+- Implement `material-shortage-recovery` as the next high-value planning skill, unless the user explicitly reprioritizes to `capacity-rebalance` or `supplier-followup-draft`
 - Keep the unified schema, history, dashboard, and Asana formatting behavior compatible
 - Add tests
 - Update README if needed
