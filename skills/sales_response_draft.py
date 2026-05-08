@@ -74,20 +74,20 @@ def handle_sales_response_draft(order_ids, data_dir, query=None):
     raw_data = {
         "order_id": delivery_report.get("order_id"),
         "customer": delivery_report.get("customer"),
-        "product": delivery_report.get("product"),
+        "product": delivery_report.get("details", {}).get("product"),
         "decision": delivery_report.get("decision"),
         "confidence": delivery_report.get("confidence"),
         "shipment_status": _status_label(delivery_report.get("decision")),
         "key_message": _key_message(
-            delivery_report.get("decision"), delivery_report.get("due_date")
+            delivery_report.get("decision"), delivery_report.get("eta")
         ),
-        "internal_guidance": delivery_report.get("recommendation"),
+        "internal_guidance": delivery_report.get("next_action"),
         "risk_summary": actionable_blockers[:3],
         "customer_reply_draft": _draft_customer_message(delivery_report),
         "trace": delivery_report.get("trace", []) + ["generated sales response draft"],
         "owner": "Sales Team",
-        "eta": delivery_report.get("due_date"),
-        "next_action": delivery_report.get("recommendation"),
+        "eta": delivery_report.get("eta"),
+        "next_action": delivery_report.get("next_action"),
         "escalation": delivery_report.get("escalation"),
     }
     

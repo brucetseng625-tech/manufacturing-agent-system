@@ -31,6 +31,9 @@ class SalesResponseDraftTest(unittest.TestCase):
         self.assertEqual(result["intent"], "sales_response_draft")
         self.assertEqual(result["skill"], "sales-response-draft")
         self.assertEqual(result["data"]["details"]["shipment_status"], "recovery_in_progress")
+        self.assertEqual(result["data"]["eta"], "2026-05-15")
+        self.assertIn("2026-05-15", result["data"]["details"]["key_message"])
+        self.assertTrue(result["data"]["next_action"])
         self.assertIn("may be impacted", result["data"]["reply_draft"])
         self.assertIn("generated sales response draft", result["data"]["trace"])
 
@@ -41,6 +44,8 @@ class SalesResponseDraftTest(unittest.TestCase):
 
         self.assertEqual(result["status"], "success")
         self.assertEqual(result["details"]["shipment_status"], "on_track")
+        self.assertEqual(result["eta"], "2026-06-01")
+        self.assertTrue(result["next_action"])
         self.assertIn("remain on schedule", result["reply_draft"])
         self.assertEqual(result["blockers"], [])
 

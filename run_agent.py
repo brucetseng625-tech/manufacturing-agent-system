@@ -65,7 +65,10 @@ def print_quote_report(result):
     print("\n" + "=" * 44)
     print("QUOTE COMPARISON REPORT")
     print("=" * 44)
-    materials = result.get("details", {}).get("materials", [result])
+    details = result.get("details", {})
+    materials = details.get("materials")
+    if not materials:
+        materials = [{**details, "decision": result.get("decision"), "confidence": result.get("confidence")}]
     if materials and isinstance(materials, list):
         for m in materials:
             print(f"\nMaterial: {m.get('material')}")

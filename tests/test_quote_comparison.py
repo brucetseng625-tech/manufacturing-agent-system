@@ -57,6 +57,7 @@ class QuoteComparisonTest(unittest.TestCase):
         self.assertIn("recommended_supplier", result["details"])
         self.assertIn("price_spread", result["details"])
         self.assertIn("risks", result["details"])
+        self.assertEqual(result["details"]["material"], "Steel")
 
     def test_unspecified_material_returns_all_materials(self):
         """Generic quote query returns all material summaries."""
