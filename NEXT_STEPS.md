@@ -3,17 +3,13 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- P7-1 in progress — provider capability registry + readiness flags
+- `e941c91` `feat(p7): add provider capability registry + readiness flags`
 
 Latest verified feature commit on `main`:
-- `03fcf6c` `feat(p6): add structured server access logging`
+- `e941c91` `feat(p7): add provider capability registry + readiness flags`
 
-P6 completed commits:
-- `03fcf6c` `feat(p6): add structured server access logging`
-- `9130174` `docs: add access logging documentation and config example`
-- `54e4b7f` `docs: final sync after P6 completion`
-- `6e73349` `docs: sync next steps after circuit breaker phase`
-- `0d89cac` `docs: correct commit refs`
+Latest roadmap sync commit on `main`:
+- `e941c91` `feat(p7): add provider capability registry + readiness flags`
 - Full unit test status at handoff: `434 / 434 passed`
 - Smoke test status at handoff: `40 / 40 passed`
 - Setup verification status at handoff: `56 / 56 passed`
@@ -59,6 +55,11 @@ Current post-P4 follow-up:
 - Records timestamp, method, path, status_code, duration_ms, client, run_id
 - Config-driven via logging.access_log (MAS_ACCESS_LOG env)
 - Thread-safe file writes with flush
+- P7 Phase 1 implemented: Provider Capability Registry + Readiness Flags
+- New endpoint: `GET /provider/status`
+- ProviderCapability enum: read, write, health_check
+- ProviderReadiness enum: ready, not_configured, degraded, disabled, circuit_open
+- Provider status now exposes readiness, capabilities, and auto-failover sub-provider details
 - New endpoints: `GET /config`, `POST /config/reload`
 - CLI now supports `--show-config` for centralized config inspection
 
@@ -100,6 +101,8 @@ Current completed scope:
 - config management layer
 - api token auth
 - circuit breaker for live provider
+- server access logging
+- provider capability registry + readiness flags
 
 ## P5 Productionization / Live Integration Planning
 
@@ -127,6 +130,19 @@ Goal: Add production-safe configuration and access controls on top of the comple
 | ~~P6~~ | ~~Circuit breaker for live provider~~ | ~~Fail safely and recover automatically~~ | ~~Failure threshold, reset window, tests~~ | ~~Provider layer stable~~ | ~~Codex~~ |
 | ~~P6~~ | ~~Server access logging~~ | ~~Structured HTTP access log for audit/support~~ | ~~Access log format, request timing, tests~~ | ~~Observability layer available~~ | ~~Codex~~ |
 
+## P7 Live Integration Readiness
+
+Goal: Make provider capabilities, live readiness, and degraded-mode behavior explicit before deeper real-source integration.
+
+### Roadmap
+
+| Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
+| --- | --- | --- | --- | --- | --- |
+| ~~P7~~ | ~~Provider capability registry + readiness flags~~ | ~~Expose what each provider can do and whether it is ready~~ | ~~Capability metadata, readiness states, `/provider/status`, tests~~ | ~~P6 complete~~ | ~~Codex~~ |
+| P7 | Live provider health check and diagnostics | Detect real-source connectivity and failure causes | Health checks, diagnostics output, tests | Provider status available | Codex |
+| P7 | Per-provider rollout controls | Control exposure of live features by provider | Config gates, rollout flags, tests | Config layer + provider readiness | Codex |
+| P7 | Safe fallback and degraded-mode visibility | Make degraded operation explicit and supportable | Fallback visibility, degraded status surfacing, tests | Health checks + rollout controls | Codex |
+
 ## Start Here
 
 When a new Codex / AI session starts, do this first:
@@ -152,9 +168,10 @@ When a new Codex / AI session starts, do this first:
 | ~~2~~ | ~~Deployment readiness~~ | ~~Natural follow-on once policy boundaries and runtime expectations are clearer~~ |
 | ~~3~~ | ~~Observability and traceability~~ | ~~High leverage after workflow surface has stabilized~~ |
 | ~~4~~ | ~~Additional planning refinements~~ | ~~Reserve for future expansion after core platform hardening~~ |
-| 5 | Provider capability registry + readiness flags | Foundation for live integration readiness |
+| ~~5~~ | ~~Provider capability registry + readiness flags~~ | ~~Foundation for live integration readiness~~ |
 | 6 | Live provider health check | Diagnostics for production ERP/MCP sources |
 | 7 | Per-provider rollout controls | Config-driven deployment controls |
+| 8 | Safe fallback and degraded-mode visibility | Make degraded live behavior visible and operable |
 
 ## Ready-To-Use Prompt For The Next AI
 
