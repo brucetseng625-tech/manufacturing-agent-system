@@ -772,6 +772,33 @@ Configure via `config.json`:
 
 Set `failure_threshold` to `0` (default) to disable the circuit breaker and use simple failover.
 
+### Server Access Logging
+
+Enable structured HTTP access logging to track all requests to the server:
+
+```json
+{
+  "logging": {
+    "access_log": true
+  }
+}
+```
+
+Or via environment variable:
+
+```bash
+export MAS_ACCESS_LOG=true
+```
+
+Access logs are written as JSONLines to `logs/access.log`:
+
+```json
+{"timestamp": "2026-05-08T14:30:00Z", "method": "GET", "path": "/health", "status_code": 200, "duration_ms": 0.5, "client": "127.0.0.1"}
+{"timestamp": "2026-05-08T14:30:01Z", "method": "POST", "path": "/run", "status_code": 200, "duration_ms": 45.2, "client": "127.0.0.1", "run_id": "run-20260508-abc123"}
+```
+
+Each entry includes: `timestamp`, `method`, `path`, `status_code`, `duration_ms`, `client`, and optionally `run_id`.
+
 ## How to Add a Skill
 
 To add a new skill (e.g., `quote-comparison`, `sales-analysis`), follow these steps:

@@ -12,6 +12,9 @@
     "policy_config": "policies/active.json",
     "log_dir": "logs"
   },
+  "logging": {
+    "access_log": false
+  },
   "security": {
     "api_token": "replace-me"
   },
