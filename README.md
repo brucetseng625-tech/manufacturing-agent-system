@@ -120,6 +120,16 @@ The output includes:
 
 Add new fields to `data_validator.py` SCHEMAS dict. Optional fields should be added to the `types` section (not `required`) to maintain backward compatibility with existing data files.
 
+## Team Workflow Execution
+
+Team workflows execute their steps **in parallel** using `ThreadPoolExecutor` for maximum throughput:
+
+- **Parallel Execution**: All steps in a team run concurrently (e.g., `comprehensive-analysis` runs risk, sales, and internal analysis simultaneously).
+- **Deterministic Ordering**: Despite parallel execution, `results` keys, trace entries, and CLI output always follow the original step definition order.
+- **Partial Failure**: If some steps fail, the team returns `partial_success: true` with successful results intact. If all steps fail, it returns `team_error`.
+- **Summary**: Each team result includes `summary.parallel: true`, `success_count`, and `failed_count`.
+- **Future Dependencies**: The current design assumes steps are independent. Future versions may support step dependencies for sequential sub-chains.
+
 Each CLI or HTTP run writes a JSONL audit record to `logs/runs.jsonl` under the current working directory. Set `AGENT_LOG_DIR` to write logs elsewhere.
 
 The report includes:

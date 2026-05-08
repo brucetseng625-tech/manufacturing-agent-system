@@ -258,15 +258,20 @@ class SkillRegistry:
     
     def execute_team(self, team_config, order_ids, data_dir, query=None):
         """
-        Execute a team workflow by chaining multiple skills.
-        Returns a unified team output with success/failure counts.
+        Execute a team workflow by running steps in parallel.
+        Results are assembled in the original step order for deterministic output.
         """
+        import concurrent.futures
+        
+        steps = team_config.get("steps", [])
+        # Pre-allocate results in step order
         results = {}
         trace = []
         success_count = 0
         failed_count = 0
-        
-        for step in team_config.get("steps", []):
+
+        def _run_step(step, idx):
+            """Execute a single team step. Returns (alias, result, trace_entry, success)."""
             skill_name = step["skill"]
             alias = step.get("alias", skill_name)
             
@@ -280,22 +285,42 @@ class SkillRegistry:
             if matched_skill:
                 try:
                     res = self.execute(matched_skill, order_ids, data_dir, query)
-                    results[alias] = res
                     if "error" in res:
-                        trace.append(f"failed {skill_name}: {res['error']}")
-                        failed_count += 1
+                        return alias, res, f"failed {skill_name}: {res['error']}", False
                     else:
-                        trace.append(f"executed {skill_name} via team workflow")
-                        success_count += 1
+                        return alias, res, f"executed {skill_name} via team workflow", True
                 except Exception as e:
-                    results[alias] = {"error": str(e)}
-                    trace.append(f"failed {skill_name}: {e}")
-                    failed_count += 1
+                    return alias, {"error": str(e)}, f"failed {skill_name}: {e}", False
             else:
-                results[alias] = {"error": f"Skill {skill_name} not found"}
-                trace.append(f"failed {skill_name}: Skill {skill_name} not found")
+                return alias, {"error": f"Skill {skill_name} not found"}, f"failed {skill_name}: Skill {skill_name} not found", False
+
+        # Execute all steps in parallel using ThreadPoolExecutor
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(steps)) as executor:
+            # Submit all tasks, keeping track of original index for ordering
+            future_to_idx = {executor.submit(_run_step, step, idx): idx for idx, step in enumerate(steps)}
+            
+            # Collect results as they complete
+            completed = [None] * len(steps)
+            for future in concurrent.futures.as_completed(future_to_idx):
+                idx = future_to_idx[future]
+                try:
+                    alias, result, trace_entry, success = future.result()
+                    completed[idx] = (alias, result, trace_entry, success)
+                except Exception as e:
+                    # Fallback for unexpected executor errors
+                    step = steps[idx]
+                    alias = step.get("alias", step["skill"])
+                    completed[idx] = (alias, {"error": str(e)}, f"failed {step['skill']}: {e}", False)
+
+        # Assemble results in original step order
+        for alias, result, trace_entry, success in completed:
+            results[alias] = result
+            trace.append(trace_entry)
+            if success:
+                success_count += 1
+            else:
                 failed_count += 1
-                
+
         return {
             "team_name": team_config["name"],
             "intent": team_config["intent"],
@@ -303,10 +328,11 @@ class SkillRegistry:
             "trace": trace,
             "order_id": order_ids[0] if order_ids else None,
             "summary": {
-                "total_steps": len(team_config.get("steps", [])),
+                "total_steps": len(steps),
                 "success_count": success_count,
                 "failed_count": failed_count,
                 "partial_success": success_count > 0 and failed_count > 0,
+                "parallel": True,
             },
         }
     

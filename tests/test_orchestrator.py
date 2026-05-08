@@ -249,3 +249,49 @@ class OrchestratorTest(unittest.TestCase):
         self.assertEqual(result["status"], "error")
         self.assertEqual(result["type"], "team_error")
         self.assertIn("risk: Order ORD-9999 not found", result["details"])
+
+    def test_team_parallel_execution_deterministic_order(self):
+        """Team results maintain step definition order despite parallel execution."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        # Run multiple times to verify deterministic ordering
+        for _ in range(3):
+            result = route_query("ORD-1001 全面分析", mock_data_dir)
+            self.assertEqual(result["status"], "success")
+            data = result["data"]
+            keys = list(data["results"].keys())
+            # Order should match team definition: risk, sales, internal
+            self.assertEqual(keys, ["risk", "sales", "internal"])
+
+    def test_team_parallel_flag_in_summary(self):
+        """Team summary indicates parallel execution."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("ORD-1001 風險應對", mock_data_dir)
+        
+        self.assertEqual(result["status"], "success")
+        summary = result["data"]["summary"]
+        self.assertTrue(summary["parallel"])
+        self.assertEqual(summary["success_count"], 2)
+
+    def test_team_parallel_trace_ordering(self):
+        """Trace entries follow step definition order, not completion order."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("ORD-1001 風險應對", mock_data_dir)
+        
+        self.assertEqual(result["status"], "success")
+        trace = result["data"]["trace"]
+        # First trace entry should be for delivery-risk-analysis (first step)
+        self.assertIn("delivery-risk-analysis", trace[0])
+        # Second trace entry should be for sales-response-draft (second step)
+        self.assertIn("sales-response-draft", trace[1])
+
+    def test_team_partial_failure_with_parallel(self):
+        """Partial failure with parallel execution maintains correct summary."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        # ORD-9999 doesn't exist, so all steps in comprehensive-analysis will fail
+        result = route_query("ORD-9999 全面分析", mock_data_dir)
+        
+        self.assertEqual(result["status"], "error")
+        self.assertEqual(result["type"], "team_error")
+        # All 3 steps should have failed
+        details = result["details"]
+        self.assertEqual(len(details), 3)
