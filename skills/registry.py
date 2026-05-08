@@ -12,6 +12,7 @@ from skills.internal_action_summary import handle_internal_action_summary
 from skills.expedite_options import handle_expedite_options
 from skills.material_shortage_recovery import handle_material_shortage_recovery
 from skills.capacity_rebalance import handle_capacity_rebalance
+from skills.supplier_followup_draft import handle_supplier_followup_draft
 
 class SkillRegistry:
     """
@@ -143,6 +144,21 @@ class SkillRegistry:
             "passes_query": True,
             "priority": 7,
             "data_files": ["orders.json", "work_orders.json", "machines.json", "schedule.json"]
+        })
+
+        # 9. Supplier Follow-up Draft
+        # Supplier-facing communication drafts for shortage/expedite/RFQ scenarios
+        self.register({
+            "name": "supplier-followup-draft",
+            "intent": "supplier_followup_draft",
+            "keywords": ["跟進", "followup", "follow-up", "信件", "draft", "procurement"],
+            "exact_keywords": ["供應商跟進", "supplier followup", "follow-up draft", "採購跟進", "supplier inquiry"],
+            "handler": handle_supplier_followup_draft,
+            "requires_order_id": True,
+            "triggers_on_multi_order": False,
+            "passes_query": True,
+            "priority": 8,
+            "data_files": ["orders.json", "materials.json", "quotes.json"]
         })
 
     def _register_teams(self):

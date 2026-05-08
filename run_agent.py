@@ -221,6 +221,8 @@ def print_team_report(result):
                 print_material_shortage_report(step_result)
             elif skill == "capacity-rebalance":
                 print_capacity_rebalance_report(step_result)
+            elif skill == "supplier-followup-draft":
+                print_supplier_followup_report(step_result)
             else:
                 print(json.dumps(step_result, indent=2, ensure_ascii=False))
         except Exception as e:
@@ -411,6 +413,62 @@ def print_capacity_rebalance_report(result):
     print("=" * 44)
 
 
+def print_supplier_followup_report(result):
+    """View: Print supplier follow-up draft report."""
+    print("\n" + "=" * 44)
+    print("SUPPLIER FOLLOW-UP DRAFT")
+    print("=" * 44)
+    print(f"Order: {result.get('order_id')}")
+    print(f"Customer: {result.get('customer')}")
+    print(f"Decision: {result.get('decision')}")
+    print(f"Days left: {result.get('details', {}).get('days_left', 'N/A')}")
+    print()
+
+    ds = result.get("details", {}).get("draft_summary", {})
+    total = ds.get("total_drafts", 0)
+    recommended = ds.get("recommended_count", 0)
+    top = ds.get("top_recommendation", "None")
+    urgency = ds.get("top_urgency", "N/A")
+    print(f"Drafts generated: {total}")
+    print(f"Recommended: {recommended} (Top: {top}, Urgency: {urgency})")
+    print()
+
+    drafts = result.get("details", {}).get("drafts", [])
+    if drafts:
+        for i, d in enumerate(drafts, 1):
+            rec_marker = " [RECOMMENDED]" if d.get("recommended") else ""
+            print(f"--- Draft {i}: {d.get('label')}{rec_marker} ---")
+            print(f"  Type: {d.get('draft_type')}")
+            print(f"  Target: {d.get('target_supplier')}")
+            print(f"  Subject: {d.get('subject')}")
+            print(f"  Urgency: {d.get('urgency_level')} - {d.get('urgency_reason')}")
+            print(f"  Key Asks:")
+            for ask in d.get("key_asks", [])[:3]:
+                print(f"    - {ask}")
+            print()
+
+    # Show the full draft text
+    reply = result.get("reply_draft")
+    if reply:
+        print("Full Draft (Copy/Paste Ready)")
+        print("-" * 40)
+        print(reply)
+        print("-" * 40)
+        print()
+
+    print("Top Blockers")
+    for b in result.get("blockers", []) or ["No critical blockers."]:
+        print(f"- {b}")
+    print()
+    print("Recommendation")
+    print(result.get("next_action"))
+    print()
+    print("Trace")
+    for item in result.get("trace", []):
+        print(f"- {item}")
+    print("=" * 44)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Manufacturing Agent CLI")
     parser.add_argument("--data-dir", default=None, help="Path to data directory (default: mock_data)")
@@ -535,6 +593,11 @@ def main():
         elif skill == "capacity-rebalance":
             print("Routing to: capacity-rebalance skill")
             print_capacity_rebalance_report(data)
+            print("\nRaw JSON")
+            print(json.dumps(data, indent=2, ensure_ascii=False))
+        elif skill == "supplier-followup-draft":
+            print("Routing to: supplier-followup-draft skill")
+            print_supplier_followup_report(data)
             print("\nRaw JSON")
             print(json.dumps(data, indent=2, ensure_ascii=False))
 

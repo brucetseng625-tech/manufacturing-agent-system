@@ -38,7 +38,8 @@ SCHEMA_METADATA = {
             "schedule-conflict-check": ["conflicts"],
             "expedite-options": ["options", "option_summary", "days_left"],
             "material-shortage-recovery": ["shortages", "options", "recovery_summary", "days_left"],
-            "capacity-rebalance": ["pressures", "conflicts", "options", "rebalance_summary", "days_left", "machine_utilization"]
+            "capacity-rebalance": ["pressures", "conflicts", "options", "rebalance_summary", "days_left", "machine_utilization"],
+            "supplier-followup-draft": ["drafts", "draft_summary", "days_left"]
         }
     },
     "team_workflow_structure": {
@@ -113,6 +114,7 @@ def normalize_skill_response(skill_name, base_data, overrides=None):
         "expedite-options": ["options", "option_summary", "days_left"],
         "material-shortage-recovery": ["shortages", "options", "recovery_summary", "days_left"],
         "capacity-rebalance": ["pressures", "conflicts", "options", "rebalance_summary", "days_left", "machine_utilization"],
+        "supplier-followup-draft": ["drafts", "draft_summary", "days_left"],
     }
     
     specific_keys = skill_specific_keys.get(skill_name, [])
@@ -169,6 +171,17 @@ def _generate_summary(data, skill_name):
         if count > 0:
             return f"Capacity rebalance for Order {order_id}: {pressures} pressure(s), {conflicts} conflict(s), {count} recommended option(s), top={rec}."
         return f"Capacity rebalance for Order {order_id}: {pressures} pressure(s), {conflicts} conflict(s), no strongly recommended options."
+
+    elif skill_name == "supplier-followup-draft":
+        ds = data.get("draft_summary", {})
+        rec = ds.get("top_recommendation", "None")
+        count = ds.get("recommended_count", 0)
+        total = ds.get("total_drafts", 0)
+        if total == 0:
+            return f"Supplier follow-up analysis for Order {order_id}: no follow-up needed."
+        if count > 0:
+            return f"Supplier follow-up for Order {order_id}: {total} draft(s), {count} recommended, top={rec}."
+        return f"Supplier follow-up for Order {order_id}: {total} draft(s) generated, review urgency levels."
 
     elif skill_name == "material-shortage-recovery":
         rec_summary = data.get("recovery_summary", {})

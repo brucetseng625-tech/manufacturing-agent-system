@@ -53,6 +53,7 @@ The current workflows route queries to:
 - `expedite-options`
 - `material-shortage-recovery`
 - `capacity-rebalance`
+- `supplier-followup-draft`
 
 It reads mock data from:
 

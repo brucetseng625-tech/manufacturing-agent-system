@@ -31,6 +31,7 @@ Current completed scope:
 - expedite-options skill
 - material-shortage-recovery skill
 - capacity-rebalance skill
+- supplier-followup-draft skill
 
 ## Start Here
 
