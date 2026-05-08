@@ -3,7 +3,7 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `a1c8670` `feat: harden error handling across skill/team/CLI/API layers`
+- `f9b5c1a` `fix: drain invalid post request bodies`
 
 Current completed scope:
 - delivery-risk-analysis
@@ -23,6 +23,7 @@ Current completed scope:
 - run history query support
 - API enhancement
 - error handling hardening
+- data model expansion
 
 ## Start Here
 
