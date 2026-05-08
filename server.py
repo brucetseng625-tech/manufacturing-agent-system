@@ -13,6 +13,7 @@ from skills.registry import get_registry
 from skills.schema import SCHEMA_METADATA
 from skills.policy import get_policy, DEFAULT_POLICY
 from skills.observability import log_request, log_asana_post
+from metrics import compute_metrics
 from data_source import set_data_source, create_provider, get_provider_name
 
 DEFAULT_PORT = 8000
@@ -73,6 +74,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_schema()
         elif path == "/policy":
             self._handle_policy()
+        elif path == "/metrics":
+            self._handle_metrics()
         else:
             self._send_error_response(404, "not_found", "Endpoint not found")
 
@@ -178,6 +181,24 @@ class AgentHandler(BaseHTTPRequestHandler):
             })
         except Exception as e:
             self._send_error_response(500, "internal_error", "Failed to serve policy", str(e))
+
+    def _handle_metrics(self):
+        """Handle GET /metrics — return computed system statistics."""
+        try:
+            params = parse_qs(self.path.split("?")[-1] if "?" in self.path else "")
+            window = 24
+            if "window" in params:
+                try:
+                    window = int(params["window"][0])
+                    if window <= 0:
+                        window = 24
+                except (ValueError, IndexError):
+                    window = 24
+
+            result = compute_metrics(window_hours=window)
+            self._send_json_response(200, result)
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to compute metrics", str(e))
 
     def _handle_history(self, parsed_path):
         """Handle GET /history with optional query parameters for filtering."""

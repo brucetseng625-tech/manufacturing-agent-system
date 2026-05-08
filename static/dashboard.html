@@ -195,7 +195,10 @@ body {
       <span class="nav-icon">▶</span><span class="nav-text">Query Runner</span>
     </div>
     <div class="nav-item" data-view="history">
-      <span class="nav-icon">◷</span><span class="nav-text">Run History</span>
+      <span class="nav-icon">📋</span><span class="nav-text">Run History</span>
+    </div>
+    <div class="nav-item" data-view="stats">
+      <span class="nav-icon">📊</span><span class="nav-text">Stats</span>
     </div>
   </nav>
 
@@ -248,6 +251,17 @@ body {
       </div>
       <div id="history-content"><div class="loading">Loading history</div></div>
     </section>
+
+    <!-- Stats View -->
+    <section id="view-stats" class="view">
+      <div class="view-header">
+        <h2>System Statistics</h2>
+        <p>Usage metrics and skill distribution</p>
+      </div>
+      <div class="grid" id="stats-grid">
+        <div class="card"><div class="loading">Loading metrics</div></div>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -262,6 +276,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
     document.getElementById(`view-${view}`).classList.add('active');
     if (view === 'skills') loadSkills();
     if (view === 'history') loadHistory();
+    if (view === 'stats') loadStats();
   });
 });
 
@@ -482,6 +497,68 @@ async function loadHistory() {
     content.innerHTML = html;
   } catch (e) {
     content.innerHTML = `<div class="error-state">Failed to load history: ${e.message}</div>`;
+  }
+}
+
+// Stats View
+async function loadStats() {
+  const grid = document.getElementById('stats-grid');
+  grid.innerHTML = '<div class="loading">Loading metrics</div>';
+
+  try {
+    const res = await fetch('/metrics');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const m = await res.json();
+
+    const rateColor = (rate) => rate >= 80 ? 'var(--success)' : rate >= 50 ? 'var(--warning)' : 'var(--error)';
+
+    let html = `
+      <!-- Overview Cards -->
+      <div class="card">
+        <div class="card-title">Total Runs</div>
+        <div style="font-size:2.5rem;font-weight:700;color:var(--accent-light);margin:0.5rem 0;">${m.total_runs}</div>
+        <div style="color:var(--text-muted);font-size:0.85rem;">Success: ${m.success_count} | Error: ${m.error_count}</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Success Rate</div>
+        <div style="font-size:2.5rem;font-weight:700;color:${rateColor(m.success_rate)};margin:0.5rem 0;">${m.success_rate}%</div>
+        <div style="color:var(--text-muted);font-size:0.85rem;">Last ${m.window_hours}h: ${m.recent_runs} runs (${m.recent_success_rate}%)</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Channels</div>
+        <div style="margin-top:0.5rem;">
+          ${Object.entries(m.channel_distribution || {}).map(([ch, count]) =>
+            `<div style="display:flex;justify-content:space-between;padding:0.25rem 0;border-bottom:1px solid var(--border);">
+              <span>${ch}</span><span style="font-weight:600;">${count}</span>
+            </div>`
+          ).join('')}
+        </div>
+      </div>
+      <!-- Skill Distribution -->
+      <div class="card" style="grid-column: span 2;">
+        <div class="card-title">Skill Distribution (Top 10)</div>
+        <div style="margin-top:0.75rem;">
+          ${(() => {
+            const dist = m.skill_distribution || {};
+            const max = Math.max(...Object.values(dist), 1);
+            return Object.entries(dist).map(([skill, count]) => {
+              const pct = (count / max * 100).toFixed(0);
+              const isTeam = skill.startsWith('team:');
+              return `<div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+                <span style="width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.9rem;${isTeam ? 'color:#a78bfa;' : ''}">${skill}</span>
+                <div style="flex:1;background:var(--bg-input);border-radius:4px;height:20px;overflow:hidden;">
+                  <div style="width:${pct}%;height:100%;background:${isTeam ? 'rgba(139,92,246,0.5)' : 'var(--accent)'};border-radius:4px;transition:width 0.3s;"></div>
+                </div>
+                <span style="width:40px;text-align:right;font-size:0.85rem;color:var(--text-secondary);">${count}</span>
+              </div>`;
+            }).join('');
+          })()}
+        </div>
+      </div>
+    `;
+    grid.innerHTML = html;
+  } catch (e) {
+    grid.innerHTML = `<div class="error-state">Failed to load metrics: ${e.message}</div>`;
   }
 }
 

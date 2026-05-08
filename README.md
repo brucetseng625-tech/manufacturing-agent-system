@@ -385,6 +385,31 @@ python3 server.py --port 8000
 
   Invalid parameters return HTTP 400 with an error description.
 
+- **GET /metrics**
+  ```bash
+  # Default 24-hour window
+  curl http://localhost:8000/metrics
+
+  # Custom window (e.g., 48 hours)
+  curl "http://localhost:8000/metrics?window=48"
+  ```
+  - **window**: Time window in hours for recent metrics (default: 24).
+
+  Response includes:
+  ```json
+  {
+    "total_runs": 42,
+    "success_count": 38,
+    "error_count": 4,
+    "success_rate": 90.5,
+    "skill_distribution": {"delivery-risk-analysis": 15, ...},
+    "channel_distribution": {"cli": 20, "http": 22},
+    "recent_runs": 12,
+    "recent_success_rate": 91.7,
+    "last_run_timestamp": "2026-05-08T10:00:00+00:00"
+  }
+  ```
+
 ### Response Format
 
 ```json
