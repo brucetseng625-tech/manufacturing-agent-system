@@ -413,6 +413,33 @@ Unauthorized requests return `401` with:
   - **query**: Natural language query.
   - **data_dir**: Path to data directory (optional, defaults to mock_data).
   - **asana_task**: Asana Task GID (optional, posts result to task).
+  - **dry_run**: `true` to preview routing without executing (optional, default: `false`).
+
+  **Dry-run mode**: When `dry_run: true`, the system validates the request, extracts order IDs, matches the skill/team, and returns the routing decision — but does **not** execute the skill, post to Asana, or write to the audit log. Useful for testing routing logic before running actual workflows.
+
+  ```bash
+  # Preview routing without executing
+  curl -X POST http://localhost:8000/run \
+    -H "Content-Type: application/json" \
+    -d '{"query": "ORD-1001 能不能準時出？", "dry_run": true}'
+  ```
+  Response:
+  ```json
+  {
+    "status": "dry_run",
+    "dry_run": true,
+    "run_id": "dry-run-1234567890",
+    "query": "ORD-1001 能不能準時出？",
+    "order_ids": ["ORD-1001"],
+    "intent": "delivery_risk_analysis",
+    "matched": "delivery-risk-analysis",
+    "steps": ["delivery-risk-analysis"],
+    "data_source": "local",
+    "message": "Dry run completed — no side effects were committed"
+  }
+  ```
+
+  Dry-run also works with `POST /batch` — set `"dry_run": true` to preview routing for all queries without executing any of them.
 
 - **GET /skills**
   ```bash

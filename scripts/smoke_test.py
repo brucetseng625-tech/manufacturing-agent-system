@@ -330,6 +330,52 @@ def main():
         except Exception as e:
             check("Dashboard ops panel", False, str(e))
 
+        # 28. Dry-run: single query
+        dry_run_data = json.dumps({
+            "query": "ORD-1001 能不能準時出？",
+            "dry_run": True,
+        }).encode()
+        req = urllib.request.Request(
+            f"http://127.0.0.1:{port}/run",
+            data=dry_run_data,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req) as resp:
+            dr = json.loads(resp.read())
+        check("Dry-run: /run returns dry_run status",
+              dr.get("status") == "dry_run",
+              f"status={dr.get('status')}")
+        check("Dry-run: /run extracts order IDs",
+              "ORD-1001" in dr.get("order_ids", []),
+              f"order_ids={dr.get('order_ids')}")
+        check("Dry-run: /run shows routing",
+              dr.get("matched") is not None,
+              f"matched={dr.get('matched')}")
+        check("Dry-run: /run indicates no side effects",
+              "no side effects" in dr.get("message", "").lower(),
+              f"message={dr.get('message')}")
+
+        # 29. Dry-run: batch
+        batch_data = json.dumps({
+            "queries": ["ORD-1001 能不能準時出？"],
+            "dry_run": True,
+        }).encode()
+        req = urllib.request.Request(
+            f"http://127.0.0.1:{port}/batch",
+            data=batch_data,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req) as resp:
+            dr_batch = json.loads(resp.read())
+        check("Dry-run: /batch returns dry_run status",
+              dr_batch.get("status") == "dry_run",
+              f"status={dr_batch.get('status')}")
+        check("Dry-run: /batch returns results per query",
+              dr_batch.get("total", 0) >= 1,
+              f"total={dr_batch.get('total')}")
+
     finally:
         server.shutdown()
 

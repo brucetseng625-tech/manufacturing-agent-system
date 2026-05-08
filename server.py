@@ -8,7 +8,7 @@ import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
-from orchestrator import route_query, batch_queries
+from orchestrator import route_query, batch_queries, extract_order_ids
 from integrations.asana_client import post_comment, format_success_report, format_error_report
 from audit_logger import log_run, query_runs
 from skills.registry import get_registry
@@ -524,12 +524,13 @@ class AgentHandler(BaseHTTPRequestHandler):
         query = payload.get("query", "")
         data_dir = payload.get("data_dir", None)
         asana_task = payload.get("asana_task", None)
+        dry_run = payload.get("dry_run", False)
 
         if not query:
             self._send_error_response(400, "missing_query", "Request payload must include 'query'")
             return
 
-        self._process_run(query, data_dir, asana_task, payload)
+        self._process_run(query, data_dir, asana_task, payload, dry_run)
 
     def _handle_batch(self):
         try:
@@ -562,6 +563,50 @@ class AgentHandler(BaseHTTPRequestHandler):
 
         log_request(f"batch:{len(queries)}", "http", data_source=data_source_mode)
 
+        # Dry-run mode: preview routing for each query without executing
+        dry_run = payload.get("dry_run", False)
+        if dry_run:
+            dry_run_results = []
+            for q in queries:
+                query_text = q if isinstance(q, str) else q.get("query", "")
+                order_ids = extract_order_ids(query_text)
+                run_id = "dry-run-" + str(time.monotonic_ns())
+
+                matched_team = get_registry().match_team(query_text, order_ids)
+                if matched_team:
+                    intent = matched_team["intent"]
+                    matched = f"team:{matched_team['name']}"
+                    steps = [s["skill"] for s in matched_team.get("steps", [])]
+                else:
+                    matched_skill = get_registry().match_skill(query_text, order_ids)
+                    if matched_skill:
+                        intent = matched_skill["intent"]
+                        matched = matched_skill["name"]
+                        steps = [matched_skill["name"]]
+                    else:
+                        intent = None
+                        matched = None
+                        steps = []
+
+                dry_run_results.append({
+                    "query": query_text,
+                    "order_ids": order_ids,
+                    "intent": intent,
+                    "matched": matched,
+                    "steps": steps,
+                    "run_id": run_id,
+                })
+
+            self._send_json_response(200, {
+                "status": "dry_run",
+                "dry_run": True,
+                "total": len(dry_run_results),
+                "results": dry_run_results,
+                "data_source": get_provider_name(),
+                "message": "Dry run completed — no side effects were committed",
+            })
+            return
+
         batch_result = batch_queries(queries, data_dir)
 
         # Log each batch item
@@ -581,7 +626,7 @@ class AgentHandler(BaseHTTPRequestHandler):
 
         self._send_json_response(200, batch_result)
 
-    def _process_run(self, query, data_dir, asana_task, payload):
+    def _process_run(self, query, data_dir, asana_task, payload, dry_run=False):
         # Resolve data_dir
         if data_dir is None:
             data_dir = resolve_repo_path(get_config_value("runtime.default_data_dir", "mock_data"))
@@ -600,6 +645,42 @@ class AgentHandler(BaseHTTPRequestHandler):
 
         # Log request
         log_request(query, "http", data_source=data_source_mode)
+
+        # Dry-run mode: validate and preview routing, but don't execute
+        if dry_run:
+            order_ids = extract_order_ids(query)
+            run_id = "dry-run-" + str(time.monotonic_ns())
+
+            # Skill/Team matching preview
+            matched_team = get_registry().match_team(query, order_ids)
+            if matched_team:
+                intent = matched_team["intent"]
+                matched = f"team:{matched_team['name']}"
+                steps = [s["skill"] for s in matched_team.get("steps", [])]
+            else:
+                matched_skill = get_registry().match_skill(query, order_ids)
+                if matched_skill:
+                    intent = matched_skill["intent"]
+                    matched = matched_skill["name"]
+                    steps = [matched_skill["name"]]
+                else:
+                    intent = None
+                    matched = None
+                    steps = []
+
+            self._send_json_response(200, {
+                "status": "dry_run",
+                "dry_run": True,
+                "run_id": run_id,
+                "query": query,
+                "order_ids": order_ids,
+                "intent": intent,
+                "matched": matched,
+                "steps": steps,
+                "data_source": get_provider_name(),
+                "message": "Dry run completed — no side effects were committed",
+            })
+            return
 
         # Route the query
         try:

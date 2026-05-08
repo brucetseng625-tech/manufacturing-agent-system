@@ -234,6 +234,18 @@ def main():
               "loadOps" in dashboard_html,
               "loadOps function present")
 
+    # Dry-run execution controls
+    server_content = open(os.path.join(base, "server.py")).read()
+    check("Dry-run: dry_run handling in server.py",
+          "dry_run" in server_content and "no side effects" in server_content,
+          "dry_run mode implemented in server.py")
+    check("Dry-run: extract_order_ids imported in server.py",
+          "extract_order_ids" in server_content,
+          "extract_order_ids imported for dry_run routing preview")
+    check("Dry-run: test_dry_run.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_dry_run.py")),
+          "dry_run test file present")
+
     # Summary
     print()
     print("=" * 50)
