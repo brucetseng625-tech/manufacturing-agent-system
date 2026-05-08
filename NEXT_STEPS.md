@@ -3,13 +3,13 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `c467342` `feat(p8): add aggregated system status endpoint`
+- `44c2d7b` `docs: update NEXT_STEPS.md handoff metadata for P8-1`
 
 Latest verified feature commit on `main`:
 - `c467342` `feat(p8): add aggregated system status endpoint`
 
 Latest roadmap sync commit on `main`:
-- `c467342` `feat(p8): add aggregated system status endpoint`
+- `44c2d7b` `docs: update NEXT_STEPS.md handoff metadata for P8-1`
 - Full unit test status at handoff: `485 / 485 passed`
 - Smoke test status at handoff: `54 / 54 passed`
 - Setup verification status at handoff: `65 / 65 passed`
@@ -77,12 +77,12 @@ Current post-P4 follow-up:
 - New endpoint: `GET /system/degradation-status`
 - All providers expose `degradation_status()` with `is_degraded`, `active_path`, `reason`, `recommendations`
 - Auto-failover provider detects: live unavailable, circuit breaker open, rollout disabled
-|- Integration with readiness flags, health diagnostics, rollout controls, and circuit breaker
-|- P8 Phase 1 implemented: Aggregated System Status Endpoint
-|- New endpoint: `GET /system/status`
-|- Aggregated operator-facing view: provider + health + degradation + config + data_dir
-|- Overall system status: ok/degraded/unhealthy based on health + degradation state
-|- Server uptime tracking (set at startup)
+- Integration with readiness flags, health diagnostics, rollout controls, and circuit breaker
+- P8 Phase 1 implemented: Aggregated System Status Endpoint
+- New endpoint: `GET /system/status`
+- Aggregated operator-facing view: provider + health + degradation + config + data_dir
+- Overall system status: ok/degraded/unhealthy based on health + degradation state
+- Server uptime tracking (set at startup)
 
 Current completed scope:
 - delivery-risk-analysis
@@ -126,8 +126,8 @@ Current completed scope:
 - provider capability registry + readiness flags
 - live provider health check and diagnostics
 - per-provider rollout controls
-|- safe fallback and degraded-mode visibility
-|- aggregated system status endpoint
+- safe fallback and degraded-mode visibility
+- aggregated system status endpoint
 
 ## P5 Productionization / Live Integration Planning
 
