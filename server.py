@@ -36,6 +36,15 @@ class AgentHandler(BaseHTTPRequestHandler):
             body["details"] = details
         self._send_json_response(status_code, body)
 
+    def _drain_request_body(self):
+        """Consume any unread POST body bytes before returning an error response."""
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+        except (TypeError, ValueError):
+            content_length = 0
+        if content_length > 0:
+            self.rfile.read(content_length)
+
     def do_GET(self):
         parsed_path = urlparse(self.path)
         if parsed_path.path == "/health":
@@ -146,6 +155,7 @@ class AgentHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         parsed_path = urlparse(self.path)
         if parsed_path.path != "/run":
+            self._drain_request_body()
             self._send_error_response(404, "not_found", "Endpoint not found")
             return
 
