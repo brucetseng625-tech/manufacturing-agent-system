@@ -436,7 +436,11 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._send_error_response(400, "invalid_data_source",
                 f"Invalid data_source: {data_source_mode}. Must be one of: {list(VALID_DATA_SOURCES)}")
             return
-        set_data_source(create_provider(data_source_mode))
+        set_data_source(create_provider(
+            data_source_mode,
+            cb_threshold=get_config_value("live_provider.circuit_breaker.failure_threshold", 0, raw=True),
+            cb_recovery=get_config_value("live_provider.circuit_breaker.recovery_seconds", 60, raw=True),
+        ))
 
         log_request(f"batch:{len(queries)}", "http", data_source=data_source_mode)
 
@@ -470,7 +474,11 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._send_error_response(400, "invalid_data_source",
                 f"Invalid data_source: {data_source_mode}. Must be one of: {list(VALID_DATA_SOURCES)}")
             return
-        set_data_source(create_provider(data_source_mode))
+        set_data_source(create_provider(
+            data_source_mode,
+            cb_threshold=get_config_value("live_provider.circuit_breaker.failure_threshold", 0, raw=True),
+            cb_recovery=get_config_value("live_provider.circuit_breaker.recovery_seconds", 60, raw=True),
+        ))
 
         # Log request
         log_request(query, "http", data_source=data_source_mode)

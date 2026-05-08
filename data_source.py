@@ -2,8 +2,105 @@
 import json
 import os
 import csv
+import time
 import threading
 from abc import ABC, abstractmethod
+from enum import Enum
+
+class CircuitState(Enum):
+    CLOSED = "closed"
+    OPEN = "open"
+    HALF_OPEN = "half_open"
+
+
+class CircuitBreaker:
+    """Circuit breaker for live provider calls.
+
+    States:
+    - CLOSED: normal operation, failures counted
+    - OPEN: circuit tripped, all calls fail fast (fallback immediately)
+    - HALF_OPEN: recovery timeout elapsed, allow one probe call
+
+    Transitions:
+    - CLOSED → OPEN: when consecutive failures reach threshold
+    - OPEN → HALF_OPEN: when recovery_seconds elapses
+    - HALF_OPEN → CLOSED: probe call succeeds
+    - HALF_OPEN → OPEN: probe call fails (reset timer)
+    """
+
+    def __init__(self, failure_threshold=3, recovery_seconds=60):
+        self._lock = threading.Lock()
+        self._state = CircuitState.CLOSED
+        self._failure_count = 0
+        self._failure_threshold = failure_threshold
+        self._recovery_seconds = recovery_seconds
+        self._last_failure_time = None
+        self._total_failures = 0
+        self._total_successes = 0
+
+    @property
+    def state(self):
+        with self._lock:
+            self._check_transition()
+            return self._state.value
+
+    def _check_transition(self):
+        """Check if we should transition from OPEN to HALF_OPEN."""
+        if self._state == CircuitState.OPEN and self._last_failure_time is not None:
+            elapsed = time.monotonic() - self._last_failure_time
+            if elapsed >= self._recovery_seconds:
+                self._state = CircuitState.HALF_OPEN
+
+    def before_call(self):
+        """Check if call should proceed. Raises RuntimeError if circuit is open."""
+        with self._lock:
+            self._check_transition()
+            if self._state == CircuitState.OPEN:
+                raise RuntimeError(
+                    f"Circuit breaker is OPEN. "
+                    f"Recovery in {self._recovery_seconds - (time.monotonic() - self._last_failure_time):.0f}s"
+                )
+
+    def record_success(self):
+        with self._lock:
+            self._total_successes += 1
+            if self._state == CircuitState.HALF_OPEN:
+                self._state = CircuitState.CLOSED
+                self._failure_count = 0
+                self._last_failure_time = None
+            else:
+                self._failure_count = 0
+                self._last_failure_time = None
+
+    def record_failure(self):
+        with self._lock:
+            self._failure_count += 1
+            self._total_failures += 1
+            self._last_failure_time = time.monotonic()
+
+            if self._state == CircuitState.HALF_OPEN:
+                # Probe failed — go back to open
+                self._state = CircuitState.OPEN
+            elif self._failure_threshold > 0 and self._failure_count >= self._failure_threshold:
+                self._state = CircuitState.OPEN
+
+    def get_status(self):
+        with self._lock:
+            self._check_transition()
+            return {
+                "state": self._state.value,
+                "failure_count": self._failure_count,
+                "failure_threshold": self._failure_threshold,
+                "recovery_seconds": self._recovery_seconds,
+                "total_failures": self._total_failures,
+                "total_successes": self._total_successes,
+                "last_failure_ago": (
+                    round(time.monotonic() - self._last_failure_time, 1)
+                    if self._last_failure_time is not None
+                    else None
+                ),
+            }
+
 
 # Thread-local storage for the active data source
 _local = threading.local()
@@ -110,32 +207,65 @@ class AutoFailoverProvider(DataProvider):
 
     This is the 'auto' mode provider — it wraps both live and local
     and handles the failover transparently.
+
+    Includes an optional circuit breaker to prevent repeated calls to
+    a failing live source and enable automatic recovery probing.
     """
 
-    def __init__(self, live: LiveDataProvider, fallback: LocalFileProvider):
+    def __init__(self, live: LiveDataProvider, fallback: LocalFileProvider,
+                 failure_threshold=0, recovery_seconds=60):
         self._live = live
         self._fallback = fallback
-        self._live_available = None  # None = not yet checked
+        self._circuit = CircuitBreaker(
+            failure_threshold=failure_threshold,
+            recovery_seconds=recovery_seconds,
+        ) if failure_threshold > 0 else None
 
     def name(self) -> str:
         return "auto"
 
     def load(self, data_dir: str, filename: str) -> list:
-        # Lazy availability check
+        # Circuit breaker path
+        if self._circuit is not None:
+            return self._load_with_circuit(data_dir, filename)
+        # Legacy simple failover path
+        return self._load_simple(data_dir, filename)
+
+    def _load_with_circuit(self, data_dir: str, filename: str) -> list:
+        try:
+            self._circuit.before_call()
+        except RuntimeError:
+            # Circuit is OPEN — fail fast to local
+            return self._fallback.load(data_dir, filename)
+
+        try:
+            data = self._live.load(data_dir, filename)
+            self._circuit.record_success()
+            return data
+        except Exception:
+            self._circuit.record_failure()
+            return self._fallback.load(data_dir, filename)
+
+    def _load_simple(self, data_dir: str, filename: str) -> list:
+        # Backward compatible: simple boolean failover
+        if not hasattr(self, "_live_available"):
+            self._live_available = None
         if self._live_available is None:
             self._live_available = self._live.is_available(data_dir)
-
         if self._live_available:
             try:
                 data = self._live.load(data_dir, filename)
                 return data
             except Exception:
-                # Live source failed — fall back to local
                 self._live_available = False
                 return self._fallback.load(data_dir, filename)
-
-        # Live not available — use local directly
         return self._fallback.load(data_dir, filename)
+
+    def get_circuit_status(self):
+        """Return circuit breaker status, or None if not configured."""
+        if self._circuit is None:
+            return None
+        return self._circuit.get_status()
 
     def is_available(self, data_dir: str) -> bool:
         return self._live.is_available(data_dir) or self._fallback.is_available(data_dir)
@@ -162,13 +292,16 @@ def set_data_source(provider: DataProvider) -> None:
     _local.provider = provider
 
 
-def create_provider(mode: str, live_provider: DataProvider = None) -> DataProvider:
+def create_provider(mode: str, live_provider: DataProvider = None,
+                    cb_threshold=0, cb_recovery=60) -> DataProvider:
     """Create a provider for the given mode.
 
     Args:
         mode: 'local', 'live', or 'auto'
         live_provider: Optional custom LiveDataProvider instance.
                       If not provided, uses the skeleton LiveDataProvider.
+        cb_threshold: Circuit breaker failure threshold (0 = disabled).
+        cb_recovery: Circuit breaker recovery seconds.
 
     Returns:
         Configured DataProvider instance.
@@ -184,7 +317,7 @@ def create_provider(mode: str, live_provider: DataProvider = None) -> DataProvid
     elif mode == "live":
         return live
     else:  # auto
-        return AutoFailoverProvider(live, local)
+        return AutoFailoverProvider(live, local, cb_threshold, cb_recovery)
 
 
 def load_data(data_dir: str, filename: str) -> list:

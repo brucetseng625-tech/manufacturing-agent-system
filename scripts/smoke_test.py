@@ -223,6 +223,17 @@ def main():
         except urllib.error.HTTPError as e:
             check("Auth dev mode (POST /run no token)", e.code != 401, f"got {e.code}")
 
+        # 18d. Circuit breaker — verify provider creation with CB params
+        from data_source import create_provider, AutoFailoverProvider, CircuitBreaker
+        provider = create_provider("auto", cb_threshold=3, cb_recovery=60)
+        check("Circuit: create_provider with CB",
+              isinstance(provider, AutoFailoverProvider) and provider._circuit is not None,
+              f"circuit breaker present: {provider._circuit._failure_threshold=}")
+        provider2 = create_provider("auto", cb_threshold=0)
+        check("Circuit: create_provider without CB",
+              isinstance(provider2, AutoFailoverProvider) and provider2._circuit is None,
+              "simple failover mode")
+
         # 19. CLI — query execution
         rc, out, err = run_cli(["ORD-1001", "交期風險"])
         check("CLI query execution", rc == 0 and "DECISION REPORT" in out, f"rc={rc}")

@@ -749,6 +749,29 @@ set_data_source(MyERPProvider())
 
 The `AutoFailoverProvider` wraps your live provider with automatic fallback to local files when the live source is unavailable or returns an error.
 
+### Circuit Breaker (Auto Mode)
+
+When using `auto` data source mode, an optional **circuit breaker** prevents repeated calls to a failing live source:
+
+- **Closed**: normal operation, live provider receives all requests
+- **Open**: after consecutive failures reach threshold, circuit opens — all requests fail-fast to local fallback without hitting the live source
+- **Half-open**: after the recovery timeout, one probe call is allowed. If it succeeds, circuit closes; if it fails, circuit reopens
+
+Configure via `config.json`:
+
+```json
+{
+  "live_provider": {
+    "circuit_breaker": {
+      "failure_threshold": 3,
+      "recovery_seconds": 60
+    }
+  }
+}
+```
+
+Set `failure_threshold` to `0` (default) to disable the circuit breaker and use simple failover.
+
 ## How to Add a Skill
 
 To add a new skill (e.g., `quote-comparison`, `sales-analysis`), follow these steps:

@@ -3,13 +3,13 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `2f12251` `docs: add API auth documentation to README`
+- `6fe4fa0` `test(p6): add auth coverage to smoke tests and setup verification`
 
 Latest roadmap sync commit on `main`:
-- `2f12251` `docs: add API auth documentation to README`
+- `6fe4fa0` `test(p6): add auth coverage to smoke tests and setup verification`
 - Full unit test status at handoff: `386 / 386 passed`
-- Smoke test status at handoff: `35 / 35 passed`
-- Setup verification status at handoff: `44 / 44 passed`
+- Smoke test status at handoff: `36 / 36 passed`
+- Setup verification status at handoff: `48 / 48 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:

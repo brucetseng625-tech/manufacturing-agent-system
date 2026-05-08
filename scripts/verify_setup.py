@@ -151,6 +151,15 @@ def main():
           os.path.isfile(os.path.join(base, "tests", "test_auth.py")),
           "auth test file present")
 
+    # 8b. Circuit breaker
+    with open(os.path.join(base, "data_source.py"), "r", encoding="utf-8") as f:
+        ds_code = f.read()
+    check("Circuit: CircuitBreaker class exists", "CircuitBreaker" in ds_code)
+    check("Circuit: CircuitState enum exists", "CircuitState" in ds_code)
+    check("Circuit: test_circuit_breaker.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_circuit_breaker.py")),
+          "circuit breaker test file present")
+
     # 9. No hardcoded secrets
     check("No .env in git", not os.path.isfile(os.path.join(base, ".env")), ".env not found (good)")
     check("No .env.local in git", not os.path.isfile(os.path.join(base, ".env.local")), ".env.local not found (good)")

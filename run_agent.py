@@ -553,7 +553,11 @@ def main():
 
     # Execution mode
     data_dir = args.data_dir or resolve_repo_path(get_config_value("runtime.default_data_dir", "mock_data"))
-    set_data_source(create_provider(args.data_source))
+    set_data_source(create_provider(
+        args.data_source,
+        cb_threshold=get_config_value("live_provider.circuit_breaker.failure_threshold", 0, raw=True),
+        cb_recovery=get_config_value("live_provider.circuit_breaker.recovery_seconds", 60, raw=True),
+    ))
     print(f"Data Source: {data_dir} (mode: {get_provider_name()})")
 
     if args.batch_file:
