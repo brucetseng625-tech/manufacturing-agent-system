@@ -190,6 +190,45 @@ curl http://localhost:8000/policy
 | `supplier_followup` | Urgency level priorities |
 | `defaults` | Reliability defaults, emergency lead reduction |
 
+## Observability and Traceability
+
+Every run is assigned a unique **Run ID** (`run-YYYYMMDD-XXXXXX`) at the orchestrator entry point. This ID flows through the entire execution pipeline:
+
+### Run ID Usage
+
+| Layer | How Run ID Appears |
+|-------|-------------------|
+| **CLI Output** | Printed as `Run ID: run-20260508-abc123` after data validation |
+| **API Response** | Included in `/run` response body as `run_id` field |
+| **Audit Log** | Every `logs/runs.jsonl` record includes `run_id` |
+| **Asana Comments** | Report headers include `Run ID: \`run-...\`` for trace linking |
+| **Structured Logs** | All `logs/events.jsonl` events are tagged with `run_id` |
+
+### Querying by Run ID
+
+**CLI:**
+```bash
+python3 run_agent.py --history --run-id run-20260508-abc123
+```
+
+**API:**
+```bash
+curl "http://localhost:8000/history?run_id=run-20260508-abc123"
+```
+
+### Structured Event Log
+
+The system writes lifecycle events to `logs/events.jsonl` covering:
+- `request` — incoming query (CLI or HTTP)
+- `routing` — skill/team matching decision
+- `skill_start` / `skill_end` — individual skill execution
+- `team_start` / `team_end` — team workflow execution
+- `error` — any error with type, message, and context
+- `asana_post` — Asana comment post attempt and result
+- `complete` — final run status with duration
+
+Each event includes timestamp, event type, and associated run_id for correlation.
+
 ## Team Workflow Execution
 
 Team workflows execute their steps **in parallel** using `ThreadPoolExecutor` for maximum throughput:

@@ -6,6 +6,7 @@ import argparse
 from orchestrator import route_query
 from data_source import set_data_source, create_provider, get_provider_name
 from skills.policy import get_policy, load_policy, DEFAULT_POLICY
+from skills.observability import log_request, log_asana_post, generate_run_id, set_run_id
 from integrations.asana_client import post_comment, format_success_report, format_error_report
 from audit_logger import log_run, query_runs, format_run_summary
 
@@ -481,6 +482,7 @@ def main():
     parser.add_argument("--status", default=None, help="Filter by status: success or error (used with --history)")
     parser.add_argument("--skill", default=None, help="Filter by skill name (used with --history)")
     parser.add_argument("--channel", default=None, help="Filter by channel: cli or http (used with --history)")
+    parser.add_argument("--run-id", default=None, help="Filter by specific run ID (used with --history)")
     parser.add_argument("--policy", action="store_true", help="Show active policy configuration and exit")
     parser.add_argument("query", nargs="*", help="Natural language query (omit when using --history)")
     args = parser.parse_args()
@@ -502,6 +504,7 @@ def main():
             status=args.status,
             skill=args.skill,
             channel=args.channel,
+            run_id=args.run_id,
         )
         print(format_run_summary(runs, compact=False))
         return
@@ -516,6 +519,10 @@ def main():
 
     # Configure data source
     set_data_source(create_provider(args.data_source))
+
+    # Log request
+    log_request(query, "cli", data_source=args.data_source)
+
     print(f"Data Source: {data_dir} (mode: {get_provider_name()})")
 
     print(f"Agent received: '{query}'")
@@ -538,6 +545,8 @@ def main():
     asana_posted = None
 
     if response["status"] == "error":
+        run_id = response.get("run_id", "-")
+        print(f"\nRun ID: {run_id}")
         print(f"\nOperation Failed ({response['type']}):")
         if isinstance(response['details'], list):
             for err in response['details']:
@@ -550,10 +559,15 @@ def main():
             print(f"\nPosting error to Asana Task {args.asana_task}...")
             comment = format_error_report(response)
             asana_posted = post_comment(args.asana_task, comment)
+            log_asana_post(args.asana_task, asana_posted, run_id=response.get("run_id"))
             
         exit_code = 1
     else:
         print("Data Validation Passed.")
+
+        # Display run_id
+        run_id = response.get("run_id", "-")
+        print(f"Run ID: {run_id}")
 
         # Render
         skill = response["skill"]
@@ -615,6 +629,7 @@ def main():
             print(f"\nPosting result to Asana Task {args.asana_task}...")
             comment = format_success_report(response)
             asana_posted = post_comment(args.asana_task, comment)
+            log_asana_post(args.asana_task, asana_posted, run_id=response.get("run_id"))
             if asana_posted:
                 print("Asana comment posted.")
             else:

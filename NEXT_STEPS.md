@@ -46,7 +46,8 @@ Current completed scope:
 - material-shortage-recovery skill
 - capacity-rebalance skill
 - supplier-followup-draft skill
-- configurable rules / policy layer
+|- configurable rules / policy layer
+|- observability and traceability
 
 ## Start Here
 
@@ -63,7 +64,7 @@ When a new Codex / AI session starts, do this first:
 | --- | --- | --- | --- | --- | --- |
 | P4 | Configurable rules / policy layer | Move decision rules out of hardcoded logic | Rule config structure, loader, tests | Existing skills stable | Codex |
 | ~~P4~~ | ~~Deployment readiness~~ | ~~Prepare for actual internal use~~ | ~~Runbook, config docs, server mode validation~~ | ~~API and error handling maturity~~ | ~~Codex~~ |
-| P4 | Observability and traceability | Make runs easier to audit and support | Run IDs, structured logs, Asana trace linking | Audit log and API available | Codex |
+| ~~P4~~ | ~~Observability and traceability~~ | ~~Make runs easier to audit and support~~ | ~~Run IDs, structured logs, Asana trace linking~~ | ~~Audit log and API available~~ | ~~Codex~~ |
 
 ## Suggested Execution Order
 
@@ -71,7 +72,7 @@ When a new Codex / AI session starts, do this first:
 | --- | --- | --- |
 | 1 | Configurable rules / policy layer | Best next step now that the major P3 skill surface is complete |
 | ~~2~~ | ~~Deployment readiness~~ | ~~Natural follow-on once policy boundaries and runtime expectations are clearer~~ |
-| 3 | Observability and traceability | High leverage after workflow surface has stabilized |
+| ~~3~~ | ~~Observability and traceability~~ | ~~High leverage after workflow surface has stabilized~~ |
 | 4 | Additional planning refinements | Reserve for future expansion after core platform hardening |
 
 ## Ready-To-Use Prompt For The Next AI

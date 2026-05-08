@@ -41,16 +41,21 @@ def format_success_report(response):
     """Format orchestrator success response into a comment."""
     intent = response.get("intent", "unknown")
     data = response.get("data", {})
+    run_id = response.get("run_id")
     trace = []
-    
+
     lines = [
         "**Agent Execution Result**",
+    ]
+    if run_id:
+        lines.append(f"Run ID: `{run_id}`")
+    lines.extend([
         f"Query: {response.get('query', '')}",
         f"Intent: `{intent}`",
         f"Order IDs: `{', '.join(response.get('order_ids', []))}`",
         "Status: Success",
         ""
-    ]
+    ])
     
     # Check if this is a team result
     if response.get("is_team"):
@@ -184,15 +189,20 @@ def format_error_report(response):
     """Format orchestrator error response into a comment."""
     error_type = response.get("type", "unknown")
     details = response.get("details", "No details provided.")
-    
+    run_id = response.get("run_id")
+
     lines = [
         "**Agent Execution Result**",
+    ]
+    if run_id:
+        lines.append(f"Run ID: `{run_id}`")
+    lines.extend([
         f"Query: {response.get('query', '')}",
         f"Order IDs: `{', '.join(response.get('order_ids', []))}`",
         "Status: Failed",
         f"Error Type: `{error_type}`",
         ""
-    ]
+    ])
     
     if isinstance(details, list):
         lines.append("Errors:")

@@ -12,6 +12,7 @@ from audit_logger import log_run, query_runs
 from skills.registry import get_registry
 from skills.schema import SCHEMA_METADATA
 from skills.policy import get_policy, DEFAULT_POLICY
+from skills.observability import log_request, log_asana_post
 from data_source import set_data_source, create_provider, get_provider_name
 
 DEFAULT_PORT = 8000
@@ -206,6 +207,7 @@ class AgentHandler(BaseHTTPRequestHandler):
 
             intent = params.get("intent", [None])[0]
             skill = params.get("skill", [None])[0]
+            run_id = params.get("run_id", [None])[0]
 
             runs = query_runs(
                 last_n=last_n,
@@ -213,6 +215,7 @@ class AgentHandler(BaseHTTPRequestHandler):
                 intent=intent,
                 skill=skill,
                 channel=channel,
+                run_id=run_id,
             )
 
             self._send_json_response(200, {
@@ -263,7 +266,10 @@ class AgentHandler(BaseHTTPRequestHandler):
                 f"Invalid data_source: {data_source_mode}. Must be one of: {list(VALID_DATA_SOURCES)}")
             return
         set_data_source(create_provider(data_source_mode))
-        
+
+        # Log request
+        log_request(query, "http", data_source=data_source_mode)
+
         # Route the query
         try:
             result = route_query(query, data_dir)
@@ -287,13 +293,16 @@ class AgentHandler(BaseHTTPRequestHandler):
                 else:
                     comment = format_error_report(result)
                 asana_posted = post_comment(asana_task, comment)
+                log_asana_post(asana_task, asana_posted, run_id=result.get("run_id"))
             except Exception:
                 # Log error but don't fail the agent run
                 asana_posted = False
+                log_asana_post(asana_task, False, run_id=result.get("run_id"))
 
         # Return response — consistent shape for both success and error
         response_body = {
             "status": result["status"],
+            "run_id": result.get("run_id"),
             "intent": result.get("intent"),
             "order_ids": result.get("order_ids"),
             "asana_task": asana_task,

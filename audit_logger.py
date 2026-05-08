@@ -11,7 +11,7 @@ def resolve_log_dir(log_dir=None):
 def log_run(result, channel, asana_task=None, asana_posted=None, log_dir=None):
     """
     Append a structured JSONL record for the current run.
-    
+
     Args:
         result (dict): Orchestrator result dict.
         channel (str): "cli" or "http".
@@ -23,15 +23,15 @@ def log_run(result, channel, asana_task=None, asana_posted=None, log_dir=None):
         resolved_log_dir = resolve_log_dir(log_dir)
         os.makedirs(resolved_log_dir, exist_ok=True)
         log_path = os.path.join(resolved_log_dir, "runs.jsonl")
-        
+
         # Extract trace from data if available, else empty list
         trace = []
         if result.get("status") == "success" and result.get("data"):
             trace = result["data"].get("trace", [])
-        
+
         # Extract skill from result, fallback to intent or null
         skill = result.get("skill") or result.get("intent")
-        
+
         record = {
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "channel": channel,
@@ -41,6 +41,7 @@ def log_run(result, channel, asana_task=None, asana_posted=None, log_dir=None):
             "intent": result.get("intent"),
             "order_ids": result.get("order_ids", []),
             "skill": skill,
+            "run_id": result.get("run_id"),
             "asana_task": asana_task,
             "asana_posted": asana_posted,
             "error_type": result.get("type") if result.get("status") == "error" else None,
@@ -55,7 +56,7 @@ def log_run(result, channel, asana_task=None, asana_posted=None, log_dir=None):
         print(f"Warning: Failed to write audit log: {e}", file=sys.stderr)
 
 
-def query_runs(log_dir=None, last_n=None, status=None, intent=None, skill=None, channel=None):
+def query_runs(log_dir=None, last_n=None, status=None, intent=None, skill=None, channel=None, run_id=None):
     """
     Query run history from the JSONL audit log with filtering support.
 
@@ -66,6 +67,7 @@ def query_runs(log_dir=None, last_n=None, status=None, intent=None, skill=None, 
         intent (str): Filter by intent (e.g., "delivery_risk_analysis").
         skill (str): Filter by skill name (e.g., "delivery-risk-analysis", supports "team:").
         channel (str): Filter by channel ("cli" or "http").
+        run_id (str): Filter by specific run ID (e.g., "run-20260508-a3f2c1").
 
     Returns:
         list[dict]: Matching records, newest first.
@@ -101,6 +103,8 @@ def query_runs(log_dir=None, last_n=None, status=None, intent=None, skill=None, 
             if skill not in record_skill:
                 continue
         if channel is not None and r.get("channel") != channel:
+            continue
+        if run_id is not None and r.get("run_id") != run_id:
             continue
         filtered.append(r)
 
@@ -140,12 +144,14 @@ def format_run_summary(runs, compact=False):
         skill = r.get("skill", r.get("intent", "unknown"))
         order_ids = ", ".join(r.get("order_ids", [])) or "-"
         error_type = r.get("error_type", "")
+        run_id = r.get("run_id", "-")
 
         if compact:
             status_icon = "OK" if status == "success" else f"FAIL({error_type})"
-            lines.append(f"[{ts}] {status_icon} | {channel} | {skill} | {query} | orders: {order_ids}")
+            lines.append(f"[{ts}] {status_icon} | {run_id} | {channel} | {skill} | {query} | orders: {order_ids}")
         else:
             lines.append(f"\n#{i} [{ts}] ({channel.upper()})")
+            lines.append(f"  Run ID:  {run_id}")
             lines.append(f"  Status:  {status.upper()}")
             lines.append(f"  Skill:   {skill}")
             lines.append(f"  Query:   {query}")
