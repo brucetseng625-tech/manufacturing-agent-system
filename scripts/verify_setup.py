@@ -63,6 +63,7 @@ def main():
     required_files = [
         "server.py", "run_agent.py", "orchestrator.py",
         "data_loader.py", "data_validator.py", "data_source.py",
+        "config.py", "config.example.json",
         "skills/policy.py", "skills/registry.py",
         "skills/schema.py",
     ]

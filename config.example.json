@@ -1,0 +1,21 @@
+{
+  "server": {
+    "port": 8000
+  },
+  "runtime": {
+    "default_data_dir": "mock_data",
+    "default_data_source": "local",
+    "history_last": 10,
+    "metrics_window_hours": 24
+  },
+  "paths": {
+    "policy_config": "policies/active.json",
+    "log_dir": "logs"
+  },
+  "security": {
+    "api_token": "replace-me"
+  },
+  "integrations": {
+    "default_asana_task": null
+  }
+}

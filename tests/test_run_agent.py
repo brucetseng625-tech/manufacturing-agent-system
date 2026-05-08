@@ -52,6 +52,19 @@ class RunAgentTest(unittest.TestCase):
         self.assertIn("LiveDataProvider is a skeleton", proc.stdout)
         self.assertNotIn("Traceback", proc.stderr)
 
+    def test_show_config_cli(self):
+        repo_root = Path(__file__).resolve().parent.parent
+        proc = subprocess.run(
+            [sys.executable, "run_agent.py", "--show-config"],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(proc.returncode, 0)
+        self.assertIn("Config source:", proc.stdout)
+        self.assertIn("\"server\"", proc.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

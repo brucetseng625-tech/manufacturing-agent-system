@@ -139,6 +139,55 @@ The output includes:
 
 Add new fields to `data_validator.py` SCHEMAS dict. Optional fields should be added to the `types` section (not `required`) to maintain backward compatibility with existing data files.
 
+## Config Management Layer
+
+Application defaults are now centralized in `config.py`, with support for JSON config files plus environment variable overrides.
+
+### Inspecting Active Config
+
+**CLI:**
+```bash
+python3 run_agent.py --show-config
+```
+
+**API:**
+```bash
+# Sanitized config (default)
+curl http://localhost:8000/config
+
+# Raw config including internal metadata
+curl "http://localhost:8000/config?raw=true"
+```
+
+### Reloading Config
+
+**API:**
+```bash
+# Reload default config.json
+curl -X POST http://localhost:8000/config/reload
+
+# Reload from custom path
+curl -X POST http://localhost:8000/config/reload \
+  -H "Content-Type: application/json" \
+  -d '{"config_path": "/path/to/config.json"}'
+```
+
+### Environment Overrides
+
+The following environment variables are supported:
+
+- `MAS_SERVER_PORT`
+- `MAS_DEFAULT_DATA_DIR`
+- `MAS_DEFAULT_DATA_SOURCE`
+- `MAS_HISTORY_LAST`
+- `MAS_METRICS_WINDOW_HOURS`
+- `MAS_POLICY_CONFIG_PATH`
+- `MAS_LOG_DIR`
+- `MAS_API_TOKEN`
+- `MAS_DEFAULT_ASANA_TASK`
+
+See `config.example.json` for a full file-based configuration example.
+
 ## Configurable Policy Layer
 
 All decision thresholds, routing weights, and escalation rules are now centralized in `skills/policy.py` and can be overridden via a JSON config file.
@@ -433,6 +482,19 @@ python3 server.py --port 8000
   ```
 
   - **data_source**: `local`, `live`, or `auto`.
+
+- **GET /config**
+  ```bash
+  curl http://localhost:8000/config
+  curl "http://localhost:8000/config?raw=true"
+  ```
+  Returns centralized runtime configuration and reload metadata.
+
+- **POST /config/reload**
+  ```bash
+  curl -X POST http://localhost:8000/config/reload
+  ```
+  Reloads `config.json` (or a custom path) without restarting the server.
 
 - **GET /data/status**
   ```bash

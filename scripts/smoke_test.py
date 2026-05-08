@@ -122,6 +122,10 @@ def main():
         data = get("/policy", port)
         check("GET /policy", "policy" in data and "source" in data, f"source: {data.get('source')}")
 
+        # 5b. Config endpoint
+        data = get("/config", port)
+        check("GET /config", "config" in data and "metadata" in data, f"source: {data.get('source', data.get('config', {}).get('_source'))}")
+
         # 6. Dashboard endpoint
         req = urllib.request.Request(f"http://127.0.0.1:{port}/")
         req.add_header("Accept", "text/html")
@@ -203,6 +207,10 @@ def main():
         # 18. CLI — policy inspection
         rc, out, err = run_cli(["--policy"])
         check("CLI --policy", rc == 0 and "routing" in out, f"rc={rc}")
+
+        # 18b. CLI — config inspection
+        rc, out, err = run_cli(["--show-config"])
+        check("CLI --show-config", rc == 0 and "Config source:" in out, f"rc={rc}")
 
         # 19. CLI — query execution
         rc, out, err = run_cli(["ORD-1001", "交期風險"])

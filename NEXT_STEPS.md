@@ -37,6 +37,9 @@ Current post-P4 follow-up:
 - P5 Phase 4 implemented: Data Dir Auto-Reload
 - New endpoint: `GET /data/status`
 - CLI now supports `--data-dir-status` for directory change visibility
+- P6 Phase 1 implemented: Config Management Layer
+- New endpoints: `GET /config`, `POST /config/reload`
+- CLI now supports `--show-config` for centralized config inspection
 
 Current completed scope:
 - delivery-risk-analysis
@@ -73,6 +76,7 @@ Current completed scope:
 - batch query support
 - policy hot-reload
 - data dir auto-reload
+- config management layer
 
 ## P5 Productionization / Live Integration Planning
 
@@ -86,6 +90,19 @@ Goal: Move from mock-data-first prototype toward real internal use without major
 | ~~P5~~ | ~~Batch Query Support~~ | ~~Process multiple orders in one request~~ | ~~Batch endpoint, CLI --batch-file, tests~~ | ~~Stable /metrics~~ | ~~Codex~~ |
 | ~~P5~~ | ~~Policy Hot-Reload~~ | ~~Adjust thresholds without restart~~ | ~~Reload endpoint, CLI flag, metadata, tests~~ | ~~Policy layer stable~~ | ~~Codex~~ |
 | ~~P5~~ | ~~Data Dir Auto-Reload~~ | ~~Detect CSV/JSON drops without restart~~ | ~~Status endpoint, CLI flag, mtime tracking, tests~~ | ~~Provider layer stable~~ | ~~Codex~~ |
+
+## P6 Integration Hardening / Access Control
+
+Goal: Add production-safe configuration and access controls on top of the completed P5 operating surface.
+
+### Roadmap
+
+| Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
+| --- | --- | --- | --- | --- | --- |
+| ~~P6~~ | ~~Config management layer~~ | ~~Centralize runtime configuration with file + env override~~ | ~~Loader, config endpoints, CLI view, tests~~ | ~~P5 complete~~ | ~~Codex~~ |
+| P6 | API token auth | Protect HTTP endpoints | Auth middleware, config integration, tests | Config layer available | Codex |
+| P6 | Circuit breaker for live provider | Fail safely and recover automatically | Failure threshold, reset window, tests | Provider layer stable | Codex |
+| P6 | Server access logging | Structured HTTP access log for audit/support | Access log format, request timing, tests | Observability layer available | Codex |
 
 ## Start Here
 
@@ -128,7 +145,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-Define the next roadmap phase (P6) after P5 Productionization is complete.
+Continue with P6 Integration Hardening / Access Control, starting with API token auth.
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them

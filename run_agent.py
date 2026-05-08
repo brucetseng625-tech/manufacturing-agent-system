@@ -10,6 +10,7 @@ from skills.policy import get_policy, load_policy, DEFAULT_POLICY, reload_policy
 from skills.observability import log_request, log_asana_post, generate_run_id, set_run_id
 from integrations.asana_client import post_comment, format_success_report, format_error_report
 from audit_logger import log_run, query_runs, format_run_summary
+from config import get_config, get_config_metadata, get_config_value, resolve_repo_path
 
 def print_decision_report(result):
     """View: Print delivery risk report."""
@@ -474,22 +475,30 @@ def print_supplier_followup_report(result):
 
 def main():
     parser = argparse.ArgumentParser(description="Manufacturing Agent CLI")
-    parser.add_argument("--data-dir", default=None, help="Path to data directory (default: mock_data)")
-    parser.add_argument("--data-source", default="local", choices=["local", "live", "auto"],
+    parser.add_argument("--data-dir", default=None, help="Path to data directory (default: config runtime.default_data_dir)")
+    parser.add_argument("--data-source", default=get_config_value("runtime.default_data_source", "local"), choices=["local", "live", "auto"],
                         help="Data source mode: local (files), live (MCP/ERP), auto (live with fallback)")
     parser.add_argument("--asana-task", default=None, help="Asana Task GID to post result comment")
     parser.add_argument("--history", action="store_true", help="Query run history instead of executing a new query")
-    parser.add_argument("--last", type=int, default=10, help="Number of recent runs to show (default: 10, used with --history)")
+    parser.add_argument("--last", type=int, default=get_config_value("runtime.history_last", 10), help="Number of recent runs to show (used with --history)")
     parser.add_argument("--status", default=None, help="Filter by status: success or error (used with --history)")
     parser.add_argument("--skill", default=None, help="Filter by skill name (used with --history)")
     parser.add_argument("--channel", default=None, help="Filter by channel: cli or http (used with --history)")
     parser.add_argument("--run-id", default=None, help="Filter by specific run ID (used with --history)")
     parser.add_argument("--policy", action="store_true", help="Show active policy configuration and exit")
     parser.add_argument("--reload-policy", action="store_true", help="Reload policy from config file and exit")
+    parser.add_argument("--show-config", action="store_true", help="Show active application configuration and exit")
     parser.add_argument("--data-dir-status", action="store_true", help="Show data directory status and exit")
     parser.add_argument("--batch-file", default=None, help="Path to file containing one query per line (batch mode)")
     parser.add_argument("query", nargs="*", help="Natural language query (omit when using --history or --batch-file)")
     args = parser.parse_args()
+
+    if args.show_config:
+        config = get_config(raw=False)
+        print(f"Config source: {config.get('_source', 'default')}")
+        print(f"Reload count: {get_config_metadata().get('reload_count', 0)}")
+        print(json.dumps(config, indent=2))
+        return
 
     # Policy inspection mode
     if args.policy:
@@ -512,7 +521,7 @@ def main():
 
     # Data directory status mode
     if args.data_dir_status:
-        data_dir = args.data_dir or os.path.join(os.path.dirname(__file__), "mock_data")
+        data_dir = args.data_dir or resolve_repo_path(get_config_value("runtime.default_data_dir", "mock_data"))
         meta = get_data_dir_metadata(data_dir)
         print(f"Data directory: {meta['data_dir']}")
         print(f"Files: {meta['file_count']}")
@@ -543,7 +552,7 @@ def main():
         return
 
     # Execution mode
-    data_dir = args.data_dir or os.path.join(os.path.dirname(__file__), "mock_data")
+    data_dir = args.data_dir or resolve_repo_path(get_config_value("runtime.default_data_dir", "mock_data"))
     set_data_source(create_provider(args.data_source))
     print(f"Data Source: {data_dir} (mode: {get_provider_name()})")
 

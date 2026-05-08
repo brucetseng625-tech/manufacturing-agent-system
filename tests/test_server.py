@@ -253,6 +253,31 @@ class ServerTest(unittest.TestCase):
             for key in ("skill", "decision", "confidence", "blockers", "details", "trace"):
                 self.assertIn(key, fields)
 
+    def test_get_config(self):
+        url = f"http://localhost:{self.port}/config"
+        with urllib.request.urlopen(url) as response:
+            data = json.loads(response.read())
+            self.assertEqual(response.status, 200)
+            self.assertIn("config", data)
+            self.assertIn("metadata", data)
+            self.assertEqual(data["config"]["security"]["api_token"], "***REDACTED***" if data["config"]["security"]["api_token"] else data["config"]["security"]["api_token"])
+
+    def test_get_config_raw(self):
+        url = f"http://localhost:{self.port}/config?raw=true"
+        with urllib.request.urlopen(url) as response:
+            data = json.loads(response.read())
+            self.assertEqual(response.status, 200)
+            self.assertIn("_source", data["config"])
+
+    def test_post_config_reload(self):
+        url = f"http://localhost:{self.port}/config/reload"
+        req = urllib.request.Request(url, data=b"{}", headers={"Content-Type": "application/json"}, method="POST")
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read())
+            self.assertEqual(response.status, 200)
+            self.assertIn("success", data)
+            self.assertIn("reload_count", data)
+
     def test_get_history_default(self):
         """GET /history without params returns up to 10 runs."""
         url = f"http://localhost:{self.port}/history"

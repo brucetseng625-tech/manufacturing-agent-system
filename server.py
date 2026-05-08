@@ -16,6 +16,13 @@ from skills.observability import log_request, log_asana_post
 from metrics import compute_metrics
 from data_dir_monitor import scan_data_dir, get_data_dir_metadata
 from data_source import set_data_source, create_provider, get_provider_name
+from config import (
+    get_config,
+    get_config_value,
+    get_config_metadata,
+    reload_config,
+    resolve_repo_path,
+)
 
 DEFAULT_PORT = 8000
 VALID_DATA_SOURCES = ("local", "live", "auto")
@@ -75,6 +82,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_schema()
         elif path == "/policy":
             self._handle_policy()
+        elif path == "/config":
+            self._handle_config(parsed_path)
         elif path == "/metrics":
             self._handle_metrics()
         elif path == "/data/status":
@@ -185,6 +194,20 @@ class AgentHandler(BaseHTTPRequestHandler):
         except Exception as e:
             self._send_error_response(500, "internal_error", "Failed to serve policy", str(e))
 
+    def _handle_config(self, parsed_path):
+        """Handle GET /config — return active application configuration."""
+        try:
+            params = parse_qs(parsed_path.query)
+            raw = params.get("raw", ["false"])[0].lower() == "true"
+            config = get_config(raw=raw)
+            self._send_json_response(200, {
+                "source": config.get("_source", "default"),
+                "config": config,
+                "metadata": get_config_metadata(),
+            })
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to serve config", str(e))
+
     def _handle_metrics(self):
         """Handle GET /metrics — return computed system statistics."""
         try:
@@ -277,12 +300,38 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_run()
         elif path == "/batch":
             self._handle_batch()
+        elif path == "/config/reload":
+            self._handle_config_reload()
         elif path == "/policy/reload":
             self._handle_policy_reload()
         else:
             self._drain_request_body()
             self._send_error_response(404, "not_found", "Endpoint not found")
             return
+
+    def _handle_config_reload(self):
+        """Handle POST /config/reload — reload centralized config file."""
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            config_path = None
+            if content_length > 0:
+                body = self.rfile.read(content_length).decode("utf-8")
+                payload = json.loads(body)
+                config_path = payload.get("config_path")
+
+            result = reload_config(resolve_repo_path(config_path) if config_path else None)
+            meta = get_config_metadata()
+            self._send_json_response(200, {
+                "success": result["success"],
+                "source": result["source"],
+                "error": result["error"],
+                "reloaded_at": result["reloaded_at"],
+                "reload_count": meta["reload_count"],
+            })
+        except (json.JSONDecodeError, ValueError) as e:
+            self._send_error_response(400, "invalid_json", f"Request body is not valid JSON: {e}")
+        except Exception as e:
+            self._send_error_response(500, "internal_error", f"Failed to reload config: {e}")
 
     def _handle_policy_reload(self):
         """Handle POST /policy/reload — hot-reload policy from config file."""
@@ -345,9 +394,9 @@ class AgentHandler(BaseHTTPRequestHandler):
 
         data_dir = payload.get("data_dir", None)
         if data_dir is None:
-            data_dir = os.path.join(os.path.dirname(__file__), "mock_data")
+            data_dir = resolve_repo_path(get_config_value("runtime.default_data_dir", "mock_data"))
 
-        data_source_mode = payload.get("data_source", "local")
+        data_source_mode = payload.get("data_source", get_config_value("runtime.default_data_source", "local"))
         if data_source_mode not in VALID_DATA_SOURCES:
             self._send_error_response(400, "invalid_data_source",
                 f"Invalid data_source: {data_source_mode}. Must be one of: {list(VALID_DATA_SOURCES)}")
@@ -378,10 +427,10 @@ class AgentHandler(BaseHTTPRequestHandler):
     def _process_run(self, query, data_dir, asana_task, payload):
         # Resolve data_dir
         if data_dir is None:
-            data_dir = os.path.join(os.path.dirname(__file__), "mock_data")
+            data_dir = resolve_repo_path(get_config_value("runtime.default_data_dir", "mock_data"))
 
         # Configure data source mode
-        data_source_mode = payload.get("data_source", "local")
+        data_source_mode = payload.get("data_source", get_config_value("runtime.default_data_source", "local"))
         if data_source_mode not in VALID_DATA_SOURCES:
             self._send_error_response(400, "invalid_data_source",
                 f"Invalid data_source: {data_source_mode}. Must be one of: {list(VALID_DATA_SOURCES)}")
@@ -460,7 +509,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--port",
         type=int,
-        default=int(os.environ.get("PORT", DEFAULT_PORT)),
+        default=int(os.environ.get("PORT", get_config_value("server.port", DEFAULT_PORT))),
         help="Port to listen on",
     )
     args = parser.parse_args()
