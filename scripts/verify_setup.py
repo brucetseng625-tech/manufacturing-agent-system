@@ -139,7 +139,19 @@ def main():
         except ImportError as e:
             check(f"Import: {mod}", False, str(e))
 
-    # 8. No hardcoded secrets
+    # 8. Auth module exists
+    check("File: server.py has auth middleware",
+          os.path.isfile(os.path.join(base, "server.py")),
+          "server.py exists")
+    with open(os.path.join(base, "server.py"), "r", encoding="utf-8") as f:
+        server_code = f.read()
+    check("Auth: _check_auth function exists", "_check_auth" in server_code)
+    check("Auth: _PROTECTED_PATHS defined", "_PROTECTED_PATHS" in server_code)
+    check("Auth: test_auth.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_auth.py")),
+          "auth test file present")
+
+    # 9. No hardcoded secrets
     check("No .env in git", not os.path.isfile(os.path.join(base, ".env")), ".env not found (good)")
     check("No .env.local in git", not os.path.isfile(os.path.join(base, ".env.local")), ".env.local not found (good)")
 

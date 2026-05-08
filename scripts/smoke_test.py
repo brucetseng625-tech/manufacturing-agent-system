@@ -212,6 +212,17 @@ def main():
         rc, out, err = run_cli(["--show-config"])
         check("CLI --show-config", rc == 0 and "Config source:" in out, f"rc={rc}")
 
+        # 18c. Auth — smoke verifies dev mode (no token = no 401 on mutation endpoints)
+        url = f"http://127.0.0.1:{port}/run"
+        payload = json.dumps({"query": "ORD-1001 出貨"}).encode("utf-8")
+        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+        try:
+            with urllib.request.urlopen(req) as resp:
+                data = json.loads(resp.read())
+                check("Auth dev mode (POST /run no token)", resp.status == 200, f"status={resp.status}")
+        except urllib.error.HTTPError as e:
+            check("Auth dev mode (POST /run no token)", e.code != 401, f"got {e.code}")
+
         # 19. CLI — query execution
         rc, out, err = run_cli(["ORD-1001", "交期風險"])
         check("CLI query execution", rc == 0 and "DECISION REPORT" in out, f"rc={rc}")

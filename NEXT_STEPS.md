@@ -3,10 +3,10 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `d0b619c` `feat(p6): add API token auth — bearer/X-API-Token for mutation endpoints`
+- `2f12251` `docs: add API auth documentation to README`
 
 Latest roadmap sync commit on `main`:
-- `d0b619c` `feat(p6): add API token auth — bearer/X-API-Token for mutation endpoints`
+- `2f12251` `docs: add API auth documentation to README`
 - Full unit test status at handoff: `386 / 386 passed`
 - Smoke test status at handoff: `35 / 35 passed`
 - Setup verification status at handoff: `44 / 44 passed`
