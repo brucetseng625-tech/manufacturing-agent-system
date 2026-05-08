@@ -27,6 +27,37 @@ from config import (
 DEFAULT_PORT = 8000
 VALID_DATA_SOURCES = ("local", "live", "auto")
 
+# Endpoints that require authentication when a token is configured
+_PROTECTED_PATHS = {"/run", "/batch", "/config/reload", "/policy/reload"}
+
+
+def _check_auth(handler, path):
+    """Check if request is authorized.
+
+    Returns True if the request should proceed, False if 401 was sent.
+    Only protects mutation endpoints. When no token is configured,
+    all requests are allowed (development mode).
+    """
+    if path not in _PROTECTED_PATHS:
+        return True
+
+    token = get_config_value("security.api_token", raw=True)
+    if not token:
+        return True  # No token configured → dev mode, allow all
+
+    # Check Authorization: Bearer <token>
+    auth_header = handler.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer ") and auth_header[7:] == token:
+        return True
+
+    # Check X-API-Token header
+    api_token = handler.headers.get("X-API-Token", "")
+    if api_token == token:
+        return True
+
+    handler._send_error_response(401, "unauthorized", "Invalid or missing API token")
+    return False
+
 class AgentHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         # Suppress default stderr logging to keep test output clean
@@ -295,6 +326,10 @@ class AgentHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         parsed_path = urlparse(self.path)
         path = parsed_path.path
+
+        if not _check_auth(self, path):
+            self._drain_request_body()
+            return
 
         if path == "/run":
             self._handle_run()
