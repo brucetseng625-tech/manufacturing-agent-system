@@ -200,6 +200,9 @@ body {
     <div class="nav-item" data-view="stats">
       <span class="nav-icon">📊</span><span class="nav-text">Stats</span>
     </div>
+    <div class="nav-item" data-view="ops">
+      <span class="nav-icon">🔧</span><span class="nav-text">Ops</span>
+    </div>
   </nav>
 
   <main class="main">
@@ -262,6 +265,15 @@ body {
         <div class="card"><div class="loading">Loading metrics</div></div>
       </div>
     </section>
+
+    <!-- Ops View -->
+    <section id="view-ops" class="view">
+      <div class="view-header">
+        <h2>Operations</h2>
+        <p>System health, provider status, and degradation visibility</p>
+      </div>
+      <div id="ops-grid" class="grid"><div class="loading">Loading ops data</div></div>
+    </section>
   </main>
 </div>
 
@@ -277,6 +289,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
     if (view === 'skills') loadSkills();
     if (view === 'history') loadHistory();
     if (view === 'stats') loadStats();
+    if (view === 'ops') loadOps();
   });
 });
 
@@ -559,6 +572,100 @@ async function loadStats() {
     grid.innerHTML = html;
   } catch (e) {
     grid.innerHTML = `<div class="error-state">Failed to load metrics: ${e.message}</div>`;
+  }
+}
+
+// Ops View
+async function loadOps() {
+  const grid = document.getElementById('ops-grid');
+  grid.innerHTML = '<div class="loading">Loading ops data</div>';
+
+  try {
+    const res = await fetch('/system/status');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const s = await res.json();
+
+    const statusColor = (st) => st === 'ok' ? 'var(--success)' : st === 'degraded' ? 'var(--warning)' : 'var(--error)';
+    const readinessColor = (r) => {
+      if (r === 'ready') return 'var(--success)';
+      if (r === 'degraded' || r === 'not_configured') return 'var(--warning)';
+      return 'var(--error)';
+    };
+
+    let html = '';
+
+    // System Status Card
+    html += `
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">System Status</span>
+          <span class="badge" style="background:${statusColor(s.system)};color:#fff;">${s.system.toUpperCase()}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-size:0.9rem;">
+          <div><span style="color:var(--text-muted)">Provider:</span> <strong>${s.provider.name}</strong></div>
+          <div><span style="color:var(--text-muted)">Readiness:</span> <strong style="color:${readinessColor(s.provider.readiness)}">${s.provider.readiness}</strong></div>
+          <div><span style="color:var(--text-muted)">Health:</span> <strong style="color:${statusColor(s.health.status)}">${s.health.status}</strong></div>
+          <div><span style="color:var(--text-muted)">Degraded:</span> <strong style="color:${s.degradation.is_degraded ? 'var(--warning)' : 'var(--success)'}">${s.degradation.is_degraded ? 'YES' : 'No'}</strong></div>
+          <div><span style="color:var(--text-muted)">Active Path:</span> <strong>${s.degradation.active_path}</strong></div>
+          <div><span style="color:var(--text-muted)">Config Source:</span> <strong>${s.config.source}</strong></div>
+          <div><span style="color:var(--text-muted)">Uptime:</span> <strong>${s.uptime_seconds != null ? Math.floor(s.uptime_seconds) + 's' : 'N/A'}</strong></div>
+          <div><span style="color:var(--text-muted)">Updated:</span> <strong>${s.timestamp}</strong></div>
+        </div>
+        ${s.degradation.reason ? `<div style="margin-top:0.75rem;padding:0.5rem 0.75rem;background:rgba(245,158,11,0.1);border-radius:6px;font-size:0.85rem;color:var(--warning);">⚠ ${s.degradation.reason}</div>` : ''}
+      </div>
+    `;
+
+    // Health Details Card
+    html += `
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Health Diagnostics</span>
+          <span class="badge" style="background:${statusColor(s.health.status)};color:#fff;">${s.health.status.toUpperCase()}</span>
+        </div>
+        <div style="font-size:0.85rem;">
+          <div style="color:var(--text-muted);margin-bottom:0.25rem;">Supported: <strong>${s.health.supported ? 'Yes' : 'No'}</strong></div>
+          <div style="color:var(--text-muted);">Details: <code style="background:var(--bg-input);padding:0.2rem 0.4rem;border-radius:4px;font-size:0.8rem;">${JSON.stringify(s.health.details || {})}</code></div>
+        </div>
+      </div>
+    `;
+
+    // Degradation Card
+    const deg = s.degradation;
+    html += `
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Degradation Visibility</span>
+          <span class="badge" style="background:${deg.is_degraded ? 'var(--warning)' : 'var(--success)'};color:#fff;">${deg.is_degraded ? 'DEGRADED' : 'HEALTHY'}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-size:0.85rem;">
+          <div><span style="color:var(--text-muted)">Mode:</span> <strong>${deg.mode}</strong></div>
+          <div><span style="color:var(--text-muted)">Active Path:</span> <strong>${deg.active_path}</strong></div>
+          <div><span style="color:var(--text-muted)">Live Readiness:</span> <strong style="color:${deg.live_readiness ? readinessColor(deg.live_readiness) : 'var(--text-muted)'}">${deg.live_readiness || 'N/A'}</strong></div>
+          <div><span style="color:var(--text-muted)">Fallback Readiness:</span> <strong style="color:${deg.fallback_readiness ? readinessColor(deg.fallback_readiness) : 'var(--text-muted)'}">${deg.fallback_readiness || 'N/A'}</strong></div>
+          ${deg.circuit_breaker ? `<div><span style="color:var(--text-muted)">Circuit:</span> <strong style="color:${deg.circuit_breaker.state === 'closed' ? 'var(--success)' : 'var(--warning)'}">${deg.circuit_breaker.state}</strong></div>` : ''}
+        </div>
+        ${deg.recommendations && deg.recommendations.length > 0 ? `<div style="margin-top:0.75rem;"><div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:0.25rem;">Recommendations:</div><ul style="font-size:0.85rem;color:var(--text-secondary);padding-left:1.2rem;">${deg.recommendations.map(r => `<li>${r}</li>`).join('')}</ul></div>` : ''}
+      </div>
+    `;
+
+    // Data Directory Card
+    const dd = s.data_dir;
+    html += `
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Data Directory</span>
+        </div>
+        <div style="font-size:0.85rem;">
+          <div><span style="color:var(--text-muted)">Path:</span> <code style="background:var(--bg-input);padding:0.2rem 0.4rem;border-radius:4px;font-size:0.8rem;">${dd.data_dir || dd.path || 'N/A'}</code></div>
+          ${dd.file_count != null ? `<div style="margin-top:0.25rem;"><span style="color:var(--text-muted)">Files:</span> <strong>${dd.file_count}</strong></div>` : ''}
+          ${dd.last_modified ? `<div style="margin-top:0.25rem;"><span style="color:var(--text-muted)">Last Modified:</span> <strong>${dd.last_modified}</strong></div>` : ''}
+        </div>
+      </div>
+    `;
+
+    grid.innerHTML = html;
+  } catch (e) {
+    grid.innerHTML = `<div class="error-state">Failed to load ops data: ${e.message}</div>`;
   }
 }
 

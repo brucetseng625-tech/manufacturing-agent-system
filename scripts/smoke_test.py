@@ -309,6 +309,27 @@ def main():
               "timestamp" in sys_body,
               f"timestamp present")
 
+        # 27. Dashboard ops panel
+        try:
+            dashboard_url = f"http://127.0.0.1:{port}/"
+            req = urllib.request.Request(dashboard_url)
+            with urllib.request.urlopen(req) as resp:
+                html = resp.read().decode()
+            check("Dashboard: has Ops nav item",
+                  "data-view=\"ops\"" in html,
+                  "Ops navigation item present")
+            check("Dashboard: has Ops view section",
+                  "view-ops" in html,
+                  "Ops view section present")
+            check("Dashboard: calls loadOps",
+                  "loadOps" in html,
+                  "loadOps function present")
+            check("Dashboard: fetches /system/status",
+                  "/system/status" in html,
+                  "/system/status fetch present")
+        except Exception as e:
+            check("Dashboard ops panel", False, str(e))
+
     finally:
         server.shutdown()
 

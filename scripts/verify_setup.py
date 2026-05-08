@@ -220,6 +220,20 @@ def main():
           os.path.isfile(os.path.join(base, "tests", "test_system_status.py")),
           "system status test file present")
 
+    # Dashboard ops panels
+    dashboard_path = os.path.join(base, "static", "dashboard.html")
+    if os.path.isfile(dashboard_path):
+        dashboard_html = open(dashboard_path).read()
+        check("Dashboard: has Ops nav item",
+              'data-view="ops"' in dashboard_html,
+              "Ops navigation item present")
+        check("Dashboard: has Ops view section",
+              "view-ops" in dashboard_html,
+              "Ops view section present")
+        check("Dashboard: has loadOps function",
+              "loadOps" in dashboard_html,
+              "loadOps function present")
+
     # Summary
     print()
     print("=" * 50)
