@@ -3,7 +3,7 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `efa3f45` `feat: implement score-based query routing`
+- `4d11d16` `fix: harden team workflow validation`
 
 Current completed scope:
 - delivery-risk-analysis
@@ -18,6 +18,7 @@ Current completed scope:
 - internal-action-summary
 - Asana workflow enhancement
 - query routing improvement
+- Agent Teams MVP
 
 ## Start Here
 
