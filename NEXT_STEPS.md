@@ -3,11 +3,11 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `8c9c0fd` `feat(p5): add batch query support — API + CLI`
+- `5686c17` `feat(p5): add policy hot-reload — API + CLI`
 
 Latest roadmap sync commit on `main`:
-- `d75d5a1` `docs: update next steps after metrics phase`
-- Full unit test status at handoff: `322 / 322 passed`
+- `78bf534` `docs: update next steps after batch query phase`
+- Full unit test status at handoff: `330 / 330 passed`
 - Smoke test status at handoff: `33 / 33 passed`
 - Setup verification status at handoff: `42 / 42 passed`
 - Working tree at handoff: clean
@@ -31,6 +31,9 @@ Current post-P4 follow-up:
 - P5 Phase 2 implemented: Batch Query Support
 - New endpoint: `POST /batch`
 - CLI now supports `--batch-file` for multi-query execution
+- P5 Phase 3 implemented: Policy Hot-Reload
+- New endpoint: `POST /policy/reload`
+- CLI now supports `--reload-policy` for immediate policy refresh
 
 Current completed scope:
 - delivery-risk-analysis
