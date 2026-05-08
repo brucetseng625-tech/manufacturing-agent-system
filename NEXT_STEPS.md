@@ -3,16 +3,16 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `44c2d7b` `docs: update NEXT_STEPS.md handoff metadata for P8-1`
+- `f4ae827` `feat(p8): add dashboard operations panels`
 
 Latest verified feature commit on `main`:
-- `c467342` `feat(p8): add aggregated system status endpoint`
+- `f4ae827` `feat(p8): add dashboard operations panels`
 
 Latest roadmap sync commit on `main`:
-- `44c2d7b` `docs: update NEXT_STEPS.md handoff metadata for P8-1`
+- `f4ae827` `feat(p8): add dashboard operations panels`
 - Full unit test status at handoff: `485 / 485 passed`
-- Smoke test status at handoff: `54 / 54 passed`
-- Setup verification status at handoff: `65 / 65 passed`
+- Smoke test status at handoff: `58 / 58 passed`
+- Setup verification status at handoff: `68 / 68 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
@@ -82,7 +82,12 @@ Current post-P4 follow-up:
 - New endpoint: `GET /system/status`
 - Aggregated operator-facing view: provider + health + degradation + config + data_dir
 - Overall system status: ok/degraded/unhealthy based on health + degradation state
-- Server uptime tracking (set at startup)
+|- Server uptime tracking (set at startup)
+|- P8 Phase 2 implemented: Dashboard Operations Panels
+|- New 'Ops' navigation view in dashboard
+|- 4 visual panels: System Status, Health Diagnostics, Degradation Visibility, Data Directory
+|- Color-coded status badges (green/yellow/red) based on system state
+|- Degradation reason warning banner and recommendations list
 
 Current completed scope:
 - delivery-risk-analysis
@@ -127,7 +132,8 @@ Current completed scope:
 - live provider health check and diagnostics
 - per-provider rollout controls
 - safe fallback and degraded-mode visibility
-- aggregated system status endpoint
+|- aggregated system status endpoint
+|- dashboard operations panels
 
 ## P5 Productionization / Live Integration Planning
 
@@ -177,7 +183,7 @@ Goal: Provide aggregated operator-facing visibility and safe execution controls 
 | Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
 | --- | --- | --- | --- | --- | --- |
 | ~~P8~~ | ~~System status endpoint~~ | ~~Single operator-facing aggregated system view~~ | ~~`/system/status`, tests~~ | ~~P7 complete~~ | ~~Codex~~ |
-| P8 | Dashboard ops panels | Show health, degradation, provider status on dashboard | Dashboard panels, tests | System status endpoint | Codex |
+| ~~P8~~ | ~~Dashboard ops panels~~ | ~~Show health, degradation, provider status on dashboard~~ | ~~Dashboard panels, tests~~ | ~~System status endpoint~~ | ~~Codex~~ |
 | P8 | Query execution controls | Safe dry-run mode for /run and /batch | `dry_run` flag, tests | Stable /run contract | Codex |
 | P8 | Alert/notification hooks | Automated alerts on degradation events | Webhook config, tests | Degradation visibility | Codex |
 
@@ -226,7 +232,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P8-1 (System status endpoint) is complete. Continue with P8-2 (Dashboard ops panels), P8-3 (Query execution controls / dry-run), or P8-4 (Alert hooks).
+P8-2 (Dashboard ops panels) is complete. Continue with P8-3 (Query execution controls / dry-run) or P8-4 (Alert hooks).
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them
