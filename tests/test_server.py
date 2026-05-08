@@ -174,3 +174,137 @@ class ServerTest(unittest.TestCase):
             urllib.request.urlopen(req)
         except urllib.error.HTTPError as e:
             self.assertEqual(e.code, 400)
+
+    def test_run_missing_query(self):
+        """POST /run without query field returns 400."""
+        url = f"http://localhost:{self.port}/run"
+        payload = json.dumps({}).encode("utf-8")
+        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+        
+        try:
+            urllib.request.urlopen(req)
+        except urllib.error.HTTPError as e:
+            self.assertEqual(e.code, 400)
+
+    def test_run_not_found(self):
+        """POST to unknown path returns 404."""
+        url = f"http://localhost:{self.port}/notfound"
+        payload = b"{}"
+        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+        
+        try:
+            urllib.request.urlopen(req)
+        except urllib.error.HTTPError as e:
+            self.assertEqual(e.code, 404)
+
+    def test_get_not_found(self):
+        """GET to unknown path returns 404."""
+        url = f"http://localhost:{self.port}/notfound"
+        try:
+            urllib.request.urlopen(url)
+        except urllib.error.HTTPError as e:
+            self.assertEqual(e.code, 404)
+
+    def test_get_skills(self):
+        """GET /skills returns available skills and teams."""
+        url = f"http://localhost:{self.port}/skills"
+        with urllib.request.urlopen(url) as response:
+            data = json.loads(response.read())
+            self.assertEqual(response.status, 200)
+            self.assertIn("total", data)
+            self.assertIn("items", data)
+            self.assertGreater(data["total"], 0)
+            # Check at least one skill
+            names = [item["name"] for item in data["items"]]
+            self.assertIn("delivery-risk-analysis", names)
+            # Check at least one team
+            self.assertTrue(any("team:" in n for n in names))
+
+    def test_get_skills_item_structure(self):
+        """Each skill/team item has expected fields."""
+        url = f"http://localhost:{self.port}/skills"
+        with urllib.request.urlopen(url) as response:
+            data = json.loads(response.read())
+            # Check a skill item
+            skill_item = next((i for i in data["items"] if i["type"] == "skill"), None)
+            self.assertIsNotNone(skill_item)
+            for key in ("name", "intent", "type", "requires_order_id", "keywords", "exact_keywords", "priority"):
+                self.assertIn(key, skill_item)
+
+            # Check a team item
+            team_item = next((i for i in data["items"] if i["type"] == "team"), None)
+            self.assertIsNotNone(team_item)
+            self.assertIn("steps", team_item)
+            self.assertTrue(isinstance(team_item["steps"], list))
+
+    def test_get_schema(self):
+        """GET /schema returns schema metadata."""
+        url = f"http://localhost:{self.port}/schema"
+        with urllib.request.urlopen(url) as response:
+            data = json.loads(response.read())
+            self.assertEqual(response.status, 200)
+            self.assertIn("version", data)
+            self.assertIn("top_level_shared_fields", data)
+            self.assertIn("details_usage", data)
+            self.assertIn("team_workflow_structure", data)
+            # Verify key shared fields exist
+            fields = data["top_level_shared_fields"]
+            for key in ("skill", "decision", "confidence", "blockers", "details", "trace"):
+                self.assertIn(key, fields)
+
+    def test_get_history_default(self):
+        """GET /history without params returns up to 10 runs."""
+        url = f"http://localhost:{self.port}/history"
+        with urllib.request.urlopen(url) as response:
+            data = json.loads(response.read())
+            self.assertEqual(response.status, 200)
+            self.assertIn("total", data)
+            self.assertIn("runs", data)
+            self.assertIn("filters", data)
+            self.assertEqual(data["filters"]["last"], 10)
+
+    def test_get_history_invalid_last(self):
+        """GET /history with invalid last parameter returns 400."""
+        url = f"http://localhost:{self.port}/history?last=abc"
+        try:
+            urllib.request.urlopen(url)
+        except urllib.error.HTTPError as e:
+            self.assertEqual(e.code, 400)
+            data = json.loads(e.read())
+            self.assertIn("error", data)
+
+    def test_get_history_negative_last(self):
+        """GET /history with negative last returns 400."""
+        url = f"http://localhost:{self.port}/history?last=-1"
+        try:
+            urllib.request.urlopen(url)
+        except urllib.error.HTTPError as e:
+            self.assertEqual(e.code, 400)
+
+    def test_get_history_invalid_status(self):
+        """GET /history with invalid status returns 400."""
+        url = f"http://localhost:{self.port}/history?status=invalid"
+        try:
+            urllib.request.urlopen(url)
+        except urllib.error.HTTPError as e:
+            self.assertEqual(e.code, 400)
+            data = json.loads(e.read())
+            self.assertIn("status", data["error"])
+
+    def test_get_history_invalid_channel(self):
+        """GET /history with invalid channel returns 400."""
+        url = f"http://localhost:{self.port}/history?channel=invalid"
+        try:
+            urllib.request.urlopen(url)
+        except urllib.error.HTTPError as e:
+            self.assertEqual(e.code, 400)
+
+    def test_get_history_valid_filters(self):
+        """GET /history with valid filters returns 200."""
+        url = f"http://localhost:{self.port}/history?last=5&status=success&channel=cli"
+        with urllib.request.urlopen(url) as response:
+            data = json.loads(response.read())
+            self.assertEqual(response.status, 200)
+            self.assertEqual(data["filters"]["last"], 5)
+            self.assertEqual(data["filters"]["status"], "success")
+            self.assertEqual(data["filters"]["channel"], "cli")

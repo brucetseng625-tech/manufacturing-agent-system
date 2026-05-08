@@ -122,6 +122,70 @@ python3 server.py --port 8000
   - **data_dir**: Path to data directory (optional, defaults to mock_data).
   - **asana_task**: Asana Task GID (optional, posts result to task).
 
+- **GET /skills**
+  ```bash
+  curl http://localhost:8000/skills
+  ```
+  Returns all available skills and team workflows with their metadata:
+  ```json
+  {
+    "total": 7,
+    "items": [
+      {
+        "name": "delivery-risk-analysis",
+        "intent": "delivery_risk_analysis",
+        "type": "skill",
+        "requires_order_id": true,
+        "keywords": ["準時", "出貨", "delivery", ...],
+        "exact_keywords": ["交期風險", "delivery risk"],
+        "priority": 2
+      },
+      {
+        "name": "team:comprehensive-analysis",
+        "intent": "comprehensive_analysis",
+        "type": "team",
+        "requires_order_id": true,
+        "keywords": ["全面分析", "comprehensive", ...],
+        "exact_keywords": ["comprehensive analysis", "完整報告"],
+        "priority": 10,
+        "steps": [
+          {"skill": "delivery-risk-analysis", "alias": "risk"},
+          {"skill": "sales-response-draft", "alias": "sales"},
+          {"skill": "internal-action-summary", "alias": "internal"}
+        ]
+      }
+    ]
+  }
+  ```
+
+- **GET /schema**
+  ```bash
+  curl http://localhost:8000/schema
+  ```
+  Returns the unified output schema metadata, including:
+  - `top_level_shared_fields`: All standard fields every skill returns.
+  - `details_usage`: Explanation and per-skill examples of skill-specific fields.
+  - `team_workflow_structure`: Structure of team workflow results.
+
+- **GET /history**
+  ```bash
+  # Last 5 runs
+  curl "http://localhost:8000/history?last=5"
+
+  # Filter by status and skill
+  curl "http://localhost:8000/history?status=error&skill=delivery-risk-analysis"
+
+  # Filter by channel
+  curl "http://localhost:8000/history?channel=cli&last=20"
+  ```
+  - **last**: Number of recent records (default: 10).
+  - **status**: `success` or `error`.
+  - **skill**: Partial match on skill name (e.g., `team:` for all teams).
+  - **intent**: Exact match on intent string.
+  - **channel**: `cli` or `http`.
+
+  Invalid parameters return HTTP 400 with an error description.
+
 ### Response Format
 
 ```json

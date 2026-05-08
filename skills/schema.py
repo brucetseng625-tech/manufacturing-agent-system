@@ -5,6 +5,52 @@ Provides a standardized response structure that all skills should follow.
 This ensures CLI, API, Asana formatter, and audit log can consume outputs consistently.
 """
 
+# Metadata describing the unified output schema.
+# Used by GET /schema and can be consumed by front-end consumers.
+SCHEMA_METADATA = {
+    "version": "1.0",
+    "top_level_shared_fields": {
+        "skill": {"type": "string", "description": "Skill identifier (e.g., delivery-risk-analysis, team:comprehensive-analysis)"},
+        "order_id": {"type": "string|null", "description": "Primary order ID when querying a single order"},
+        "order_ids": {"type": "array", "description": "All order IDs extracted from the query"},
+        "customer": {"type": "string|null", "description": "Customer name associated with the order"},
+        "status": {"type": "string", "description": "Execution status: success or error"},
+        "decision": {"type": "string", "description": "Core decision or status label from the skill"},
+        "confidence": {"type": "string", "description": "Confidence level in the decision"},
+        "blockers": {"type": "array", "description": "List of identified blockers or risks"},
+        "owner": {"type": "string", "description": "Suggested responsible party"},
+        "eta": {"type": "string|null", "description": "Expected due date or resolution timeline"},
+        "next_action": {"type": "string|array", "description": "Recommended next step(s)"},
+        "escalation": {"type": "string|null", "description": "Escalation path if needed"},
+        "summary": {"type": "string", "description": "Human-readable one-line summary"},
+        "reply_draft": {"type": "string|null", "description": "Pre-written message draft (customer or supplier)"},
+        "trace": {"type": "array", "description": "Execution trace / audit trail"},
+        "details": {"type": "object", "description": "Skill-specific supplementary data (see details section)"}
+    },
+    "details_usage": {
+        "description": "The 'details' object contains skill-specific fields not covered by the shared schema.",
+        "purpose": "Preserve semantic richness without polluting top-level namespace.",
+        "examples": {
+            "delivery-risk-analysis": ["evidence", "evidence_summary", "product"],
+            "sales-response-draft": ["shipment_status", "key_message", "product"],
+            "internal-action-summary": ["asana_note"],
+            "quote-comparison-summary": ["materials", "recommended_supplier", "price_spread", "lead_time_summary", "risks"],
+            "schedule-conflict-check": ["conflicts"]
+        }
+    },
+    "team_workflow_structure": {
+        "description": "When skill starts with 'team:', the data object contains team execution results.",
+        "top_level": {
+            "team_name": {"type": "string", "description": "Team identifier (e.g., comprehensive-analysis)"},
+            "intent": {"type": "string", "description": "Team intent string"},
+            "results": {"type": "object", "description": "Map of alias -> individual skill output (each follows the unified schema)"},
+            "trace": {"type": "array", "description": "Combined execution trace across all team steps"},
+            "order_id": {"type": "string|null", "description": "Primary order ID"}
+        }
+    }
+}
+
+
 def normalize_skill_response(skill_name, base_data, overrides=None):
     """
     Normalize a skill's output to the unified schema.

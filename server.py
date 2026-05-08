@@ -9,6 +9,8 @@ from urllib.parse import urlparse, parse_qs
 from orchestrator import route_query
 from integrations.asana_client import post_comment, format_success_report, format_error_report
 from audit_logger import log_run, query_runs
+from skills.registry import get_registry
+from skills.schema import SCHEMA_METADATA
 
 DEFAULT_PORT = 8000
 
@@ -29,18 +31,85 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._send_json_response(200, {"status": "ok"})
         elif parsed_path.path == "/history":
             self._handle_history(parsed_path)
+        elif parsed_path.path == "/skills":
+            self._handle_skills()
+        elif parsed_path.path == "/schema":
+            self._handle_schema()
         else:
             self._send_json_response(404, {"error": "Not found"})
+
+    def _handle_skills(self):
+        """Handle GET /skills — return available skills and team workflows."""
+        registry = get_registry()
+        items = []
+
+        for skill in registry.skills:
+            items.append({
+                "name": skill["name"],
+                "intent": skill["intent"],
+                "type": "skill",
+                "requires_order_id": skill.get("requires_order_id", False),
+                "keywords": skill.get("keywords", []),
+                "exact_keywords": skill.get("exact_keywords", []),
+                "priority": skill.get("priority", 0),
+            })
+
+        for team in registry.teams:
+            items.append({
+                "name": f"team:{team['name']}",
+                "intent": team["intent"],
+                "type": "team",
+                "requires_order_id": team.get("requires_order_id", False),
+                "keywords": team.get("keywords", []),
+                "exact_keywords": team.get("exact_keywords", []),
+                "priority": team.get("priority", 0),
+                "steps": team.get("steps", []),
+            })
+
+        self._send_json_response(200, {
+            "total": len(items),
+            "items": items,
+        })
+
+    def _handle_schema(self):
+        """Handle GET /schema — return unified output schema metadata."""
+        self._send_json_response(200, SCHEMA_METADATA)
 
     def _handle_history(self, parsed_path):
         """Handle GET /history with optional query parameters for filtering."""
         params = parse_qs(parsed_path.query)
 
-        last_n = int(params.get("last", [10])[0])
+        # Parameter validation
+        last_raw = params.get("last", [10])[0]
+        try:
+            last_n = int(last_raw)
+            if last_n <= 0:
+                self._send_json_response(400, {
+                    "error": "Invalid parameter: 'last' must be a positive integer.",
+                })
+                return
+        except (ValueError, TypeError):
+            self._send_json_response(400, {
+                "error": "Invalid parameter: 'last' must be a positive integer.",
+            })
+            return
+
         status = params.get("status", [None])[0]
+        if status is not None and status not in ("success", "error"):
+            self._send_json_response(400, {
+                "error": "Invalid parameter: 'status' must be 'success' or 'error'.",
+            })
+            return
+
+        channel = params.get("channel", [None])[0]
+        if channel is not None and channel not in ("cli", "http"):
+            self._send_json_response(400, {
+                "error": "Invalid parameter: 'channel' must be 'cli' or 'http'.",
+            })
+            return
+
         intent = params.get("intent", [None])[0]
         skill = params.get("skill", [None])[0]
-        channel = params.get("channel", [None])[0]
 
         runs = query_runs(
             last_n=last_n,
