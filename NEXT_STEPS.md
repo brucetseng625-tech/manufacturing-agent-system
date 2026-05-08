@@ -3,7 +3,7 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `ff152a0` `feat: add material-shortage-recovery skill for supply chain resilience`
+- `73cea71` `feat: add capacity-rebalance skill for multi-machine capacity planning`
 
 Current completed scope:
 - delivery-risk-analysis
@@ -45,7 +45,7 @@ When a new Codex / AI session starts, do this first:
 
 | Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
 | --- | --- | --- | --- | --- | --- |
-| P3 | New recovery / planning skills | Expand practical manufacturing use cases | `capacity-rebalance`, `supplier-followup-draft` | Routing and schema should be stronger first | Feature AI |
+| P3 | New recovery / planning skills | Expand practical manufacturing use cases | `supplier-followup-draft` | Routing and schema should be stronger first | Feature AI |
 | P4 | Configurable rules / policy layer | Move decision rules out of hardcoded logic | Rule config structure, loader, tests | Existing skills stable | Codex |
 | P4 | Deployment readiness | Prepare for actual internal use | Runbook, config docs, server mode validation | API and error handling maturity | Codex |
 | P4 | Observability and traceability | Make runs easier to audit and support | Run IDs, structured logs, Asana trace linking | Audit log and API available | Codex |
@@ -54,7 +54,7 @@ When a new Codex / AI session starts, do this first:
 
 | Order | Work Item | Why Now |
 | --- | --- | --- |
-| 1 | New recovery / planning skills | Best next step now that shortage recovery and expedite planning patterns are both established |
+| 1 | New recovery / planning skills | Best next step now that recovery and planning option patterns are established across shortage, expedite, and capacity flows |
 | 2 | Configurable rules / policy layer | Good follow-on once the next wave of skills expands rule complexity |
 | 3 | Deployment readiness | Worth revisiting after the data source story is decided |
 | 4 | Observability and traceability | Useful once usage volume grows beyond local testing |
@@ -74,11 +74,11 @@ First actions:
 4. Continue from the top Priority 1 item unless the user reprioritizes
 
 Current expected next task:
-Add `capacity-rebalance` on top of the current routing, schema, and provider layers
+Add `supplier-followup-draft` on top of the current routing, schema, and provider layers
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, and provider layers instead of replacing them
-- Implement `capacity-rebalance` as the next high-value planning skill, unless the user explicitly reprioritizes to `supplier-followup-draft`
+- Implement `supplier-followup-draft` as the next high-value planning skill unless the user explicitly reprioritizes toward policy/config work
 - Keep the unified schema, history, dashboard, and Asana formatting behavior compatible
 - Add tests
 - Update README if needed
