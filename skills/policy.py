@@ -22,8 +22,18 @@ Design principles:
 import json
 import os
 import threading
+import datetime
 
 _local = threading.local()
+
+# Module-level reload metadata (shared across threads for reporting)
+_reload_metadata = {
+    "last_reload_at": None,
+    "last_reload_success": True,
+    "last_reload_error": None,
+    "reload_count": 0,
+}
+_reload_lock = threading.Lock()
 
 # All hardcoded thresholds from the current codebase, collected here.
 # Changing these values changes behavior without touching skill code.
@@ -114,6 +124,21 @@ DEFAULT_POLICY = {
 }
 
 
+def _deep_copy_dict(d):
+    """Create a deep copy of a dict (stdlib only)."""
+    result = {}
+    for key, value in d.items():
+        if isinstance(value, dict):
+            result[key] = _deep_copy_dict(value)
+        else:
+            result[key] = value
+    return result
+
+
+# Deep copy of the original defaults, used for restoring during hot-reload
+_ORIGINAL_DEFAULTS = _deep_copy_dict(DEFAULT_POLICY)
+
+
 def load_policy(config_path=None):
     """Load policy from a JSON config file, merging with defaults.
 
@@ -187,3 +212,80 @@ def _deep_merge(base, override):
         if key not in base:
             result[key] = override[key]
     return result
+
+
+def reload_policy(config_path=None):
+    """Reload policy from the config file and update all threads.
+
+    This is the hot-reload entry point. It reads the latest config file,
+    merges with defaults, and updates the module-level default so that
+    all threads (including the server's request handler threads) see
+    the new policy on their next request.
+
+    Args:
+        config_path: Optional explicit path. If None, uses default
+                     policies/active.json location.
+
+    Returns:
+        dict with reload result:
+            - success: bool
+            - source: str (file path or "default")
+            - error: str or None
+            - reloaded_at: ISO timestamp
+    """
+    global DEFAULT_POLICY  # noqa: PLW0603
+
+    if config_path is None:
+        repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        config_path = os.path.join(repo_root, "policies", "active.json")
+
+    now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    result = {"success": False, "source": None, "error": None, "reloaded_at": now}
+
+    try:
+        if os.path.isfile(config_path):
+            with open(config_path, "r", encoding="utf-8") as f:
+                override = json.load(f)
+            new_policy = _deep_merge(_ORIGINAL_DEFAULTS, override)
+            new_policy["_source"] = f"file:{config_path}"
+            result["source"] = f"file:{config_path}"
+        else:
+            new_policy = _deep_merge(_ORIGINAL_DEFAULTS, {})
+            new_policy["_source"] = "default"
+            result["source"] = "default"
+
+        # Update module-level DEFAULT_POLICY (affects new threads)
+        with _reload_lock:
+            DEFAULT_POLICY.clear()
+            DEFAULT_POLICY.update(new_policy)
+
+        # Update all existing thread-local policies
+        _local.policy = _deep_merge(DEFAULT_POLICY, {})
+
+        with _reload_lock:
+            _reload_metadata["last_reload_at"] = now
+            _reload_metadata["last_reload_success"] = True
+            _reload_metadata["last_reload_error"] = None
+            _reload_metadata["reload_count"] += 1
+
+        result["success"] = True
+
+    except Exception as e:
+        result["error"] = str(e)
+        with _reload_lock:
+            _reload_metadata["last_reload_at"] = now
+            _reload_metadata["last_reload_success"] = False
+            _reload_metadata["last_reload_error"] = str(e)
+            _reload_metadata["reload_count"] += 1
+
+    return result
+
+
+def get_reload_metadata():
+    """Get hot-reload status metadata.
+
+    Returns:
+        dict with last_reload_at, last_reload_success, reload_count, etc.
+    """
+    with _reload_lock:
+        return dict(_reload_metadata)

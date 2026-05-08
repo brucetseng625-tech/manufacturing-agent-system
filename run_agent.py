@@ -5,7 +5,7 @@ import sys
 import argparse
 from orchestrator import route_query, batch_queries
 from data_source import set_data_source, create_provider, get_provider_name
-from skills.policy import get_policy, load_policy, DEFAULT_POLICY
+from skills.policy import get_policy, load_policy, DEFAULT_POLICY, reload_policy, get_reload_metadata
 from skills.observability import log_request, log_asana_post, generate_run_id, set_run_id
 from integrations.asana_client import post_comment, format_success_report, format_error_report
 from audit_logger import log_run, query_runs, format_run_summary
@@ -484,6 +484,7 @@ def main():
     parser.add_argument("--channel", default=None, help="Filter by channel: cli or http (used with --history)")
     parser.add_argument("--run-id", default=None, help="Filter by specific run ID (used with --history)")
     parser.add_argument("--policy", action="store_true", help="Show active policy configuration and exit")
+    parser.add_argument("--reload-policy", action="store_true", help="Reload policy from config file and exit")
     parser.add_argument("--batch-file", default=None, help="Path to file containing one query per line (batch mode)")
     parser.add_argument("query", nargs="*", help="Natural language query (omit when using --history or --batch-file)")
     args = parser.parse_args()
@@ -493,6 +494,18 @@ def main():
         policy = load_policy()
         print(f"Policy source: {policy.get('_source', 'default')}")
         print(json.dumps({k: v for k, v in policy.items() if not k.startswith("_")}, indent=2))
+        return
+
+    # Policy hot-reload mode
+    if args.reload_policy:
+        result = reload_policy()
+        meta = get_reload_metadata()
+        print(f"Reload success: {result['success']}")
+        print(f"Source: {result['source']}")
+        if result['error']:
+            print(f"Error: {result['error']}")
+        print(f"Reload count: {meta['reload_count']}")
+        print(f"Last reload: {meta['last_reload_at'] or 'never'}")
         return
 
     # History query mode

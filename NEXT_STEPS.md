@@ -65,6 +65,7 @@ Current completed scope:
 - recovery planning team workflow
 - metrics api + dashboard stats
 - batch query support
+- policy hot-reload
 
 ## P5 Productionization / Live Integration Planning
 
@@ -76,7 +77,7 @@ Goal: Move from mock-data-first prototype toward real internal use without major
 | --- | --- | --- | --- | --- | --- |
 | ~~P5~~ | ~~Metrics API + Dashboard Stats~~ | ~~Ops visibility into system usage and health~~ | ~~Endpoint, Dashboard panel, tests~~ | ~~Audit log available~~ | ~~Codex~~ |
 | ~~P5~~ | ~~Batch Query Support~~ | ~~Process multiple orders in one request~~ | ~~Batch endpoint, CLI --batch-file, tests~~ | ~~Stable /metrics~~ | ~~Codex~~ |
-| P5 | Policy Hot-Reload | Adjust thresholds without restart | File watcher, signal handler | Policy layer stable | Codex |
+| ~~P5~~ | ~~Policy Hot-Reload~~ | ~~Adjust thresholds without restart~~ | ~~Reload endpoint, CLI flag, metadata, tests~~ | ~~Policy layer stable~~ | ~~Codex~~ |
 | P5 | Data Dir Auto-Reload | Detect CSV/JSON drops without restart | Directory watcher, cache invalidation | Provider layer stable | Codex |
 
 ## Start Here
@@ -120,7 +121,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-Continue with P5 Productionization phase, starting with Policy Hot-Reload.
+Continue with P5 Productionization phase, starting with Data Dir Auto-Reload.
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them

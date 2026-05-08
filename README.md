@@ -183,6 +183,28 @@ python3 run_agent.py --policy
 curl http://localhost:8000/policy
 ```
 
+### Policy Hot-Reload
+
+Adjust thresholds without restarting the server. Reloads `policies/active.json` and immediately applies new values to all active threads.
+
+**CLI:**
+```bash
+python3 run_agent.py --reload-policy
+```
+
+**API:**
+```bash
+# Reload from default path (policies/active.json)
+curl -X POST http://localhost:8000/policy/reload
+
+# Reload from custom path
+curl -X POST http://localhost:8000/policy/reload \
+  -H "Content-Type: application/json" \
+  -d '{"config_path": "/path/to/custom.json"}'
+```
+
+Response includes `success`, `source`, `reload_count`, and `reloaded_at`. If the config file is missing or invalid, the system falls back to built-in defaults without crashing.
+
 ### Policy Sections
 
 | Section | Controls |

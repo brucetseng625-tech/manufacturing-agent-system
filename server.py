@@ -11,7 +11,7 @@ from integrations.asana_client import post_comment, format_success_report, forma
 from audit_logger import log_run, query_runs
 from skills.registry import get_registry
 from skills.schema import SCHEMA_METADATA
-from skills.policy import get_policy, DEFAULT_POLICY
+from skills.policy import get_policy, DEFAULT_POLICY, reload_policy, get_reload_metadata
 from skills.observability import log_request, log_asana_post
 from metrics import compute_metrics
 from data_source import set_data_source, create_provider, get_provider_name
@@ -261,10 +261,38 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_run()
         elif path == "/batch":
             self._handle_batch()
+        elif path == "/policy/reload":
+            self._handle_policy_reload()
         else:
             self._drain_request_body()
             self._send_error_response(404, "not_found", "Endpoint not found")
             return
+
+    def _handle_policy_reload(self):
+        """Handle POST /policy/reload — hot-reload policy from config file."""
+        try:
+            # Read optional body for custom config_path
+            content_length = int(self.headers.get("Content-Length", 0))
+            config_path = None
+            if content_length > 0:
+                body = self.rfile.read(content_length).decode("utf-8")
+                payload = json.loads(body)
+                config_path = payload.get("config_path")
+
+            result = reload_policy(config_path)
+            reload_meta = get_reload_metadata()
+
+            self._send_json_response(200, {
+                "success": result["success"],
+                "source": result["source"],
+                "error": result["error"],
+                "reloaded_at": result["reloaded_at"],
+                "reload_count": reload_meta["reload_count"],
+            })
+        except (json.JSONDecodeError, ValueError) as e:
+            self._send_error_response(400, "invalid_json", f"Request body is not valid JSON: {e}")
+        except Exception as e:
+            self._send_error_response(500, "internal_error", f"Failed to reload policy: {e}")
 
     def _handle_run(self):
         try:
