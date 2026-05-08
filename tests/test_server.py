@@ -416,3 +416,29 @@ class ServerTest(unittest.TestCase):
             data = json.loads(e.read())
             self.assertEqual(e.code, 404)
             self.assertEqual(data["error_type"], "not_found")
+
+    def test_dashboard_served_at_root(self):
+        """GET / serves the dashboard HTML."""
+        url = f"http://localhost:{self.port}/"
+        with urllib.request.urlopen(url) as response:
+            self.assertEqual(response.status, 200)
+            content_type = response.headers.get("Content-Type", "")
+            self.assertIn("text/html", content_type)
+            html = response.read().decode("utf-8")
+            self.assertIn("Manufacturing Agent Dashboard", html)
+
+    def test_dashboard_served_at_dashboard_path(self):
+        """GET /dashboard serves the dashboard HTML."""
+        url = f"http://localhost:{self.port}/dashboard"
+        with urllib.request.urlopen(url) as response:
+            self.assertEqual(response.status, 200)
+            html = response.read().decode("utf-8")
+            self.assertIn("Skills & Teams", html)
+
+    def test_static_file_not_found(self):
+        """GET /static/nonexistent returns 404."""
+        url = f"http://localhost:{self.port}/static/nonexistent.css"
+        try:
+            urllib.request.urlopen(url)
+        except urllib.error.HTTPError as e:
+            self.assertEqual(e.code, 404)

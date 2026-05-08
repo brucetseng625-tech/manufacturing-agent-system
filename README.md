@@ -12,6 +12,14 @@ Enterprise workflow layer for manufacturing decision support.
 ## Run
 
 ```bash
+# Start the server (includes web dashboard + API)
+python3 server.py --port 8000
+
+# Open dashboard in browser
+open http://localhost:8000
+```
+
+```bash
 python3 run_agent.py "這張急單 ORD-1001 能不能準時出？"
 ```
 

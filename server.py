@@ -47,16 +47,76 @@ class AgentHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         parsed_path = urlparse(self.path)
-        if parsed_path.path == "/health":
+        path = parsed_path.path
+
+        # Dashboard routes
+        if path == "/" or path == "/dashboard" or path == "/index.html":
+            self._serve_dashboard()
+            return
+        # Static files
+        if path.startswith("/static/"):
+            self._serve_static(path)
+            return
+
+        # API routes
+        if path == "/health":
             self._send_json_response(200, {"status": "ok"})
-        elif parsed_path.path == "/history":
+        elif path == "/history":
             self._handle_history(parsed_path)
-        elif parsed_path.path == "/skills":
+        elif path == "/skills":
             self._handle_skills()
-        elif parsed_path.path == "/schema":
+        elif path == "/schema":
             self._handle_schema()
         else:
             self._send_error_response(404, "not_found", "Endpoint not found")
+
+    def _serve_dashboard(self):
+        """Serve the dashboard HTML."""
+        dashboard_path = os.path.join(os.path.dirname(__file__), "static", "dashboard.html")
+        try:
+            with open(dashboard_path, "rb") as f:
+                content = f.read()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-cache")
+            self.end_headers()
+            self.wfile.write(content)
+        except FileNotFoundError:
+            self._send_error_response(500, "internal_error", "Dashboard file not found")
+
+    def _serve_static(self, path):
+        """Serve static files (CSS, JS, images)."""
+        # Prevent directory traversal
+        safe_path = path.replace("..", "")
+        file_path = os.path.join(os.path.dirname(__file__), "static", safe_path.lstrip("/"))
+        content_types = {
+            ".html": "text/html; charset=utf-8",
+            ".css": "text/css; charset=utf-8",
+            ".js": "application/javascript; charset=utf-8",
+            ".json": "application/json; charset=utf-8",
+            ".png": "image/png",
+            ".svg": "image/svg+xml",
+            ".ico": "image/x-icon",
+        }
+
+        try:
+            if not os.path.isfile(file_path):
+                self._send_error_response(404, "not_found", "File not found")
+                return
+
+            ext = os.path.splitext(file_path)[1].lower()
+            content_type = content_types.get(ext, "application/octet-stream")
+
+            with open(file_path, "rb") as f:
+                content = f.read()
+
+            self.send_response(200)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Cache-Control", "public, max-age=3600")
+            self.end_headers()
+            self.wfile.write(content)
+        except Exception:
+            self._send_error_response(500, "internal_error", "Failed to serve static file")
 
     def _handle_skills(self):
         """Handle GET /skills — return available skills and team workflows."""

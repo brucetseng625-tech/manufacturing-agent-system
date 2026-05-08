@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manufacturing Agent Dashboard</title>
+<style>
+:root {
+  --bg-primary: #0f0f1a;
+  --bg-secondary: #1a1a2e;
+  --bg-card: #16213e;
+  --bg-input: #1e1e3a;
+  --border: #2a2a4a;
+  --text-primary: #e8e8f0;
+  --text-secondary: #a0a0b8;
+  --text-muted: #6a6a8a;
+  --accent: #6366f1;
+  --accent-light: #818cf8;
+  --accent-glow: rgba(99, 102, 241, 0.3);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+.app { display: flex; min-height: 100vh; }
+.sidebar {
+  width: 240px;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  padding: 1.5rem 0;
+  flex-shrink: 0;
+}
+.sidebar h1 {
+  font-size: 1.1rem;
+  padding: 0 1.25rem 1.25rem;
+  color: var(--accent-light);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+.sidebar h1 span { font-weight: 300; color: var(--text-secondary); }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+  border-left: 3px solid transparent;
+}
+.nav-item:hover { background: rgba(99, 102, 241, 0.1); color: var(--text-primary); }
+.nav-item.active {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--accent-light);
+  border-left-color: var(--accent);
+}
+.nav-icon { width: 20px; text-align: center; }
+.main { flex: 1; padding: 2rem; overflow-y: auto; max-height: 100vh; }
+.view { display: none; }
+.view.active { display: block; }
+.view-header { margin-bottom: 2rem; }
+.view-header h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+.view-header p { color: var(--text-secondary); }
+
+/* Cards & Grid */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.card-title { font-weight: 600; font-size: 1rem; }
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.badge-skill { background: rgba(59, 130, 246, 0.2); color: var(--info); }
+.badge-team { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+.badge-success { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+.badge-error { background: rgba(239, 68, 68, 0.2); color: var(--error); }
+.badge-warning { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+.badge-parallel { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+
+/* Skills View */
+.skill-card { transition: transform 0.15s, box-shadow 0.15s; cursor: default; }
+.skill-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+.skill-card h3 { font-size: 1rem; margin-bottom: 0.5rem; }
+.skill-card .keywords { color: var(--text-muted); font-size: 0.8rem; }
+.skill-card .keywords span { display: inline-block; background: var(--bg-input); padding: 0.1rem 0.4rem; border-radius: 4px; margin: 0.1rem; }
+.meta-row { display: flex; gap: 1rem; margin-top: 0.75rem; font-size: 0.85rem; color: var(--text-secondary); }
+.meta-item { display: flex; align-items: center; gap: 0.3rem; }
+
+/* Query View */
+.query-box { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; }
+.query-input {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.query-input:focus { border-color: var(--accent); }
+.btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--accent-light); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.result-panel { margin-top: 1rem; }
+.step-result { border-left: 3px solid var(--border); padding-left: 1rem; margin: 0.75rem 0; }
+.step-result.success { border-left-color: var(--success); }
+.step-result.error { border-left-color: var(--error); }
+.step-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.step-title { font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em; }
+.step-content { font-size: 0.9rem; color: var(--text-secondary); }
+.step-content p { margin-bottom: 0.3rem; }
+.score-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+.score-item { font-size: 0.8rem; padding: 0.15rem 0.5rem; border-radius: 4px; background: var(--bg-input); }
+
+/* History View */
+.filters { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; }
+.filter-select, .filter-input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  outline: none;
+}
+.filter-select:focus, .filter-input:focus { border-color: var(--accent); }
+.history-table { width: 100%; border-collapse: collapse; }
+.history-table th { text-align: left; padding: 0.75rem; border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.history-table td { padding: 0.75rem; border-bottom: 1px solid rgba(42, 42, 74, 0.5); font-size: 0.9rem; }
+.history-table tr:hover td { background: rgba(99, 102, 241, 0.05); }
+.history-table .query-cell { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Loading & Error States */
+.loading { text-align: center; padding: 3rem; color: var(--text-muted); }
+.loading::after { content: ''; display: inline-block; width: 24px; height: 24px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-left: 0.75rem; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.error-state { text-align: center; padding: 3rem; color: var(--error); }
+.empty-state { text-align: center; padding: 3rem; color: var(--text-muted); }
+
+/* Trace */
+.trace-box { margin-top: 1rem; padding: 0.75rem; background: var(--bg-input); border-radius: 6px; font-size: 0.8rem; color: var(--text-muted); }
+.trace-box div { margin-bottom: 0.2rem; }
+.trace-box div::before { content: '› '; color: var(--accent); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar { width: 60px; }
+  .sidebar h1, .nav-text { display: none; }
+  .nav-item { justify-content: center; padding: 0.75rem; }
+  .main { padding: 1rem; }
+  .grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="sidebar">
+    <h1>Agent <span>Dashboard</span></h1>
+    <div class="nav-item active" data-view="skills">
+      <span class="nav-icon">◆</span><span class="nav-text">Skills & Teams</span>
+    </div>
+    <div class="nav-item" data-view="query">
+      <span class="nav-icon">▶</span><span class="nav-text">Query Runner</span>
+    </div>
+    <div class="nav-item" data-view="history">
+      <span class="nav-icon">◷</span><span class="nav-text">Run History</span>
+    </div>
+  </nav>
+
+  <main class="main">
+    <!-- Skills View -->
+    <section id="view-skills" class="view active">
+      <div class="view-header">
+        <h2>Skills & Teams</h2>
+        <p>Available agent capabilities and team workflows</p>
+      </div>
+      <div id="skills-grid" class="grid"><div class="loading">Loading skills</div></div>
+    </section>
+
+    <!-- Query View -->
+    <section id="view-query" class="view">
+      <div class="view-header">
+        <h2>Query Runner</h2>
+        <p>Execute agent queries and view results</p>
+      </div>
+      <div class="query-box">
+        <input type="text" id="query-input" class="query-input" placeholder="Enter query, e.g., ORD-1001 能不能準時出？" />
+        <button id="query-btn" class="btn" onclick="executeQuery()">Run</button>
+      </div>
+      <div id="query-result"></div>
+    </section>
+
+    <!-- History View -->
+    <section id="view-history" class="view">
+      <div class="view-header">
+        <h2>Run History</h2>
+        <p>Recent agent execution records</p>
+      </div>
+      <div class="filters">
+        <select id="filter-status" class="filter-select" onchange="loadHistory()">
+          <option value="">All Status</option>
+          <option value="success">Success</option>
+          <option value="error">Error</option>
+        </select>
+        <input type="text" id="filter-skill" class="filter-input" placeholder="Filter by skill..." oninput="loadHistory()" />
+        <select id="filter-channel" class="filter-select" onchange="loadHistory()">
+          <option value="">All Channels</option>
+          <option value="cli">CLI</option>
+          <option value="http">HTTP</option>
+        </select>
+        <select id="filter-limit" class="filter-select" onchange="loadHistory()">
+          <option value="10">Last 10</option>
+          <option value="25">Last 25</option>
+          <option value="50">Last 50</option>
+        </select>
+      </div>
+      <div id="history-content"><div class="loading">Loading history</div></div>
+    </section>
+  </main>
+</div>
+
+<script>
+// Navigation
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    item.classList.add('active');
+    const view = item.dataset.view;
+    document.getElementById(`view-${view}`).classList.add('active');
+    if (view === 'skills') loadSkills();
+    if (view === 'history') loadHistory();
+  });
+});
+
+// Enter key support
+document.getElementById('query-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') executeQuery();
+});
+
+// Skills View
+async function loadSkills() {
+  const grid = document.getElementById('skills-grid');
+  grid.innerHTML = '<div class="loading">Loading skills</div>';
+  try {
+    const res = await fetch('/skills');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.items.length === 0) {
+      grid.innerHTML = '<div class="empty-state">No skills available</div>';
+      return;
+    }
+    grid.innerHTML = data.items.map(s => `
+      <div class="card skill-card">
+        <div class="card-header">
+          <span class="card-title">${s.name}</span>
+          <span class="badge ${s.type === 'team' ? 'badge-team' : 'badge-skill'}">${s.type === 'team' ? 'TEAM' : 'SKILL'}</span>
+        </div>
+        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:0.5rem;">Intent: <code style="background:var(--bg-input);padding:0.1rem 0.4rem;border-radius:4px;">${s.intent}</code></p>
+        ${s.steps ? `<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem;">Steps: ${s.steps.map(st => st.alias).join(' → ')}</p>` : ''}
+        <div class="meta-row">
+          <span class="meta-item">📌 Priority: ${s.priority}</span>
+          <span class="meta-item">${s.requires_order_id ? '🔑 Requires Order' : '📋 No Order Required'}</span>
+        </div>
+        <div class="keywords" style="margin-top:0.5rem;">
+          ${(s.keywords || []).slice(0, 5).map(k => `<span>${k}</span>`).join('')}
+          ${s.exact_keywords && s.exact_keywords.length > 0 ? s.exact_keywords.slice(0, 2).map(k => `<span style="border:1px solid var(--accent);">${k}</span>`).join('') : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    grid.innerHTML = `<div class="error-state">Failed to load skills: ${e.message}</div>`;
+  }
+}
+
+// Query View
+async function executeQuery() {
+  const input = document.getElementById('query-input');
+  const btn = document.getElementById('query-btn');
+  const result = document.getElementById('query-result');
+  const query = input.value.trim();
+  if (!query) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Running...';
+  result.innerHTML = '<div class="loading">Executing query</div>';
+
+  try {
+    const res = await fetch('/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
+    });
+    const data = await res.json();
+
+    if (data.status === 'error') {
+      result.innerHTML = `
+        <div class="card" style="border-color:var(--error);">
+          <div class="card-header">
+            <span class="card-title" style="color:var(--error);">Error: ${data.error_type || 'unknown'}</span>
+            <span class="badge badge-error">FAILED</span>
+          </div>
+          <p>${Array.isArray(data.error) ? data.error.join('<br>') : (data.error || data.details || 'No details')}</p>
+        </div>`;
+      return;
+    }
+
+    // Success
+    let html = '';
+    const isTeam = data.skill && data.skill.startsWith('team:');
+    const summary = isTeam ? data.data.summary : null;
+
+    if (isTeam) {
+      html += `<div class="card">
+        <div class="card-header">
+          <span class="card-title">Team: ${data.data.team_name}</span>
+          <div>
+            ${summary?.parallel ? '<span class="badge badge-parallel">⚡ Parallel</span> ' : ''}
+            <span class="badge badge-success">${summary.success_count}/${summary.total_steps} OK</span>
+            ${summary.partial_success ? `<span class="badge badge-warning" style="margin-left:0.5rem;">Partial Success</span>` : ''}
+          </div>
+        </div>`;
+
+      // Steps
+      html += '<div style="margin-top:1rem;">';
+      for (const [alias, step] of Object.entries(data.data.results)) {
+        const isError = step.error;
+        html += `<div class="step-result ${isError ? 'error' : 'success'}">
+          <div class="step-header">
+            <span class="step-title">${alias}</span>
+            <span class="badge ${isError ? 'badge-error' : 'badge-success'}">${isError ? 'FAILED' : 'OK'}</span>
+          </div>
+          ${isError ? `<p style="color:var(--error);">${step.error}</p>` : renderSkillResult(step)}
+        </div>`;
+      }
+      html += '</div>';
+
+      // Trace
+      if (data.data.trace?.length) {
+        html += `<div class="trace-box">${data.data.trace.map(t => `<div>${t}</div>`).join('')}</div>`;
+      }
+      html += '</div>';
+    } else {
+      html += `<div class="card">
+        <div class="card-header">
+          <span class="card-title">${data.skill}</span>
+          <span class="badge badge-success">SUCCESS</span>
+        </div>
+        ${renderSkillResult(data.data)}
+        ${data.data.trace?.length ? `<div class="trace-box">${data.data.trace.map(t => `<div>${t}</div>`).join('')}</div>` : ''}
+      </div>`;
+    }
+    result.innerHTML = html;
+  } catch (e) {
+    result.innerHTML = `<div class="error-state">Request failed: ${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Run';
+  }
+}
+
+function renderSkillResult(data) {
+  if (!data || typeof data !== 'object') return `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+  let html = '';
+  const details = data.details || {};
+
+  if (data.decision) {
+    html += `<p><strong>Decision:</strong> <code>${data.decision}</code> (Confidence: ${data.confidence || 'N/A'})</p>`;
+  }
+  if (data.order_id) html += `<p><strong>Order:</strong> ${data.order_id} | <strong>Customer:</strong> ${data.customer || 'N/A'}</p>`;
+  if (details.customer_tier) html += `<p><strong>Tier:</strong> ${details.customer_tier} | <strong>Penalty:</strong> $${details.penalty_per_day}/day</p>`;
+  if (details.expedite_option && details.expedite_option !== 'none') {
+    html += `<p><strong>Expedite:</strong> ${details.expedite_option} ($${details.expedite_cost.toLocaleString()})</p>`;
+  }
+  if (data.blockers?.length && !data.blockers[0].includes('No critical')) {
+    html += `<p><strong>Blockers:</strong></p><ul style="margin-left:1.5rem;color:var(--warning);">`;
+    data.blockers.forEach(b => html += `<li>${b}</li>`);
+    html += `</ul>`;
+  }
+  if (data.next_action) {
+    html += `<p style="margin-top:0.5rem;"><strong>Next Action:</strong> ${data.next_action}</p>`;
+  }
+  if (details.cost_notes?.length) {
+    html += `<p><strong>Cost Notes:</strong></p><ul style="margin-left:1.5rem;color:var(--text-secondary);">`;
+    details.cost_notes.forEach(n => html += `<li>${n}</li>`);
+    html += `</ul>`;
+  }
+  if (data.supplier_scores) {
+    html += `<div style="margin-top:0.75rem;"><strong>Supplier Scores:</strong><div class="score-bar">`;
+    for (const [supplier, info] of Object.entries(data.supplier_scores)) {
+      html += `<span class="score-item">${supplier}: ${info.score} (P:${info.breakdown.price_score} R:${info.breakdown.reliability_score} Q:${info.breakdown.quality_score} L:${info.breakdown.lead_time_score} K:${info.breakdown.risk_score})</span>`;
+    }
+    html += `</div></div>`;
+  }
+  if (data.tradeoffs?.length) {
+    html += `<p style="margin-top:0.5rem;color:var(--info);"><strong>Tradeoffs:</strong> ${data.tradeoffs.join(' ')}</p>`;
+  }
+  return html;
+}
+
+// History View
+async function loadHistory() {
+  const content = document.getElementById('history-content');
+  const status = document.getElementById('filter-status').value;
+  const skill = document.getElementById('filter-skill').value;
+  const channel = document.getElementById('filter-channel').value;
+  const limit = document.getElementById('filter-limit').value;
+
+  content.innerHTML = '<div class="loading">Loading history</div>';
+
+  try {
+    let url = `/history?last=${limit}`;
+    if (status) url += `&status=${status}`;
+    if (skill) url += `&skill=${encodeURIComponent(skill)}`;
+    if (channel) url += `&channel=${channel}`;
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    if (data.total === 0) {
+      content.innerHTML = '<div class="empty-state">No runs found matching the criteria</div>';
+      return;
+    }
+
+    let html = `<table class="history-table">
+      <thead><tr>
+        <th>Time</th><th>Channel</th><th>Skill</th><th>Query</th><th>Orders</th><th>Status</th><th>Error</th>
+      </tr></thead><tbody>`;
+
+    for (const r of data.runs) {
+      const ts = r.timestamp ? new Date(r.timestamp).toLocaleString() : 'N/A';
+      const skillDisplay = r.skill || r.intent || 'unknown';
+      const isTeam = skillDisplay.startsWith('team:');
+      const errorType = r.error_type || '';
+      html += `<tr>
+        <td style="font-size:0.85rem;color:var(--text-muted);">${ts}</td>
+        <td><span class="badge" style="background:var(--bg-input);">${r.channel || '?'}</span></td>
+        <td>${isTeam ? `<span class="badge badge-team">${skillDisplay}</span>` : skillDisplay}</td>
+        <td class="query-cell" title="${r.query || ''}">${r.query || ''}</td>
+        <td>${(r.order_ids || []).join(', ') || '-'}</td>
+        <td><span class="badge ${r.status === 'success' ? 'badge-success' : 'badge-error'}">${r.status}</span></td>
+        <td style="font-size:0.85rem;color:${errorType ? 'var(--error)' : 'var(--text-muted)'};">${errorType || '-'}</td>
+      </tr>`;
+    }
+    html += '</tbody></table>';
+    content.innerHTML = html;
+  } catch (e) {
+    content.innerHTML = `<div class="error-state">Failed to load history: ${e.message}</div>`;
+  }
+}
+
+// Initial load
+loadSkills();
+</script>
+</body>
+</html>
