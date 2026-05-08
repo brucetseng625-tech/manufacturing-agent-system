@@ -215,6 +215,21 @@ class OrchestratorTest(unittest.TestCase):
         self.assertIn("executed delivery-risk-analysis via team workflow", trace)
         self.assertIn("executed sales-response-draft via team workflow", trace)
 
+    def test_team_summary_in_result(self):
+        """Team result should include summary with success/failed counts."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("ORD-1001 風險應對", mock_data_dir)
+        
+        self.assertEqual(result["status"], "success")
+        summary = result["data"]["summary"]
+        self.assertIn("total_steps", summary)
+        self.assertIn("success_count", summary)
+        self.assertIn("failed_count", summary)
+        self.assertIn("partial_success", summary)
+        self.assertEqual(summary["success_count"], 2)
+        self.assertEqual(summary["failed_count"], 0)
+        self.assertFalse(summary["partial_success"])
+
     def test_team_validation_failure_is_not_reported_as_success(self):
         """Team workflows should not bypass validation."""
         with tempfile.TemporaryDirectory() as bad_dir:

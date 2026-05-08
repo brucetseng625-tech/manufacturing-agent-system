@@ -259,10 +259,12 @@ class SkillRegistry:
     def execute_team(self, team_config, order_ids, data_dir, query=None):
         """
         Execute a team workflow by chaining multiple skills.
-        Returns a unified team output.
+        Returns a unified team output with success/failure counts.
         """
         results = {}
         trace = []
+        success_count = 0
+        failed_count = 0
         
         for step in team_config.get("steps", []):
             skill_name = step["skill"]
@@ -281,14 +283,18 @@ class SkillRegistry:
                     results[alias] = res
                     if "error" in res:
                         trace.append(f"failed {skill_name}: {res['error']}")
+                        failed_count += 1
                     else:
                         trace.append(f"executed {skill_name} via team workflow")
+                        success_count += 1
                 except Exception as e:
                     results[alias] = {"error": str(e)}
                     trace.append(f"failed {skill_name}: {e}")
+                    failed_count += 1
             else:
                 results[alias] = {"error": f"Skill {skill_name} not found"}
                 trace.append(f"failed {skill_name}: Skill {skill_name} not found")
+                failed_count += 1
                 
         return {
             "team_name": team_config["name"],
@@ -296,6 +302,12 @@ class SkillRegistry:
             "results": results,
             "trace": trace,
             "order_id": order_ids[0] if order_ids else None,
+            "summary": {
+                "total_steps": len(team_config.get("steps", [])),
+                "success_count": success_count,
+                "failed_count": failed_count,
+                "partial_success": success_count > 0 and failed_count > 0,
+            },
         }
     
     def execute(self, skill_config, order_ids, data_dir, query=None):

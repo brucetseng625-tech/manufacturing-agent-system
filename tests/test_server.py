@@ -271,7 +271,8 @@ class ServerTest(unittest.TestCase):
         except urllib.error.HTTPError as e:
             self.assertEqual(e.code, 400)
             data = json.loads(e.read())
-            self.assertIn("error", data)
+            self.assertIn("message", data)
+            self.assertEqual(data["error_type"], "invalid_parameter")
 
     def test_get_history_negative_last(self):
         """GET /history with negative last returns 400."""
@@ -289,7 +290,8 @@ class ServerTest(unittest.TestCase):
         except urllib.error.HTTPError as e:
             self.assertEqual(e.code, 400)
             data = json.loads(e.read())
-            self.assertIn("status", data["error"])
+            self.assertIn("message", data)
+            self.assertEqual(data["error_type"], "invalid_parameter")
 
     def test_get_history_invalid_channel(self):
         """GET /history with invalid channel returns 400."""
@@ -308,3 +310,109 @@ class ServerTest(unittest.TestCase):
             self.assertEqual(data["filters"]["last"], 5)
             self.assertEqual(data["filters"]["status"], "success")
             self.assertEqual(data["filters"]["channel"], "cli")
+
+    # --- Failure-path tests ---
+
+    def test_get_not_found_error_shape(self):
+        """GET 404 returns consistent error shape."""
+        url = f"http://localhost:{self.port}/notfound"
+        try:
+            urllib.request.urlopen(url)
+        except urllib.error.HTTPError as e:
+            data = json.loads(e.read())
+            self.assertEqual(e.code, 404)
+            self.assertEqual(data["status"], "error")
+            self.assertEqual(data["error_type"], "not_found")
+            self.assertIn("message", data)
+
+    def test_run_error_response_shape(self):
+        """POST /run error returns consistent error shape with error_type."""
+        url = f"http://localhost:{self.port}/run"
+        payload = json.dumps({"query": "no match at all"}).encode("utf-8")
+        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+        try:
+            urllib.request.urlopen(req)
+        except urllib.error.HTTPError as e:
+            data = json.loads(e.read())
+            self.assertIn("status", data)
+            self.assertEqual(data["status"], "error")
+            self.assertIn("error_type", data)
+            self.assertIn("error", data)  # backward compat
+
+    def test_run_skill_error_returns_500(self):
+        """Skill errors return 500, not 400."""
+        url = f"http://localhost:{self.port}/run"
+        payload = json.dumps({"query": "ORD-9999 出貨"}).encode("utf-8")
+        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+        try:
+            urllib.request.urlopen(req)
+        except urllib.error.HTTPError as e:
+            # skill_error for non-existent order should be 500
+            self.assertEqual(e.code, 500)
+            data = json.loads(e.read())
+            self.assertIn("error_type", data)
+
+    def test_run_missing_order_id_returns_400(self):
+        """missing_order_id returns 400."""
+        url = f"http://localhost:{self.port}/run"
+        payload = json.dumps({"query": "準時出貨"}).encode("utf-8")
+        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+        try:
+            urllib.request.urlopen(req)
+        except urllib.error.HTTPError as e:
+            self.assertEqual(e.code, 400)
+            data = json.loads(e.read())
+            self.assertEqual(data["error_type"], "missing_order_id")
+
+    def test_run_unknown_intent_returns_400(self):
+        """unknown_intent returns 400."""
+        url = f"http://localhost:{self.port}/run"
+        payload = json.dumps({"query": "今天天氣如何"}).encode("utf-8")
+        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+        try:
+            urllib.request.urlopen(req)
+        except urllib.error.HTTPError as e:
+            self.assertEqual(e.code, 400)
+            data = json.loads(e.read())
+            self.assertEqual(data["error_type"], "unknown_intent")
+
+    def test_run_validation_failed_returns_400(self):
+        """validation_failed returns 400."""
+        # Create temp dir with bad data to trigger validation error
+        import tempfile
+        with tempfile.TemporaryDirectory() as bad_dir:
+            with open(os.path.join(bad_dir, "orders.csv"), "w") as f:
+                f.write("order_id\nORD-BAD\n")
+            url = f"http://localhost:{self.port}/run"
+            payload = json.dumps({"query": "ORD-BAD 出貨", "data_dir": bad_dir}).encode("utf-8")
+            req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+            try:
+                urllib.request.urlopen(req)
+            except urllib.error.HTTPError as e:
+                self.assertEqual(e.code, 400)
+                data = json.loads(e.read())
+                self.assertEqual(data["error_type"], "validation_failed")
+
+    def test_history_error_response_shape(self):
+        """GET /history errors return consistent shape with error_type."""
+        url = f"http://localhost:{self.port}/history?last=abc"
+        try:
+            urllib.request.urlopen(url)
+        except urllib.error.HTTPError as e:
+            data = json.loads(e.read())
+            self.assertEqual(e.code, 400)
+            self.assertEqual(data["status"], "error")
+            self.assertEqual(data["error_type"], "invalid_parameter")
+            self.assertIn("message", data)
+
+    def test_post_not_found_error_shape(self):
+        """POST 404 returns consistent error shape."""
+        url = f"http://localhost:{self.port}/notfound"
+        payload = b"{}"
+        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+        try:
+            urllib.request.urlopen(req)
+        except urllib.error.HTTPError as e:
+            data = json.loads(e.read())
+            self.assertEqual(e.code, 404)
+            self.assertEqual(data["error_type"], "not_found")

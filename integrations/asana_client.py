@@ -58,18 +58,35 @@ def format_success_report(response):
         lines.append(f"Team Workflow: `{team_name}`")
         lines.append("")
         results = data.get("results", {})
+        if not isinstance(results, dict):
+            lines.append("Warning: Invalid team results structure")
+            return _append_trace(lines, data.get("trace", []))
         for alias, step in results.items():
-            step_intent = step.get("intent", alias)
+            if not isinstance(step, dict):
+                lines.append(f"**{alias.upper()}**: Unexpected result type")
+                continue
+            if "error" in step:
+                lines.append(f"**{alias.upper()}**: FAILED - {step['error']}")
+                lines.append("")
+                continue
             step_decision = step.get("decision", "N/A")
             lines.append(f"**{alias.upper()}**")
             lines.append(f"Decision: `{step_decision}`")
             lines.append(f"Confidence: {step.get('confidence', 'N/A')}")
             blockers = step.get("blockers", [])
-            if blockers:
+            if isinstance(blockers, list) and blockers:
                 lines.append("Blockers:")
                 for b in blockers[:2]:
                     lines.append(f"- {b}")
             lines.append("")
+        summary = data.get("summary", {})
+        if summary:
+            total = summary.get("total_steps", 0)
+            success = summary.get("success_count", 0)
+            failed = summary.get("failed_count", 0)
+            lines.append(f"**Summary**: {success}/{total} steps succeeded, {failed} failed")
+            if summary.get("partial_success"):
+                lines.append("Status: PARTIAL SUCCESS")
         trace = data.get("trace", [])
         return _append_trace(lines, trace)
 

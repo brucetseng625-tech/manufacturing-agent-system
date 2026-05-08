@@ -25,6 +25,17 @@ class AgentHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps(data, ensure_ascii=False).encode("utf-8"))
 
+    def _send_error_response(self, status_code, error_type, message, details=None):
+        """Send a consistent error response across all endpoints."""
+        body = {
+            "status": "error",
+            "error_type": error_type,
+            "message": message,
+        }
+        if details is not None:
+            body["details"] = details
+        self._send_json_response(status_code, body)
+
     def do_GET(self):
         parsed_path = urlparse(self.path)
         if parsed_path.path == "/health":
@@ -36,105 +47,106 @@ class AgentHandler(BaseHTTPRequestHandler):
         elif parsed_path.path == "/schema":
             self._handle_schema()
         else:
-            self._send_json_response(404, {"error": "Not found"})
+            self._send_error_response(404, "not_found", "Endpoint not found")
 
     def _handle_skills(self):
         """Handle GET /skills — return available skills and team workflows."""
-        registry = get_registry()
-        items = []
+        try:
+            registry = get_registry()
+            items = []
 
-        for skill in registry.skills:
-            items.append({
-                "name": skill["name"],
-                "intent": skill["intent"],
-                "type": "skill",
-                "requires_order_id": skill.get("requires_order_id", False),
-                "keywords": skill.get("keywords", []),
-                "exact_keywords": skill.get("exact_keywords", []),
-                "priority": skill.get("priority", 0),
+            for skill in registry.skills:
+                items.append({
+                    "name": skill["name"],
+                    "intent": skill["intent"],
+                    "type": "skill",
+                    "requires_order_id": skill.get("requires_order_id", False),
+                    "keywords": skill.get("keywords", []),
+                    "exact_keywords": skill.get("exact_keywords", []),
+                    "priority": skill.get("priority", 0),
+                })
+
+            for team in registry.teams:
+                items.append({
+                    "name": f"team:{team['name']}",
+                    "intent": team["intent"],
+                    "type": "team",
+                    "requires_order_id": team.get("requires_order_id", False),
+                    "keywords": team.get("keywords", []),
+                    "exact_keywords": team.get("exact_keywords", []),
+                    "priority": team.get("priority", 0),
+                    "steps": team.get("steps", []),
+                })
+
+            self._send_json_response(200, {
+                "total": len(items),
+                "items": items,
             })
-
-        for team in registry.teams:
-            items.append({
-                "name": f"team:{team['name']}",
-                "intent": team["intent"],
-                "type": "team",
-                "requires_order_id": team.get("requires_order_id", False),
-                "keywords": team.get("keywords", []),
-                "exact_keywords": team.get("exact_keywords", []),
-                "priority": team.get("priority", 0),
-                "steps": team.get("steps", []),
-            })
-
-        self._send_json_response(200, {
-            "total": len(items),
-            "items": items,
-        })
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to list skills", str(e))
 
     def _handle_schema(self):
         """Handle GET /schema — return unified output schema metadata."""
-        self._send_json_response(200, SCHEMA_METADATA)
+        try:
+            self._send_json_response(200, SCHEMA_METADATA)
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to serve schema", str(e))
 
     def _handle_history(self, parsed_path):
         """Handle GET /history with optional query parameters for filtering."""
-        params = parse_qs(parsed_path.query)
-
-        # Parameter validation
-        last_raw = params.get("last", [10])[0]
         try:
-            last_n = int(last_raw)
-            if last_n <= 0:
-                self._send_json_response(400, {
-                    "error": "Invalid parameter: 'last' must be a positive integer.",
-                })
+            params = parse_qs(parsed_path.query)
+
+            # Parameter validation
+            last_raw = params.get("last", [10])[0]
+            try:
+                last_n = int(last_raw)
+                if last_n <= 0:
+                    self._send_error_response(400, "invalid_parameter", "'last' must be a positive integer")
+                    return
+            except (ValueError, TypeError):
+                self._send_error_response(400, "invalid_parameter", "'last' must be a positive integer")
                 return
-        except (ValueError, TypeError):
-            self._send_json_response(400, {
-                "error": "Invalid parameter: 'last' must be a positive integer.",
+
+            status = params.get("status", [None])[0]
+            if status is not None and status not in ("success", "error"):
+                self._send_error_response(400, "invalid_parameter", "'status' must be 'success' or 'error'")
+                return
+
+            channel = params.get("channel", [None])[0]
+            if channel is not None and channel not in ("cli", "http"):
+                self._send_error_response(400, "invalid_parameter", "'channel' must be 'cli' or 'http'")
+                return
+
+            intent = params.get("intent", [None])[0]
+            skill = params.get("skill", [None])[0]
+
+            runs = query_runs(
+                last_n=last_n,
+                status=status,
+                intent=intent,
+                skill=skill,
+                channel=channel,
+            )
+
+            self._send_json_response(200, {
+                "total": len(runs),
+                "filters": {
+                    "last": last_n,
+                    "status": status,
+                    "intent": intent,
+                    "skill": skill,
+                    "channel": channel,
+                },
+                "runs": runs,
             })
-            return
-
-        status = params.get("status", [None])[0]
-        if status is not None and status not in ("success", "error"):
-            self._send_json_response(400, {
-                "error": "Invalid parameter: 'status' must be 'success' or 'error'.",
-            })
-            return
-
-        channel = params.get("channel", [None])[0]
-        if channel is not None and channel not in ("cli", "http"):
-            self._send_json_response(400, {
-                "error": "Invalid parameter: 'channel' must be 'cli' or 'http'.",
-            })
-            return
-
-        intent = params.get("intent", [None])[0]
-        skill = params.get("skill", [None])[0]
-
-        runs = query_runs(
-            last_n=last_n,
-            status=status,
-            intent=intent,
-            skill=skill,
-            channel=channel,
-        )
-
-        self._send_json_response(200, {
-            "total": len(runs),
-            "filters": {
-                "last": last_n,
-                "status": status,
-                "intent": intent,
-                "skill": skill,
-                "channel": channel,
-            },
-            "runs": runs,
-        })
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to query history", str(e))
 
     def do_POST(self):
         parsed_path = urlparse(self.path)
         if parsed_path.path != "/run":
-            self._send_json_response(404, {"error": "Not found"})
+            self._send_error_response(404, "not_found", "Endpoint not found")
             return
 
         try:
@@ -142,7 +154,7 @@ class AgentHandler(BaseHTTPRequestHandler):
             body = self.rfile.read(content_length).decode("utf-8")
             payload = json.loads(body)
         except (json.JSONDecodeError, ValueError) as e:
-            self._send_json_response(400, {"error": f"Invalid JSON: {e}"})
+            self._send_error_response(400, "invalid_json", f"Request body is not valid JSON: {e}")
             return
 
         query = payload.get("query", "")
@@ -150,7 +162,7 @@ class AgentHandler(BaseHTTPRequestHandler):
         asana_task = payload.get("asana_task", None)
 
         if not query:
-            self._send_json_response(400, {"error": "Missing 'query' in payload"})
+            self._send_error_response(400, "missing_query", "Request payload must include 'query'")
             return
 
         # Resolve data_dir
@@ -180,11 +192,11 @@ class AgentHandler(BaseHTTPRequestHandler):
                 else:
                     comment = format_error_report(result)
                 asana_posted = post_comment(asana_task, comment)
-            except Exception as e:
+            except Exception:
                 # Log error but don't fail the agent run
                 asana_posted = False
 
-        # Return response
+        # Return response — consistent shape for both success and error
         response_body = {
             "status": result["status"],
             "intent": result.get("intent"),
@@ -197,10 +209,11 @@ class AgentHandler(BaseHTTPRequestHandler):
             response_body["data"] = result.get("data")
             status_code = 200
         else:
+            error_type = result.get("type", "unknown")
+            response_body["error_type"] = error_type
             response_body["error"] = result.get("details")
-            # Validation errors are user errors (400), Skill errors might be 500 or 400 depending on policy.
-            # Let's use 400 for validation, 500 for others to be RESTful.
-            if result.get("type") == "validation_failed":
+            # Validation errors are user errors (400), others are 500
+            if error_type in ("validation_failed", "missing_order_id", "unknown_intent"):
                 status_code = 400
             else:
                 status_code = 500

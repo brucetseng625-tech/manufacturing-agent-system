@@ -175,27 +175,51 @@ def print_team_report(result):
     print(f"\n{'=' * 44}")
     print(f"TEAM WORKFLOW: {team_name.upper()}")
     print(f"{'=' * 44}")
-    
+
+    summary = result.get("summary", {})
+    if summary:
+        total = summary.get("total_steps", 0)
+        success = summary.get("success_count", 0)
+        failed = summary.get("failed_count", 0)
+        status = "PARTIAL" if summary.get("partial_success") else ("ALL FAILED" if failed == total else "ALL OK")
+        print(f"Status: {status} ({success}/{total} steps succeeded)")
+
     steps = result.get("results", {})
+    if not isinstance(steps, dict):
+        print("ERROR: Invalid team results structure")
+        return
+
     for alias, step_result in steps.items():
         print(f"\n{'-' * 30}")
         print(f"STEP: {alias.upper()}")
         print(f"{'-' * 30}")
-        
+
+        if not isinstance(step_result, dict):
+            print(f"ERROR: Unexpected result type for step '{alias}'")
+            continue
+
         if "error" in step_result:
             print(f"ERROR: {step_result['error']}")
             continue
-            
+
         skill = step_result.get("skill", alias)
-        if skill == "delivery-risk-analysis":
-            print_decision_report(step_result)
-        elif skill == "sales-response-draft":
-            print_sales_response_report(step_result)
-        elif skill == "internal-action-summary":
-            print_internal_action_report(step_result)
-        else:
+        try:
+            if skill == "delivery-risk-analysis":
+                print_decision_report(step_result)
+            elif skill == "sales-response-draft":
+                print_sales_response_report(step_result)
+            elif skill == "internal-action-summary":
+                print_internal_action_report(step_result)
+            elif skill == "schedule-conflict-check":
+                print_schedule_report(step_result)
+            elif skill == "quote-comparison-summary":
+                print_quote_report(step_result)
+            else:
+                print(json.dumps(step_result, indent=2, ensure_ascii=False))
+        except Exception as e:
+            print(f"ERROR rendering step '{alias}': {e}")
             print(json.dumps(step_result, indent=2, ensure_ascii=False))
-            
+
     print(f"\n{'=' * 44}")
     print("TEAM TRACE")
     for item in result.get("trace", []):
@@ -216,6 +240,9 @@ def main():
 
     # History query mode
     if args.history:
+        if args.last is not None and args.last <= 0:
+            print("Error: --last must be a positive integer.")
+            sys.exit(1)
         runs = query_runs(
             last_n=args.last,
             status=args.status,
