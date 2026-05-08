@@ -127,5 +127,7 @@ def analyze_delivery_risk(order_id, mock_data_dir):
             "checked schedule conflicts",
             "evaluated delivery risk",
         ],
+        "owner": "Production Team",
+        "next_action": recommendation,
     }
     return report

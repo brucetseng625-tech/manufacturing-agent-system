@@ -85,4 +85,7 @@ def handle_sales_response_draft(order_ids, data_dir, query=None):
         "risk_summary": actionable_blockers[:3],
         "customer_reply_draft": _draft_customer_message(delivery_report),
         "trace": delivery_report["trace"] + ["generated sales response draft"],
+        "owner": "Sales Team",
+        "eta": delivery_report["due_date"],
+        "next_action": delivery_report["recommendation"],
     }

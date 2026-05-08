@@ -55,5 +55,6 @@ def handle_internal_action_summary(order_ids, data_dir, query=None):
         "owner_suggestion": owner,
         "escalation_suggestion": escalation,
         "asana_note": asana_note,
-        "trace": delivery_report["trace"] + ["generated internal action summary"]
+        "trace": delivery_report["trace"] + ["generated internal action summary"],
+        "eta": delivery_report["due_date"],
     }

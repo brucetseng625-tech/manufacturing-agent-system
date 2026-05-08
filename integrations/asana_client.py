@@ -52,24 +52,31 @@ def format_success_report(response):
         ""
     ]
     
+    # Standard fields to display if available
+    # Map skill-specific keys to standard keys
+    standard_data = {}
+    
     if intent == "delivery_risk_analysis":
-        blockers = data.get("blockers", [])
+        standard_data["decision"] = data.get("decision")
+        standard_data["confidence"] = data.get("confidence")
+        standard_data["owner"] = data.get("owner")
+        standard_data["eta"] = data.get("due_date")
+        standard_data["blockers"] = data.get("blockers", [])
+        standard_data["next_action"] = data.get("recommendation")
+        standard_data["escalation"] = None # Inferred from blockers count usually
+        
+        # Blockers processing
         actionable_blockers = [
-            blocker
-            for blocker in blockers
+            blocker for blocker in standard_data["blockers"]
             if not str(blocker).startswith("No critical blockers")
         ]
+        standard_data["blockers"] = actionable_blockers
+        
         lines.extend([
             f"Order: {data.get('order_id')}",
-            f"Decision: `{data.get('decision')}`",
-            f"Confidence: {data.get('confidence')}",
-            f"Blockers: {len(actionable_blockers)}",
+            f"Customer: {data.get('customer')}",
         ])
-        if actionable_blockers:
-            lines.append("Top Blockers:")
-            for blocker in actionable_blockers[:5]:
-                lines.append(f"- {blocker}")
-        trace = data.get("trace", [])
+        
     elif intent == "schedule_conflict_check":
         status = data.get("status", "unknown")
         lines.extend([
@@ -77,6 +84,9 @@ def format_success_report(response):
             f"Conflicts Found: {len(data.get('conflicts', []))}",
         ])
         trace = data.get("trace", [])
+        # Fall through to trace printing at end
+        return _append_trace(lines, trace)
+        
     elif intent == "quote_comparison_summary":
         materials = data.get("materials", [data])
         lines.append(f"Materials Compared: {len(materials)}")
@@ -90,45 +100,74 @@ def format_success_report(response):
         trace = data.get("trace", [])
         if not trace and len(materials) == 1:
             trace = materials[0].get("trace", [])
+        return _append_trace(lines, trace)
+        
     elif intent == "sales_response_draft":
-        lines.extend([
-            f"Order: {data.get('order_id')}",
-            f"Shipment Status: `{data.get('shipment_status')}`",
-            f"Decision: `{data.get('decision')}`",
-            f"Confidence: {data.get('confidence')}",
-            f"Key Message: {data.get('key_message')}",
-        ])
-        risk_summary = data.get("risk_summary", [])
-        if risk_summary:
-            lines.append("Top Risks:")
-            for risk in risk_summary[:3]:
-                lines.append(f"- {risk}")
-        trace = data.get("trace", [])
-    elif intent == "internal_action_summary":
+        standard_data["decision"] = data.get("decision")
+        standard_data["confidence"] = data.get("confidence")
+        standard_data["owner"] = data.get("owner")
+        standard_data["eta"] = data.get("due_date")
+        standard_data["blockers"] = data.get("risk_summary", [])
+        standard_data["next_action"] = data.get("internal_guidance")
+        standard_data["escalation"] = None
+        
         lines.extend([
             f"Order: {data.get('order_id')}",
             f"Customer: {data.get('customer')}",
-            f"Decision: `{data.get('current_decision')}`",
-            f"Owner: {data.get('owner_suggestion')}",
+            f"Shipment Status: `{data.get('shipment_status')}`",
+            f"Key Message: {data.get('key_message')}",
         ])
-        blockers = data.get("top_blockers", [])
-        if blockers:
-            lines.append("Top Blockers:")
-            for b in blockers:
+        
+    elif intent == "internal_action_summary":
+        standard_data["decision"] = data.get("current_decision")
+        standard_data["confidence"] = data.get("confidence")
+        standard_data["owner"] = data.get("owner_suggestion")
+        standard_data["eta"] = data.get("eta")
+        standard_data["blockers"] = data.get("top_blockers", [])
+        standard_data["next_action"] = data.get("immediate_actions")
+        standard_data["escalation"] = data.get("escalation_suggestion")
+        
+        lines.extend([
+            f"Order: {data.get('order_id')}",
+            f"Customer: {data.get('customer')}",
+        ])
+
+    # Render standardized fields for production/ops skills
+    if standard_data:
+        lines.append(f"Decision: `{standard_data['decision']}`")
+        lines.append(f"Confidence: {standard_data['confidence']}")
+        lines.append(f"Owner: {standard_data['owner']}")
+        lines.append(f"ETA: {standard_data['eta']}")
+        
+        if standard_data["blockers"]:
+            lines.append("Blockers:")
+            for b in standard_data["blockers"]:
                 lines.append(f"- {b}")
-        actions = data.get("immediate_actions", [])
-        if actions:
-            lines.append("Immediate Actions:")
-            for a in actions:
-                lines.append(f"- {a}")
-        lines.append(f"Asana Note: {data.get('asana_note')}")
+        else:
+            lines.append("Blockers: None")
+            
+        if standard_data["next_action"]:
+            if isinstance(standard_data["next_action"], list):
+                lines.append("Next Action:")
+                for a in standard_data["next_action"]:
+                    lines.append(f"- {a}")
+            else:
+                lines.append(f"Next Action: {standard_data['next_action']}")
+                
+        if standard_data.get("escalation"):
+            lines.append(f"Escalation: {standard_data['escalation']}")
+        else:
+            lines.append("Escalation: None")
+            
         trace = data.get("trace", [])
 
+    return _append_trace(lines, trace)
+
+def _append_trace(lines, trace):
     if trace:
         lines.extend(["", "Trace:"])
         for item in trace[:8]:
             lines.append(f"- {item}")
-
     return "\n".join(lines)
 
 def format_error_report(response):

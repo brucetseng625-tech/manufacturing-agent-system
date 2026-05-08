@@ -48,9 +48,14 @@ class AsanaClientTest(unittest.TestCase):
             "intent": "delivery_risk_analysis",
             "data": {
                 "order_id": "ORD-1001",
+                "customer": "Test Customer",
                 "decision": "can_ship_on_time",
                 "confidence": "High",
-                "blockers": ["No critical blockers found in current mock data."]
+                "due_date": "2026-05-20",
+                "blockers": ["No critical blockers found in current mock data."],
+                "owner": "Production Team",
+                "recommendation": "Proceed with normal production.",
+                "trace": ["loaded orders", "evaluated delivery risk"],
             }
         }
         comment = format_success_report(response)
@@ -58,21 +63,31 @@ class AsanaClientTest(unittest.TestCase):
         self.assertIn("ORD-1001", comment)
         self.assertIn("can_ship_on_time", comment)
         self.assertIn("Status: Success", comment)
-        self.assertIn("Blockers: 0", comment)
+        self.assertIn("Owner: Production Team", comment)
+        self.assertIn("ETA: 2026-05-20", comment)
+        self.assertIn("Blockers: None", comment)
+        self.assertIn("Next Action: Proceed with normal production.", comment)
+        self.assertIn("Escalation: None", comment)
 
     def test_format_success_report_delivery_lists_actionable_blockers(self):
         response = {
             "intent": "delivery_risk_analysis",
             "data": {
                 "order_id": "ORD-1001",
+                "customer": "Test Customer",
                 "decision": "at_risk",
                 "confidence": "Medium",
-                "blockers": ["Material shortage: Steel"]
+                "due_date": "2026-05-20",
+                "blockers": ["Material shortage: Steel"],
+                "owner": "Production Team",
+                "recommendation": "Escalate to Ops Manager.",
+                "trace": ["loaded orders", "evaluated delivery risk"],
             }
         }
         comment = format_success_report(response)
-        self.assertIn("Blockers: 1", comment)
+        self.assertIn("Blockers:", comment)
         self.assertIn("Material shortage: Steel", comment)
+        self.assertIn("Next Action: Escalate to Ops Manager.", comment)
 
     def test_format_success_report_quote_summary(self):
         response = {
@@ -100,11 +115,15 @@ class AsanaClientTest(unittest.TestCase):
             "intent": "sales_response_draft",
             "data": {
                 "order_id": "ORD-1001",
+                "customer": "Test Customer",
                 "shipment_status": "recovery_in_progress",
                 "decision": "cannot_ship_on_time",
                 "confidence": "High",
                 "key_message": "Current production constraints may affect the committed delivery date.",
+                "due_date": "2026-05-20",
+                "owner": "Sales Team",
                 "risk_summary": ["Material shortage: Steel"],
+                "internal_guidance": "Draft customer delay notification.",
                 "trace": ["loaded orders", "generated sales response draft"],
             },
         }
@@ -113,7 +132,10 @@ class AsanaClientTest(unittest.TestCase):
 
         self.assertIn("sales_response_draft", comment)
         self.assertIn("recovery_in_progress", comment)
+        self.assertIn("Blockers:", comment)
         self.assertIn("Material shortage: Steel", comment)
+        self.assertIn("Next Action: Draft customer delay notification.", comment)
+        self.assertIn("Owner: Sales Team", comment)
         self.assertIn("generated sales response draft", comment)
 
     def test_format_error_report_validation(self):
