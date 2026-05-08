@@ -3,14 +3,14 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `c424f82` `feat: add observability and traceability — run IDs, structured logs, Asana trace linking`
-
-Latest validated local follow-up (not yet pushed):
 - `09a695f` `feat: add recovery planning team workflow`
-- Full unit test status for local follow-up: `304 / 304 passed`
-- Smoke test status for local follow-up: `33 / 33 passed`
-- Setup verification status for local follow-up: `42 / 42 passed`
-- Working tree after local follow-up validation: clean
+
+Latest roadmap sync commit on `main`:
+- `400479d` `docs: clarify post-p4 local follow-up status`
+- Full unit test status at handoff: `304 / 304 passed`
+- Smoke test status at handoff: `33 / 33 passed`
+- Setup verification status at handoff: `42 / 42 passed`
+- Working tree at handoff: clean
 
 Accepted P4 completion context:
 - `016a200` `feat: implement configurable rules / policy layer`
@@ -99,7 +99,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-If `09a695f` has already been pushed, start from the next roadmap phase after the recovery planning team workflow. Otherwise, validate/push `09a695f` first.
+Start from the next roadmap phase after the recovery planning team workflow.
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them
