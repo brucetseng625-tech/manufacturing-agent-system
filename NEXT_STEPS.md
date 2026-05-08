@@ -3,13 +3,13 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `d885d11` `feat(p5): add data dir auto-reload — status endpoint + CLI + mtime tracking`
+- `71f797a` `feat(p6): add config management layer`
 
 Latest roadmap sync commit on `main`:
-- `27952f7` `docs: update next steps after policy hot-reload phase`
-- Full unit test status at handoff: `345 / 345 passed`
-- Smoke test status at handoff: `33 / 33 passed`
-- Setup verification status at handoff: `42 / 42 passed`
+- `71f797a` `feat(p6): add config management layer`
+- Full unit test status at handoff: `360 / 360 passed`
+- Smoke test status at handoff: `35 / 35 passed`
+- Setup verification status at handoff: `44 / 44 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
