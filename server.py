@@ -17,7 +17,7 @@ from skills.policy import get_policy, DEFAULT_POLICY, reload_policy, get_reload_
 from skills.observability import log_request, log_asana_post
 from metrics import compute_metrics
 from data_dir_monitor import scan_data_dir, get_data_dir_metadata
-from data_source import set_data_source, create_provider, get_provider_name, get_provider_status
+from data_source import set_data_source, create_provider, get_provider_name, get_provider_status, get_provider_health
 from config import (
     get_config,
     get_config_value,
@@ -175,6 +175,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_data_status(parsed_path)
         elif path == "/provider/status":
             self._handle_provider_status(parsed_path)
+        elif path == "/provider/health":
+            self._handle_provider_health(parsed_path)
         else:
             self._send_error_response(404, "not_found", "Endpoint not found")
 
@@ -338,6 +340,19 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._send_json_response(200, status)
         except Exception as e:
             self._send_error_response(500, "internal_error", "Failed to get provider status", str(e))
+
+    def _handle_provider_health(self, parsed_path):
+        """Handle GET /provider/health — return provider health diagnostics."""
+        try:
+            params = parse_qs(parsed_path.query)
+            data_dir = params.get("data_dir", [None])[0]
+            if data_dir is None:
+                data_dir = os.path.join(os.path.dirname(__file__), "mock_data")
+
+            health = get_provider_health(data_dir)
+            self._send_json_response(200, health)
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to get provider health", str(e))
 
     def _handle_history(self, parsed_path):
         """Handle GET /history with optional query parameters for filtering."""

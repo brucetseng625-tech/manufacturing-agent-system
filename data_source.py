@@ -156,6 +156,21 @@ class DataProvider(ABC):
             "available": self.is_available(data_dir) if data_dir else None,
         }
 
+    def health_check(self, data_dir: str = None) -> dict:
+        """Perform a health check and return diagnostics.
+
+        Default implementation reports that health checks are not supported.
+        Subclasses should override to provide real diagnostics.
+
+        Returns:
+            dict with keys: supported (bool), status (str), details (dict)
+        """
+        return {
+            "supported": False,
+            "status": "not_available",
+            "details": {"message": "Health check not implemented for this provider"},
+        }
+
 
 class LocalFileProvider(DataProvider):
     """Loads data from local JSON/CSV files. Preserves existing behavior."""
@@ -170,6 +185,37 @@ class LocalFileProvider(DataProvider):
         if data_dir and not self.is_available(data_dir):
             return ProviderReadiness.DISABLED.value
         return ProviderReadiness.READY.value
+
+    def health_check(self, data_dir: str = None) -> dict:
+        """Local provider health: check if data dir exists and is readable."""
+        if data_dir is None:
+            return {
+                "supported": True,
+                "status": "ok",
+                "details": {"message": "No data_dir specified — skipping filesystem check"},
+            }
+        exists = os.path.isdir(data_dir)
+        readable = exists and os.access(data_dir, os.R_OK)
+        if readable:
+            return {
+                "supported": True,
+                "status": "ok",
+                "details": {
+                    "data_dir": data_dir,
+                    "exists": True,
+                    "readable": True,
+                },
+            }
+        return {
+            "supported": True,
+            "status": "unhealthy" if exists else "unreachable",
+            "details": {
+                "data_dir": data_dir,
+                "exists": exists,
+                "readable": readable,
+                "error": None if exists else f"Directory not found: {data_dir}",
+            },
+        }
 
     def load(self, data_dir: str, filename: str) -> list:
         base_name = os.path.splitext(filename)[0]
@@ -255,6 +301,21 @@ class LiveDataProvider(DataProvider):
         """
         return False
 
+    def health_check(self, data_dir: str = None) -> dict:
+        """Live provider health: reports not configured by default.
+
+        Subclasses should override to implement real diagnostics
+        (e.g., ping ERP endpoint, check DB connection).
+        """
+        return {
+            "supported": True,
+            "status": "not_configured",
+            "details": {
+                "message": "LiveDataProvider is a skeleton — override health_check() to implement real diagnostics",
+                "configured": False,
+            },
+        }
+
 
 class AutoFailoverProvider(DataProvider):
     """Tries live provider first, falls back to local on failure.
@@ -319,6 +380,35 @@ class AutoFailoverProvider(DataProvider):
             "readiness": self._fallback.readiness(data_dir),
         }
         return result
+
+    def health_check(self, data_dir: str = None) -> dict:
+        """Aggregate health diagnostics from live and fallback providers."""
+        live_health = self._live.health_check(data_dir)
+        fallback_health = self._fallback.health_check(data_dir)
+
+        # Determine overall status
+        if live_health.get("status") == "ok":
+            overall = "ok"
+        elif self._circuit is not None:
+            try:
+                self._circuit.before_call()
+                overall = "degraded"  # live not ok but circuit allows probe
+            except RuntimeError:
+                overall = "circuit_open"
+        elif fallback_health.get("status") == "ok":
+            overall = "degraded"
+        else:
+            overall = "unhealthy"
+
+        return {
+            "supported": True,
+            "status": overall,
+            "details": {
+                "live": live_health,
+                "fallback": fallback_health,
+                "circuit_breaker": self.get_circuit_status(),
+            },
+        }
 
     def load(self, data_dir: str, filename: str) -> list:
         # Circuit breaker path
@@ -439,3 +529,13 @@ def get_provider_status(data_dir: str = None) -> dict:
     """
     provider = get_data_source()
     return provider.status(data_dir)
+
+
+def get_provider_health(data_dir: str = None) -> dict:
+    """Get health diagnostics of the active provider.
+
+    Returns a dict with supported, status, and details from the
+    provider's health_check() method.
+    """
+    provider = get_data_source()
+    return provider.health_check(data_dir)

@@ -3,16 +3,16 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `e941c91` `feat(p7): add provider capability registry + readiness flags`
+- P7-2 in progress — live provider health check and diagnostics
 
 Latest verified feature commit on `main`:
 - `e941c91` `feat(p7): add provider capability registry + readiness flags`
 
-Latest roadmap sync commit on `main`:
+P7 completed commits:
 - `e941c91` `feat(p7): add provider capability registry + readiness flags`
-- Full unit test status at handoff: `434 / 434 passed`
-- Smoke test status at handoff: `40 / 40 passed`
-- Setup verification status at handoff: `56 / 56 passed`
+- Full unit test status at handoff: `449 / 449 passed`
+- Smoke test status at handoff: `41 / 41 passed`
+- Setup verification status at handoff: `58 / 58 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
@@ -188,7 +188,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P7-1 (Provider capability registry) is complete. Continue with P7-2: Live provider health check and diagnostics.
+P7-2 (Live provider health check) is complete. Continue with P7-3: Per-provider rollout controls.
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them

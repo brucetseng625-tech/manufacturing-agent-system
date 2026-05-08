@@ -185,6 +185,14 @@ def main():
           os.path.isfile(os.path.join(base, "tests", "test_provider_status.py")),
           "provider status test file present")
 
+    check("Provider: health_check method exists on DataProvider",
+          "def health_check" in ds_code,
+          "health_check() method present in data_source.py")
+
+    check("Provider: test_provider_health.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_provider_health.py")),
+          "provider health test file present")
+
     # Summary
     print()
     print("=" * 50)

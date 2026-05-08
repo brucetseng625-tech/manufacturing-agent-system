@@ -587,6 +587,32 @@ Unauthorized requests return `401` with:
 
   **Auto mode** additionally includes `circuit_breaker`, `live_provider`, and `fallback_provider` details.
 
+- **GET /provider/health**
+  ```bash
+  curl http://localhost:8000/provider/health
+  curl "http://localhost:8000/provider/health?data_dir=/path/to/data"
+  ```
+  Returns provider health diagnostics:
+  ```json
+  {
+    "supported": true,
+    "status": "ok",
+    "details": {
+      "data_dir": "/path/to/mock_data",
+      "exists": true,
+      "readable": true
+    }
+  }
+  ```
+
+  **Health states:**
+  - `ok` — Provider is healthy and operational
+  - `unreachable` — Data source or directory not found
+  - `not_configured` — Live provider skeleton (no real implementation connected)
+  - `degraded` — Live source down, running on local fallback
+  - `circuit_open` — Circuit breaker tripped, live source temporarily blocked
+  - `unhealthy` — Both live and fallback sources have issues
+
 - **POST /batch**
   ```bash
   curl -X POST http://localhost:8000/batch \
@@ -852,6 +878,32 @@ Access logs are written as JSONLines to `logs/access.log`:
   - `circuit_open` — Circuit breaker tripped, live source temporarily blocked
 
   **Auto mode** additionally includes `circuit_breaker`, `live_provider`, and `fallback_provider` details.
+
+- **GET /provider/health**
+  ```bash
+  curl http://localhost:8000/provider/health
+  curl "http://localhost:8000/provider/health?data_dir=/path/to/data"
+  ```
+  Returns provider health diagnostics:
+  ```json
+  {
+    "supported": true,
+    "status": "ok",
+    "details": {
+      "data_dir": "/path/to/mock_data",
+      "exists": true,
+      "readable": true
+    }
+  }
+  ```
+
+  **Health states:**
+  - `ok` — Provider is healthy and operational
+  - `unreachable` — Data source or directory not found
+  - `not_configured` — Live provider skeleton (no real implementation connected)
+  - `degraded` — Live source down, running on local fallback
+  - `circuit_open` — Circuit breaker tripped, live source temporarily blocked
+  - `unhealthy` — Both live and fallback sources have issues
 
 - **POST /batch**
 

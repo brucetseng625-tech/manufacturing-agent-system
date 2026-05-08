@@ -254,6 +254,12 @@ def main():
               status_body.get("readiness") in valid_readiness,
               f"readiness={status_body.get('readiness')}")
 
+        # 23. Provider health endpoint
+        health_body = get("/provider/health", port)
+        check("Provider health endpoint",
+              "supported" in health_body and "status" in health_body and "details" in health_body,
+              f"status={health_body.get('status')}, supported={health_body.get('supported')}")
+
     finally:
         server.shutdown()
 
