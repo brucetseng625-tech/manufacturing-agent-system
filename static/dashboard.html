@@ -395,6 +395,9 @@ function renderSkillResult(data) {
   if (!data || typeof data !== 'object') return `<pre>${JSON.stringify(data, null, 2)}</pre>`;
   let html = '';
   const details = data.details || {};
+  const nextAction = Array.isArray(data.next_action) ? data.next_action.join(' ') : data.next_action;
+  const supplierScores = data.supplier_scores || details.supplier_scores;
+  const tradeoffs = data.tradeoffs || details.tradeoffs;
 
   if (data.decision) {
     html += `<p><strong>Decision:</strong> <code>${data.decision}</code> (Confidence: ${data.confidence || 'N/A'})</p>`;
@@ -409,23 +412,23 @@ function renderSkillResult(data) {
     data.blockers.forEach(b => html += `<li>${b}</li>`);
     html += `</ul>`;
   }
-  if (data.next_action) {
-    html += `<p style="margin-top:0.5rem;"><strong>Next Action:</strong> ${data.next_action}</p>`;
+  if (nextAction) {
+    html += `<p style="margin-top:0.5rem;"><strong>Next Action:</strong> ${nextAction}</p>`;
   }
   if (details.cost_notes?.length) {
     html += `<p><strong>Cost Notes:</strong></p><ul style="margin-left:1.5rem;color:var(--text-secondary);">`;
     details.cost_notes.forEach(n => html += `<li>${n}</li>`);
     html += `</ul>`;
   }
-  if (data.supplier_scores) {
+  if (supplierScores) {
     html += `<div style="margin-top:0.75rem;"><strong>Supplier Scores:</strong><div class="score-bar">`;
-    for (const [supplier, info] of Object.entries(data.supplier_scores)) {
+    for (const [supplier, info] of Object.entries(supplierScores)) {
       html += `<span class="score-item">${supplier}: ${info.score} (P:${info.breakdown.price_score} R:${info.breakdown.reliability_score} Q:${info.breakdown.quality_score} L:${info.breakdown.lead_time_score} K:${info.breakdown.risk_score})</span>`;
     }
     html += `</div></div>`;
   }
-  if (data.tradeoffs?.length) {
-    html += `<p style="margin-top:0.5rem;color:var(--info);"><strong>Tradeoffs:</strong> ${data.tradeoffs.join(' ')}</p>`;
+  if (tradeoffs?.length) {
+    html += `<p style="margin-top:0.5rem;color:var(--info);"><strong>Tradeoffs:</strong> ${tradeoffs.join(' ')}</p>`;
   }
   return html;
 }

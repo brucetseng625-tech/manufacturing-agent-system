@@ -3,7 +3,7 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `b27a009` `feat: implement parallel team execution with ThreadPoolExecutor`
+- `bf72a21` `feat: add Web Dashboard MVP with skills, query runner, and run history`
 
 Current completed scope:
 - delivery-risk-analysis
@@ -26,6 +26,7 @@ Current completed scope:
 - data model expansion
 - quote comparison enhancement
 - parallel team execution
+- web dashboard mvp
 
 ## Start Here
 
@@ -40,7 +41,6 @@ When a new Codex / AI session starts, do this first:
 
 | Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
 | --- | --- | --- | --- | --- | --- |
-| P3 | Web dashboard | Add a visual layer over the existing API and history endpoints | Dashboard screens, API consumption, basic UX | API enhancement and run history support are complete | Frontend AI |
 | P3 | MCP / ERP integration | Replace static files with live operational inputs | Connector layer, config, fallback behavior, tests | Current API and data model are stable enough to integrate | Integration AI |
 | P3 | New recovery / planning skills | Expand practical manufacturing use cases | `expedite-options`, `material-shortage-recovery`, `capacity-rebalance`, `supplier-followup-draft` | Routing and schema should be stronger first | Feature AI |
 | P4 | Configurable rules / policy layer | Move decision rules out of hardcoded logic | Rule config structure, loader, tests | Existing skills stable | Codex |
@@ -51,10 +51,10 @@ When a new Codex / AI session starts, do this first:
 
 | Order | Work Item | Why Now |
 | --- | --- | --- |
-| 1 | Web dashboard | High leverage now that structured endpoints and history APIs exist |
-| 2 | MCP / ERP integration | Natural next step once the internal workflow surface is stable |
-| 3 | New recovery / planning skills | Safer to add after platform basics are stronger |
-| 4 | Configurable rules / policy layer | Good follow-on once the user-facing surfaces are clearer |
+| 1 | MCP / ERP integration | Best next step now that the local workflow surface and dashboard are in place |
+| 2 | New recovery / planning skills | Strong feature expansion once live data direction is clearer |
+| 3 | Configurable rules / policy layer | Good follow-on once integration boundaries are clearer |
+| 4 | Deployment readiness | Worth revisiting after the data source story is decided |
 
 ## Ready-To-Use Prompt For The Next AI
 
@@ -71,12 +71,12 @@ First actions:
 4. Continue from the top Priority 1 item unless the user reprioritizes
 
 Current expected next task:
-Build a web dashboard on top of the existing API and history endpoints
+Add MCP / ERP integration on top of the current local file-based workflow
 
 Requirements:
-- Reuse the existing `/skills`, `/schema`, `/history`, and `/run` APIs instead of rebuilding backend logic
-- Focus on an MVP dashboard that lets users inspect available skills/teams, submit a query, and review recent run history
-- Keep the current CLI, API, formatter, and error-handling behavior unchanged
+- Reuse the existing routing, schema, team execution, and API layers instead of replacing them
+- Introduce a connector / adapter layer so live ERP-style inputs can coexist with current JSON/CSV fixtures
+- Preserve graceful fallback when live data is unavailable
 - Add tests
 - Update README if needed
 - Run tests and report results
