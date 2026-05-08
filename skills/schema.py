@@ -36,7 +36,8 @@ SCHEMA_METADATA = {
             "internal-action-summary": ["asana_note"],
             "quote-comparison-summary": ["materials", "recommended_supplier", "price_spread", "lead_time_summary", "risks", "supplier_scores", "tradeoffs"],
             "schedule-conflict-check": ["conflicts"],
-            "expedite-options": ["options", "option_summary", "days_left"]
+            "expedite-options": ["options", "option_summary", "days_left"],
+            "material-shortage-recovery": ["shortages", "options", "recovery_summary", "days_left"]
         }
     },
     "team_workflow_structure": {
@@ -109,6 +110,7 @@ def normalize_skill_response(skill_name, base_data, overrides=None):
         "quote-comparison-summary": ["materials", "material", "recommended_supplier", "price_spread", "lead_time_summary", "risks", "supplier_scores", "tradeoffs"],
         "schedule-conflict-check": ["conflicts"],
         "expedite-options": ["options", "option_summary", "days_left"],
+        "material-shortage-recovery": ["shortages", "options", "recovery_summary", "days_left"],
     }
     
     specific_keys = skill_specific_keys.get(skill_name, [])
@@ -154,6 +156,17 @@ def _generate_summary(data, skill_name):
             return f"Schedule conflict detected: {len(conflicts)} overlap(s) found."
         return "No schedule conflicts detected."
         
+    elif skill_name == "material-shortage-recovery":
+        rec_summary = data.get("recovery_summary", {})
+        rec = rec_summary.get("top_recommendation", "None")
+        count = rec_summary.get("recommended_count", 0)
+        shortages = rec_summary.get("total_shortages", 0)
+        if shortages == 0:
+            return f"Material shortage analysis for Order {order_id}: no shortages detected."
+        if count > 0:
+            return f"Material shortage recovery for Order {order_id}: {shortages} shortage(s), {count} recommended option(s), top={rec}."
+        return f"Material shortage recovery for Order {order_id}: {shortages} shortage(s), no strongly recommended options."
+
     elif skill_name == "expedite-options":
         opt_summary = data.get("option_summary", {})
         rec = opt_summary.get("top_recommendation", "None")

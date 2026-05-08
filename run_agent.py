@@ -217,6 +217,8 @@ def print_team_report(result):
                 print_quote_report(step_result)
             elif skill == "expedite-options":
                 print_expedite_report(step_result)
+            elif skill == "material-shortage-recovery":
+                print_material_shortage_report(step_result)
             else:
                 print(json.dumps(step_result, indent=2, ensure_ascii=False))
         except Exception as e:
@@ -262,6 +264,64 @@ def print_expedite_report(result):
                 print(f"  Blockers: {'; '.join(opt['blockers'])}")
             if opt.get("key_assumptions"):
                 print(f"  Assumptions: {'; '.join(opt['key_assumptions'][:2])}")
+            print()
+
+    print("Top Blockers")
+    for b in result.get("blockers", []) or ["No critical blockers."]:
+        print(f"- {b}")
+    print()
+    print("Recommendation")
+    print(result.get("next_action"))
+    print()
+    print("Trace")
+    for item in result.get("trace", []):
+        print(f"- {item}")
+    print("=" * 44)
+
+
+def print_material_shortage_report(result):
+    """View: Print material shortage recovery report."""
+    print("\n" + "=" * 44)
+    print("MATERIAL SHORTAGE RECOVERY")
+    print("=" * 44)
+    print(f"Order: {result.get('order_id')}")
+    print(f"Customer: {result.get('customer')}")
+    print(f"Decision: {result.get('decision')}")
+    print(f"Days left: {result.get('details', {}).get('days_left', 'N/A')}")
+    print()
+
+    rec_summary = result.get("details", {}).get("recovery_summary", {})
+    total_shortages = rec_summary.get("total_shortages", 0)
+    total_evaluated = rec_summary.get("total_evaluated", 0)
+    recommended = rec_summary.get("recommended_count", 0)
+    top = rec_summary.get("top_recommendation", "None")
+    print(f"Shortages detected: {total_shortages}")
+    print(f"Options evaluated: {total_evaluated}")
+    print(f"Recommended: {recommended} (Top: {top})")
+    print()
+
+    shortages = result.get("details", {}).get("shortages", [])
+    if shortages:
+        print("Shortage Materials")
+        for s in shortages:
+            print(f"  - {s.get('material')}: {s.get('available_qty')}/{s.get('required_qty')} "
+                  f"(shortage: {s.get('shortage_qty')}, lead time: {s.get('lead_time_days')}d, "
+                  f"reliability: {s.get('supplier_reliability', 0):.0%})")
+        print()
+
+    options = result.get("details", {}).get("options", [])
+    if options:
+        for i, opt in enumerate(options, 1):
+            rec_marker = " [RECOMMENDED]" if opt.get("recommended") else ""
+            print(f"--- Option {i}: {opt.get('label')}{rec_marker} ---")
+            print(f"  Feasibility: {opt.get('feasibility')} - {opt.get('feasibility_reason')}")
+            print(f"  Impact: {opt.get('expected_impact')}")
+            print(f"  Lead time: {opt.get('lead_time_implication')}")
+            print(f"  Cost: {opt.get('cost_implication')}")
+            if opt.get("blockers"):
+                print(f"  Blockers: {'; '.join(opt['blockers'])}")
+            if opt.get("assumptions"):
+                print(f"  Assumptions: {'; '.join(opt['assumptions'][:2])}")
             print()
 
     print("Top Blockers")
@@ -391,6 +451,11 @@ def main():
         elif skill == "expedite-options":
             print("Routing to: expedite-options skill")
             print_expedite_report(data)
+            print("\nRaw JSON")
+            print(json.dumps(data, indent=2, ensure_ascii=False))
+        elif skill == "material-shortage-recovery":
+            print("Routing to: material-shortage-recovery skill")
+            print_material_shortage_report(data)
             print("\nRaw JSON")
             print(json.dumps(data, indent=2, ensure_ascii=False))
 

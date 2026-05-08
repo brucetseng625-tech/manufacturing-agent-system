@@ -29,6 +29,7 @@ Current completed scope:
 - web dashboard mvp
 - MCP / ERP integration layer
 - expedite-options skill
+- material-shortage-recovery skill
 
 ## Start Here
 

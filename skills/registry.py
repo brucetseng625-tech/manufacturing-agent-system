@@ -10,6 +10,7 @@ from skills.quote_comparison_summary import handle_quote_comparison
 from skills.sales_response_draft import handle_sales_response_draft
 from skills.internal_action_summary import handle_internal_action_summary
 from skills.expedite_options import handle_expedite_options
+from skills.material_shortage_recovery import handle_material_shortage_recovery
 
 class SkillRegistry:
     """
@@ -111,6 +112,21 @@ class SkillRegistry:
             "passes_query": True,
             "priority": 5,  # Higher priority for explicit expedite intent
             "data_files": ["orders.json", "work_orders.json", "materials.json", "machines.json", "schedule.json"]
+        })
+
+        # 7. Material Shortage Recovery
+        # Focused on material shortage scenarios — concrete sourcing strategies
+        self.register({
+            "name": "material-shortage-recovery",
+            "intent": "material_shortage_recovery",
+            "keywords": ["缺料", "shortage", "補貨", "material", "procurement", "採購", "物料", "supply"],
+            "exact_keywords": ["缺料恢復", "material shortage", "補貨策略", "shortage recovery"],
+            "handler": handle_material_shortage_recovery,
+            "requires_order_id": True,
+            "triggers_on_multi_order": False,
+            "passes_query": True,
+            "priority": 6,
+            "data_files": ["orders.json", "materials.json", "work_orders.json"]
         })
 
     def _register_teams(self):

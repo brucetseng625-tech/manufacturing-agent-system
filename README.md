@@ -51,6 +51,7 @@ The current workflows route queries to:
 - `sales-response-draft`
 - `internal-action-summary`
 - `expedite-options`
+- `material-shortage-recovery`
 
 It reads mock data from:
 
