@@ -3,7 +3,7 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `638d827` `feat: add structured API endpoints (/skills, /schema) + history validation`
+- `a1c8670` `feat: harden error handling across skill/team/CLI/API layers`
 
 Current completed scope:
 - delivery-risk-analysis
@@ -22,6 +22,7 @@ Current completed scope:
 - Agent Teams MVP
 - run history query support
 - API enhancement
+- error handling hardening
 
 ## Start Here
 
@@ -36,7 +37,6 @@ When a new Codex / AI session starts, do this first:
 
 | Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
 | --- | --- | --- | --- | --- | --- |
-| P3 | Error handling hardening | Improve resilience under bad data or integration issues | Better degraded responses, retry / fallback rules, tests | Existing API and skill outputs | Codex |
 | P3 | Data model expansion | Improve decision quality with richer operational inputs | Inventory, supplier lead times, capacity signals, expedite cost fields | Existing core workflows stable | Data / domain AI |
 | P3 | New recovery / planning skills | Expand practical manufacturing use cases | `expedite-options`, `material-shortage-recovery`, `capacity-rebalance`, `supplier-followup-draft` | Routing and schema should be stronger first | Feature AI |
 | P4 | Configurable rules / policy layer | Move decision rules out of hardcoded logic | Rule config structure, loader, tests | Existing skills stable | Codex |
@@ -47,9 +47,8 @@ When a new Codex / AI session starts, do this first:
 
 | Order | Work Item | Why Now |
 | --- | --- | --- |
-| 1 | Error handling hardening | Best next step now that the system surface area is much larger |
-| 2 | Data model expansion | More valuable after platform scaffolding is stronger |
-| 3 | New recovery / planning skills | Safer to add after platform basics are stronger |
+| 1 | Data model expansion | Best next step now that platform scaffolding and hardening are in place |
+| 2 | New recovery / planning skills | Safer to add after platform basics are stronger |
 
 ## Ready-To-Use Prompt For The Next AI
 
@@ -66,12 +65,12 @@ First actions:
 4. Continue from the top Priority 1 item unless the user reprioritizes
 
 Current expected next task:
-Implement error handling hardening across skill, team, CLI, and API paths
+Implement data model expansion to improve decision quality with richer operational inputs
 
 Requirements:
-- Improve degraded responses under bad data, missing dependencies, malformed inputs, and partial team failures
-- Keep existing CLI, API, routing, and audit log behavior stable while making failures clearer
-- Add targeted tests for failure paths and edge cases
+- Extend core datasets and validation rules with additional operational signals such as inventory depth, supplier lead times, capacity indicators, or expedite cost
+- Reuse existing skill, schema, routing, team, and API layers instead of rewriting them
+- Add targeted tests and sample data updates to prove the expanded model affects decisions usefully
 - Add tests
 - Update README if needed
 - Run tests and report results
