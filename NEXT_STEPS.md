@@ -3,11 +3,11 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `71f797a` `feat(p6): add config management layer`
+- `d0b619c` `feat(p6): add API token auth — bearer/X-API-Token for mutation endpoints`
 
 Latest roadmap sync commit on `main`:
-- `71f797a` `feat(p6): add config management layer`
-- Full unit test status at handoff: `360 / 360 passed`
+- `d0b619c` `feat(p6): add API token auth — bearer/X-API-Token for mutation endpoints`
+- Full unit test status at handoff: `386 / 386 passed`
 - Smoke test status at handoff: `35 / 35 passed`
 - Setup verification status at handoff: `44 / 44 passed`
 - Working tree at handoff: clean
@@ -38,6 +38,10 @@ Current post-P4 follow-up:
 - New endpoint: `GET /data/status`
 - CLI now supports `--data-dir-status` for directory change visibility
 - P6 Phase 1 implemented: Config Management Layer
+- P6 Phase 2 implemented: API Token Auth
+- New endpoints protected: POST /run, /batch, /config/reload, /policy/reload
+- Supports Authorization: Bearer and X-API-Token headers
+- Dev mode preserved when no token configured
 - New endpoints: `GET /config`, `POST /config/reload`
 - CLI now supports `--show-config` for centralized config inspection
 
@@ -77,6 +81,7 @@ Current completed scope:
 - policy hot-reload
 - data dir auto-reload
 - config management layer
+- api token auth
 
 ## P5 Productionization / Live Integration Planning
 
@@ -100,7 +105,7 @@ Goal: Add production-safe configuration and access controls on top of the comple
 | Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
 | --- | --- | --- | --- | --- | --- |
 | ~~P6~~ | ~~Config management layer~~ | ~~Centralize runtime configuration with file + env override~~ | ~~Loader, config endpoints, CLI view, tests~~ | ~~P5 complete~~ | ~~Codex~~ |
-| P6 | API token auth | Protect HTTP endpoints | Auth middleware, config integration, tests | Config layer available | Codex |
+| ~~P6~~ | ~~API token auth~~ | ~~Protect HTTP endpoints~~ | ~~Auth middleware, config integration, tests~~ | ~~Config layer available~~ | ~~Codex~~ |
 | P6 | Circuit breaker for live provider | Fail safely and recover automatically | Failure threshold, reset window, tests | Provider layer stable | Codex |
 | P6 | Server access logging | Structured HTTP access log for audit/support | Access log format, request timing, tests | Observability layer available | Codex |
 
@@ -145,7 +150,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-Continue with P6 Integration Hardening / Access Control, starting with API token auth.
+Continue with P6 Integration Hardening / Access Control, starting with Circuit breaker for live provider.
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them
