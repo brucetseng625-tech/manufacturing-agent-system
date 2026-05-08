@@ -3,7 +3,7 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `75c4346` `feat: add internal-action-summary skill`
+- `e86faf3` `feat: standardize Asana workflow reporting`
 
 Current completed scope:
 - delivery-risk-analysis
@@ -16,6 +16,7 @@ Current completed scope:
 - quote-comparison-summary
 - sales-response-draft
 - internal-action-summary
+- Asana workflow enhancement
 
 ## Start Here
 
@@ -30,7 +31,6 @@ When a new Codex / AI session starts, do this first:
 
 | Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
 | --- | --- | --- | --- | --- | --- |
-| P1 | Asana workflow enhancement | Standardize internal reporting back to Asana | Structured comment template with decision, blockers, owner, next action, ETA | `internal-action-summary` now available for reuse | Feature AI |
 | P1 | Output schema unification | Make all skills return a predictable shared shape | Shared response fields, formatter updates, regression tests | Existing skills in registry | Codex / integration AI |
 | P2 | Query routing improvement | Reduce keyword collisions and improve intent accuracy | Priority-based matching, fallback behavior, routing tests | Current skill registry | Feature AI |
 | P2 | Agent Teams implementation | Turn skeleton into usable multi-role workflow | Team definitions, handoff flow, team execution tests | Output schema should be more stable first | Feature AI |
@@ -47,15 +47,14 @@ When a new Codex / AI session starts, do this first:
 
 | Order | Work Item | Why Now |
 | --- | --- | --- |
-| 1 | Asana workflow enhancement | Best next step now that external and internal summaries both exist |
-| 2 | Output schema unification | Reduces future integration churn |
-| 3 | Query routing improvement | Prevents regression as more skills are added |
-| 4 | Agent Teams implementation | Builds on more stable interfaces |
-| 5 | Run history query support | Makes the system more operationally useful |
-| 6 | API enhancement | Easier once outputs and history are more stable |
-| 7 | Error handling hardening | Best informed by real workflow growth |
-| 8 | Data model expansion | More valuable after workflow scaffolding is stronger |
-| 9 | New recovery / planning skills | Safer to add after platform basics are stronger |
+| 1 | Output schema unification | Best next step now that Asana-side reporting is standardized |
+| 2 | Query routing improvement | Prevents regression as more skills are added |
+| 3 | Agent Teams implementation | Builds on more stable interfaces |
+| 4 | Run history query support | Makes the system more operationally useful |
+| 5 | API enhancement | Easier once outputs and history are more stable |
+| 6 | Error handling hardening | Best informed by real workflow growth |
+| 7 | Data model expansion | More valuable after workflow scaffolding is stronger |
+| 8 | New recovery / planning skills | Safer to add after platform basics are stronger |
 
 ## Ready-To-Use Prompt For The Next AI
 
@@ -72,12 +71,12 @@ First actions:
 4. Continue from the top Priority 1 item unless the user reprioritizes
 
 Current expected next task:
-Implement Asana workflow enhancement for structured internal follow-up reporting
+Implement output schema unification across all skills
 
 Requirements:
-- Reuse existing outputs from `delivery-risk-analysis`, `sales-response-draft`, and `internal-action-summary`
-- Extend Asana comment formatting or add a dedicated Asana-ready workflow
-- Standardize fields like decision, blockers, owner, next action, ETA
+- Reuse existing outputs from all current skills without rewriting business logic
+- Standardize top-level response fields such as decision, blockers, owner, next action, ETA, escalation, summary, and trace
+- Keep CLI, API, Asana formatter, and audit log compatible while reducing field-name divergence
 - Add tests
 - Update README if needed
 - Run tests and report results
