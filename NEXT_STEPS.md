@@ -3,13 +3,13 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- P7-2 in progress — live provider health check and diagnostics
+- `918f091` `feat(p7): add live provider health check and diagnostics`
 
 Latest verified feature commit on `main`:
-- `e941c91` `feat(p7): add provider capability registry + readiness flags`
+- `918f091` `feat(p7): add live provider health check and diagnostics`
 
-P7 completed commits:
-- `e941c91` `feat(p7): add provider capability registry + readiness flags`
+Latest roadmap sync commit on `main`:
+- `918f091` `feat(p7): add live provider health check and diagnostics`
 - Full unit test status at handoff: `449 / 449 passed`
 - Smoke test status at handoff: `41 / 41 passed`
 - Setup verification status at handoff: `58 / 58 passed`
@@ -60,6 +60,11 @@ Current post-P4 follow-up:
 - ProviderCapability enum: read, write, health_check
 - ProviderReadiness enum: ready, not_configured, degraded, disabled, circuit_open
 - Provider status now exposes readiness, capabilities, and auto-failover sub-provider details
+- P7 Phase 2 implemented: Live Provider Health Check and Diagnostics
+- New endpoint: `GET /provider/health`
+- All providers now expose a unified `health_check()` contract
+- Auto-failover health aggregates live, fallback, and circuit-breaker state
+- Health states include ok, unreachable, not_configured, degraded, circuit_open, unhealthy
 - New endpoints: `GET /config`, `POST /config/reload`
 - CLI now supports `--show-config` for centralized config inspection
 
@@ -103,6 +108,7 @@ Current completed scope:
 - circuit breaker for live provider
 - server access logging
 - provider capability registry + readiness flags
+- live provider health check and diagnostics
 
 ## P5 Productionization / Live Integration Planning
 
@@ -139,7 +145,7 @@ Goal: Make provider capabilities, live readiness, and degraded-mode behavior exp
 | Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
 | --- | --- | --- | --- | --- | --- |
 | ~~P7~~ | ~~Provider capability registry + readiness flags~~ | ~~Expose what each provider can do and whether it is ready~~ | ~~Capability metadata, readiness states, `/provider/status`, tests~~ | ~~P6 complete~~ | ~~Codex~~ |
-| P7 | Live provider health check and diagnostics | Detect real-source connectivity and failure causes | Health checks, diagnostics output, tests | Provider status available | Codex |
+| ~~P7~~ | ~~Live provider health check and diagnostics~~ | ~~Detect real-source connectivity and failure causes~~ | ~~Health checks, diagnostics output, tests~~ | ~~Provider status available~~ | ~~Codex~~ |
 | P7 | Per-provider rollout controls | Control exposure of live features by provider | Config gates, rollout flags, tests | Config layer + provider readiness | Codex |
 | P7 | Safe fallback and degraded-mode visibility | Make degraded operation explicit and supportable | Fallback visibility, degraded status surfacing, tests | Health checks + rollout controls | Codex |
 
@@ -169,7 +175,7 @@ When a new Codex / AI session starts, do this first:
 | ~~3~~ | ~~Observability and traceability~~ | ~~High leverage after workflow surface has stabilized~~ |
 | ~~4~~ | ~~Additional planning refinements~~ | ~~Reserve for future expansion after core platform hardening~~ |
 | ~~5~~ | ~~Provider capability registry + readiness flags~~ | ~~Foundation for live integration readiness~~ |
-| 6 | Live provider health check | Diagnostics for production ERP/MCP sources |
+| ~~6~~ | ~~Live provider health check~~ | ~~Diagnostics for production ERP/MCP sources~~ |
 | 7 | Per-provider rollout controls | Config-driven deployment controls |
 | 8 | Safe fallback and degraded-mode visibility | Make degraded live behavior visible and operable |
 
