@@ -52,6 +52,7 @@ The current workflows route queries to:
 - `internal-action-summary`
 - `expedite-options`
 - `material-shortage-recovery`
+- `capacity-rebalance`
 
 It reads mock data from:
 

@@ -219,6 +219,8 @@ def print_team_report(result):
                 print_expedite_report(step_result)
             elif skill == "material-shortage-recovery":
                 print_material_shortage_report(step_result)
+            elif skill == "capacity-rebalance":
+                print_capacity_rebalance_report(step_result)
             else:
                 print(json.dumps(step_result, indent=2, ensure_ascii=False))
         except Exception as e:
@@ -317,6 +319,78 @@ def print_material_shortage_report(result):
             print(f"  Feasibility: {opt.get('feasibility')} - {opt.get('feasibility_reason')}")
             print(f"  Impact: {opt.get('expected_impact')}")
             print(f"  Lead time: {opt.get('lead_time_implication')}")
+            print(f"  Cost: {opt.get('cost_implication')}")
+            if opt.get("blockers"):
+                print(f"  Blockers: {'; '.join(opt['blockers'])}")
+            if opt.get("assumptions"):
+                print(f"  Assumptions: {'; '.join(opt['assumptions'][:2])}")
+            print()
+
+    print("Top Blockers")
+    for b in result.get("blockers", []) or ["No critical blockers."]:
+        print(f"- {b}")
+    print()
+    print("Recommendation")
+    print(result.get("next_action"))
+    print()
+    print("Trace")
+    for item in result.get("trace", []):
+        print(f"- {item}")
+    print("=" * 44)
+
+
+def print_capacity_rebalance_report(result):
+    """View: Print capacity rebalance report."""
+    print("\n" + "=" * 44)
+    print("CAPACITY REBALANCE")
+    print("=" * 44)
+    print(f"Order: {result.get('order_id')}")
+    print(f"Customer: {result.get('customer')}")
+    print(f"Decision: {result.get('decision')}")
+    print(f"Days left: {result.get('details', {}).get('days_left', 'N/A')}")
+    print()
+
+    rebal = result.get("details", {}).get("rebalance_summary", {})
+    pressures = rebal.get("total_pressures", 0)
+    conflicts = rebal.get("total_conflicts", 0)
+    total_eval = rebal.get("total_evaluated", 0)
+    recommended = rebal.get("recommended_count", 0)
+    top = rebal.get("top_recommendation", "None")
+    print(f"Pressure points: {pressures}")
+    print(f"Schedule conflicts: {conflicts}")
+    print(f"Options evaluated: {total_eval}")
+    print(f"Recommended: {recommended} (Top: {top})")
+    print()
+
+    # Machine utilization
+    util = result.get("details", {}).get("machine_utilization", {})
+    if util:
+        print("Machine Utilization")
+        for mid, u in util.items():
+            status_marker = "" if u.get("status") == "Running" else f" [{u.get('status')}]"
+            print(f"  {mid}: {u.get('load_percent')}% / {u.get('max_capacity_percent')}% max "
+                  f"(available: {u.get('available_capacity_percent')}%){status_marker}")
+        print()
+
+    # Pressures
+    pressure_list = result.get("details", {}).get("pressures", [])
+    if pressure_list:
+        print("Pressure Points")
+        for p in pressure_list:
+            sev = p.get("severity", "unknown").upper()
+            print(f"  [{sev}] {p.get('detail')}")
+        print()
+
+    # Options
+    options = result.get("details", {}).get("options", [])
+    if options:
+        for i, opt in enumerate(options, 1):
+            rec_marker = " [RECOMMENDED]" if opt.get("recommended") else ""
+            print(f"--- Option {i}: {opt.get('label')}{rec_marker} ---")
+            print(f"  Feasibility: {opt.get('feasibility')} - {opt.get('feasibility_reason')}")
+            print(f"  Impact: {opt.get('expected_impact')}")
+            print(f"  Capacity: {opt.get('capacity_effect')}")
+            print(f"  Timing: {opt.get('timing_implication')}")
             print(f"  Cost: {opt.get('cost_implication')}")
             if opt.get("blockers"):
                 print(f"  Blockers: {'; '.join(opt['blockers'])}")
@@ -456,6 +530,11 @@ def main():
         elif skill == "material-shortage-recovery":
             print("Routing to: material-shortage-recovery skill")
             print_material_shortage_report(data)
+            print("\nRaw JSON")
+            print(json.dumps(data, indent=2, ensure_ascii=False))
+        elif skill == "capacity-rebalance":
+            print("Routing to: capacity-rebalance skill")
+            print_capacity_rebalance_report(data)
             print("\nRaw JSON")
             print(json.dumps(data, indent=2, ensure_ascii=False))
 

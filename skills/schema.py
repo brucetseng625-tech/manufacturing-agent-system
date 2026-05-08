@@ -37,7 +37,8 @@ SCHEMA_METADATA = {
             "quote-comparison-summary": ["materials", "recommended_supplier", "price_spread", "lead_time_summary", "risks", "supplier_scores", "tradeoffs"],
             "schedule-conflict-check": ["conflicts"],
             "expedite-options": ["options", "option_summary", "days_left"],
-            "material-shortage-recovery": ["shortages", "options", "recovery_summary", "days_left"]
+            "material-shortage-recovery": ["shortages", "options", "recovery_summary", "days_left"],
+            "capacity-rebalance": ["pressures", "conflicts", "options", "rebalance_summary", "days_left", "machine_utilization"]
         }
     },
     "team_workflow_structure": {
@@ -111,6 +112,7 @@ def normalize_skill_response(skill_name, base_data, overrides=None):
         "schedule-conflict-check": ["conflicts"],
         "expedite-options": ["options", "option_summary", "days_left"],
         "material-shortage-recovery": ["shortages", "options", "recovery_summary", "days_left"],
+        "capacity-rebalance": ["pressures", "conflicts", "options", "rebalance_summary", "days_left", "machine_utilization"],
     }
     
     specific_keys = skill_specific_keys.get(skill_name, [])
@@ -156,6 +158,18 @@ def _generate_summary(data, skill_name):
             return f"Schedule conflict detected: {len(conflicts)} overlap(s) found."
         return "No schedule conflicts detected."
         
+    elif skill_name == "capacity-rebalance":
+        rebal = data.get("rebalance_summary", {})
+        rec = rebal.get("top_recommendation", "None")
+        count = rebal.get("recommended_count", 0)
+        pressures = rebal.get("total_pressures", 0)
+        conflicts = rebal.get("total_conflicts", 0)
+        if pressures == 0 and conflicts == 0:
+            return f"Capacity analysis for Order {order_id}: no capacity issues detected."
+        if count > 0:
+            return f"Capacity rebalance for Order {order_id}: {pressures} pressure(s), {conflicts} conflict(s), {count} recommended option(s), top={rec}."
+        return f"Capacity rebalance for Order {order_id}: {pressures} pressure(s), {conflicts} conflict(s), no strongly recommended options."
+
     elif skill_name == "material-shortage-recovery":
         rec_summary = data.get("recovery_summary", {})
         rec = rec_summary.get("top_recommendation", "None")

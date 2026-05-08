@@ -30,6 +30,7 @@ Current completed scope:
 - MCP / ERP integration layer
 - expedite-options skill
 - material-shortage-recovery skill
+- capacity-rebalance skill
 
 ## Start Here
 

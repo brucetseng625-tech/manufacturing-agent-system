@@ -11,6 +11,7 @@ from skills.sales_response_draft import handle_sales_response_draft
 from skills.internal_action_summary import handle_internal_action_summary
 from skills.expedite_options import handle_expedite_options
 from skills.material_shortage_recovery import handle_material_shortage_recovery
+from skills.capacity_rebalance import handle_capacity_rebalance
 
 class SkillRegistry:
     """
@@ -127,6 +128,21 @@ class SkillRegistry:
             "passes_query": True,
             "priority": 6,
             "data_files": ["orders.json", "materials.json", "work_orders.json"]
+        })
+
+        # 8. Capacity Rebalance
+        # Multi-order capacity planning — machine load balancing and scheduling
+        self.register({
+            "name": "capacity-rebalance",
+            "intent": "capacity_rebalance",
+            "keywords": ["產能", "capacity", "rebalance", "機台", "負載", "load", "重分配", "排程優化"],
+            "exact_keywords": ["產能重分配", "capacity rebalance", "機台負載平衡", "load balancing"],
+            "handler": handle_capacity_rebalance,
+            "requires_order_id": True,
+            "triggers_on_multi_order": False,
+            "passes_query": True,
+            "priority": 7,
+            "data_files": ["orders.json", "work_orders.json", "machines.json", "schedule.json"]
         })
 
     def _register_teams(self):
