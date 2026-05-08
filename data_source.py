@@ -751,3 +751,84 @@ def get_degradation_status(data_dir: str = None) -> dict:
     """
     provider = get_data_source()
     return provider.degradation_status(data_dir)
+
+
+def get_system_status(data_dir: str = None) -> dict:
+    """Aggregated operator-facing system status.
+
+    Combines provider status, health, degradation visibility, config state,
+    and data directory metadata into a single view for operators.
+
+    This is the canonical "is everything OK?" endpoint.
+
+    Args:
+        data_dir: Optional data directory path. Defaults to mock_data.
+
+    Returns:
+        dict with keys:
+            system: overall status (ok/degraded/unhealthy)
+            provider: full provider status dict
+            health: health check result dict
+            degradation: degradation visibility dict
+            config: config metadata (source, reload_count, last_reloaded)
+            data_dir: data directory metadata (file_count, last_modified, files)
+            uptime_seconds: server uptime (None if server not running)
+            timestamp: ISO 8601 UTC timestamp
+    """
+    # Resolve default data_dir
+    if data_dir is None:
+        from config import get_config_value
+        data_dir = get_config_value("runtime.default_data_dir", raw=True)
+        if not data_dir:
+            data_dir = "mock_data"
+
+    # Aggregate provider views
+    provider_status = get_provider_status(data_dir)
+    health = get_provider_health(data_dir)
+    degradation = get_degradation_status(data_dir)
+
+    # Determine overall system status
+    health_status = health.get("status", "unknown")
+    is_degraded = degradation.get("is_degraded", False)
+    provider_readiness = provider_status.get("readiness", "unknown")
+
+    if health_status == "ok" and not is_degraded:
+        overall = "ok"
+    elif health_status in ("unreachable", "unhealthy") or provider_readiness == "disabled":
+        overall = "unhealthy"
+    else:
+        overall = "degraded"
+
+    # Config metadata
+    try:
+        from config import get_config_metadata
+        config_meta = get_config_metadata()
+    except Exception:
+        config_meta = {"source": "unknown", "reload_count": 0, "last_reloaded": None}
+
+    # Data directory metadata
+    try:
+        from data_dir_monitor import get_data_dir_metadata
+        data_dir_meta = get_data_dir_metadata(data_dir)
+    except Exception:
+        data_dir_meta = {"data_dir": data_dir, "error": "Failed to scan data directory"}
+
+    # Server uptime (set by server.py at startup)
+    uptime = getattr(get_system_status, "_uptime_start", None)
+    if uptime is not None:
+        uptime = round(time.monotonic() - uptime, 1)
+
+    return {
+        "system": overall,
+        "provider": provider_status,
+        "health": health,
+        "degradation": degradation,
+        "config": {
+            "source": config_meta.get("source", "unknown"),
+            "reload_count": config_meta.get("reload_count", 0),
+            "last_reloaded": config_meta.get("last_reloaded"),
+        },
+        "data_dir": data_dir_meta,
+        "uptime_seconds": uptime,
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }

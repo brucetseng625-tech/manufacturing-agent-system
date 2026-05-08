@@ -162,6 +162,19 @@ Goal: Make provider capabilities, live readiness, and degraded-mode behavior exp
 | ~~P7~~ | ~~Per-provider rollout controls~~ | ~~Control exposure of live features by provider~~ | ~~Config gates, rollout flags, tests~~ | ~~Config layer + provider readiness~~ | ~~Codex~~ |
 | ~~P7~~ | ~~Safe fallback and degraded-mode visibility~~ | ~~Make degraded operation explicit and supportable~~ | ~~Fallback visibility, degraded status surfacing, tests~~ | ~~Health checks + rollout controls~~ | ~~Codex~~ |
 
+## P8 Operations Visibility & Execution Controls
+
+Goal: Provide aggregated operator-facing visibility and safe execution controls for production use.
+
+### Roadmap
+
+| Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
+| --- | --- | --- | --- | --- | --- |
+| P8 | System status endpoint | Single operator-facing aggregated system view | `/system/status`, tests | P7 complete | Codex |
+| P8 | Dashboard ops panels | Show health, degradation, provider status on dashboard | Dashboard panels, tests | System status endpoint | Codex |
+| P8 | Query execution controls | Safe dry-run mode for /run and /batch | `dry_run` flag, tests | Stable /run contract | Codex |
+| P8 | Alert/notification hooks | Automated alerts on degradation events | Webhook config, tests | Degradation visibility | Codex |
+
 ## Start Here
 
 When a new Codex / AI session starts, do this first:
@@ -207,7 +220,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P7-4 (Safe fallback and degraded-mode visibility) is complete. All P7 items are done — define next roadmap phase (P8 or beyond).
+P8-1 (System status endpoint) is being implemented. See P8 roadmap above.
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them

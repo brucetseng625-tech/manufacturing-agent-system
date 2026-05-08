@@ -212,6 +212,14 @@ def main():
           os.path.isfile(os.path.join(base, "tests", "test_degradation.py")),
           "degradation test file present")
 
+    # System status
+    check("System status: get_system_status function exists",
+          "def get_system_status" in open(os.path.join(base, "data_source.py")).read(),
+          "get_system_status() function present in data_source.py")
+    check("System status: test_system_status.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_system_status.py")),
+          "system status test file present")
+
     # Summary
     print()
     print("=" * 50)

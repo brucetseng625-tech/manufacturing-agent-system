@@ -281,6 +281,34 @@ def main():
               "recommendations" in deg_body,
               f"recommendations={deg_body.get('recommendations')}")
 
+        # 26. System status endpoint
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/system/status") as resp:
+            sys_body = json.loads(resp.read())
+        check("System status endpoint: responds 200",
+              resp.status == 200,
+              f"status={resp.status}")
+        check("System status: has system field",
+              sys_body.get("system") in ("ok", "degraded", "unhealthy"),
+              f"system={sys_body.get('system')}")
+        check("System status: has provider field",
+              "provider" in sys_body,
+              f"provider present")
+        check("System status: has health field",
+              "health" in sys_body,
+              f"health present")
+        check("System status: has degradation field",
+              "degradation" in sys_body,
+              f"degradation present")
+        check("System status: has config field",
+              "config" in sys_body,
+              f"config present")
+        check("System status: has data_dir field",
+              "data_dir" in sys_body,
+              f"data_dir present")
+        check("System status: has timestamp field",
+              "timestamp" in sys_body,
+              f"timestamp present")
+
     finally:
         server.shutdown()
 

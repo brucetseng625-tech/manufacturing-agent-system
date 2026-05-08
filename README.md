@@ -945,6 +945,55 @@ Access logs are written as JSONLines to `logs/access.log`:
   - `live`: degraded if live provider not available
   - `auto`: degraded if fallback is active or circuit breaker is open
 
+- **GET /system/status**
+  ```bash
+  curl http://localhost:8000/system/status
+  curl "http://localhost:8000/system/status?data_dir=/path/to/data"
+  ```
+  Aggregated operator-facing system status — the canonical "is everything OK?" endpoint. Combines provider status, health, degradation visibility, config state, and data directory metadata into a single view:
+  ```json
+  {
+    "system": "ok",
+    "provider": {
+      "name": "local",
+      "capabilities": ["read"],
+      "readiness": "ready",
+      "available": true
+    },
+    "health": {
+      "supported": true,
+      "status": "ok",
+      "details": { ... }
+    },
+    "degradation": {
+      "is_degraded": false,
+      "mode": "local",
+      "active_path": "local",
+      "reason": "",
+      "live_readiness": null,
+      "fallback_readiness": null,
+      "recommendations": []
+    },
+    "config": {
+      "source": "config.json",
+      "reload_count": 0,
+      "last_reloaded": null
+    },
+    "data_dir": {
+      "data_dir": "/path/to/mock_data",
+      "file_count": 7,
+      "files": [ ... ]
+    },
+    "uptime_seconds": 123.4,
+    "timestamp": "2026-05-08T14:30:00Z"
+  }
+  ```
+
+  **System status values:**
+  - `ok` — All providers healthy, no degradation
+  - `degraded` — Serving from fallback or live source has issues but fallback is available
+  - `unhealthy` — Critical failure: provider disabled, both live and fallback unreachable
+
 - **POST /batch**
 
 To add a new skill (e.g., `quote-comparison`, `sales-analysis`), follow these steps:
