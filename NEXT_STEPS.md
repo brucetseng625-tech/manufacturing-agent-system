@@ -3,11 +3,11 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `87bf0c4` `feat(p5): add metrics API + dashboard stats panel`
+- `8c9c0fd` `feat(p5): add batch query support — API + CLI`
 
 Latest roadmap sync commit on `main`:
-- `26baf1a` `docs: sync next steps after recovery planning`
-- Full unit test status at handoff: `316 / 316 passed`
+- `d75d5a1` `docs: update next steps after metrics phase`
+- Full unit test status at handoff: `322 / 322 passed`
 - Smoke test status at handoff: `33 / 33 passed`
 - Setup verification status at handoff: `42 / 42 passed`
 - Working tree at handoff: clean
@@ -28,6 +28,9 @@ Current post-P4 follow-up:
 - P5 Phase 1 implemented: Metrics API + Dashboard Stats
 - New endpoint: `GET /metrics`
 - Dashboard now includes stats cards and skill distribution visualization
+- P5 Phase 2 implemented: Batch Query Support
+- New endpoint: `POST /batch`
+- CLI now supports `--batch-file` for multi-query execution
 
 Current completed scope:
 - delivery-risk-analysis
