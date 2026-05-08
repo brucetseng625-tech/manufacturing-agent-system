@@ -106,3 +106,69 @@ class OrchestratorTest(unittest.TestCase):
 
             self.assertEqual(result["status"], "success")
             self.assertEqual(result["intent"], "schedule_conflict_check")
+
+    def test_routing_sales_over_delivery_with_communication_keywords(self):
+        """Query with ORD + 回覆/客戶 should route to sales-response-draft, not delivery."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("ORD-1001 準時出貨，請回覆客戶", mock_data_dir)
+        
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["skill"], "sales-response-draft")
+        self.assertNotEqual(result["intent"], "delivery_risk_analysis")
+
+    def test_routing_internal_over_delivery_with_action_keywords(self):
+        """Query with ORD + 行動/內部 should route to internal-action-summary."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("ORD-1001 出貨有問題，請給內部行動建議", mock_data_dir)
+        
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["skill"], "internal-action-summary")
+
+    def test_routing_quote_over_multi_order_fallback(self):
+        """Multi-order with explicit 報價 keywords should route to quote-comparison, not schedule conflict."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("ORD-1001 和 ORD-1002 的報價比較", mock_data_dir)
+        
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["skill"], "quote-comparison-summary")
+        self.assertNotEqual(result["intent"], "schedule_conflict_check")
+
+    def test_routing_multi_order_defaults_to_schedule_conflict(self):
+        """Multi-order without explicit intent should fallback to schedule conflict."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("檢查 ORD-1001 和 ORD-1002", mock_data_dir)
+        
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["skill"], "schedule-conflict-check")
+
+    def test_routing_no_order_with_quote_keywords(self):
+        """Generic quote query without order ID should succeed (quote doesn't require order)."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("最近有哪些報價？", mock_data_dir)
+        
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["skill"], "quote-comparison-summary")
+
+    def test_routing_no_order_with_delivery_keywords_returns_missing(self):
+        """Query with delivery keywords but no order ID returns missing_order_id."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("準時出貨分析", mock_data_dir)
+        
+        self.assertEqual(result["status"], "error")
+        self.assertEqual(result["type"], "missing_order_id")
+
+    def test_routing_unknown_intent_clear(self):
+        """Completely unrelated query returns unknown_intent."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("今天天氣如何？", mock_data_dir)
+        
+        self.assertEqual(result["status"], "error")
+        self.assertEqual(result["type"], "unknown_intent")
+
+    def test_routing_exact_keyword_boost(self):
+        """Exact phrase match should win over partial matches."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("ORD-1001 交期風險評估", mock_data_dir)
+        
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["skill"], "delivery-risk-analysis")
