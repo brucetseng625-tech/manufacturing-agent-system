@@ -3,13 +3,13 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `7c1dd31` `feat(p7): add per-provider rollout controls`
+- `bac921a` `feat(p7): add safe fallback and degraded-mode visibility`
 
 Latest verified feature commit on `main`:
-- `7c1dd31` `feat(p7): add per-provider rollout controls`
+- `bac921a` `feat(p7): add safe fallback and degraded-mode visibility`
 
 Latest roadmap sync commit on `main`:
-- `7c1dd31` `feat(p7): add per-provider rollout controls`
+- `bac921a` `feat(p7): add safe fallback and degraded-mode visibility`
 - Full unit test status at handoff: `472 / 472 passed`
 - Smoke test status at handoff: `46 / 46 passed`
 - Setup verification status at handoff: `63 / 63 passed`
@@ -65,19 +65,19 @@ Current post-P4 follow-up:
 - All providers now expose a unified `health_check()` contract
 - Auto-failover health aggregates live, fallback, and circuit-breaker state
 - Health states include ok, unreachable, not_configured, degraded, circuit_open, unhealthy
-|- P7 Phase 3 implemented: Per-Provider Rollout Controls
-|- Config-driven rollout gates: `rollout.local.enabled`, `rollout.live.enabled`, `rollout.auto.enabled`
-|- Environment overrides: `MAS_ROLLOUT_LOCAL_ENABLED`, `MAS_ROLLOUT_LIVE_ENABLED`, `MAS_ROLLOUT_AUTO_ENABLED`
-|- Disabled providers report `disabled` readiness, `is_available=False`, health status `disabled`
-|- Works seamlessly with readiness flags, health diagnostics, and circuit breaker
-|- Zero breaking changes to existing CLI, API, history, metrics, dashboard, auth, access logging
-|- New endpoints: `GET /config`, `POST /config/reload`
-|- CLI now supports `--show-config` for centralized config inspection
-|- P7 Phase 4 implemented: Safe Fallback and Degraded-Mode Visibility
-|- New endpoint: `GET /system/degradation-status`
-|- All providers expose `degradation_status()` with `is_degraded`, `active_path`, `reason`, `recommendations`
-|- Auto-failover provider detects: live unavailable, circuit breaker open, rollout disabled
-|- Integration with readiness flags, health diagnostics, rollout controls, and circuit breaker
+- P7 Phase 3 implemented: Per-Provider Rollout Controls
+- Config-driven rollout gates: `rollout.local.enabled`, `rollout.live.enabled`, `rollout.auto.enabled`
+- Environment overrides: `MAS_ROLLOUT_LOCAL_ENABLED`, `MAS_ROLLOUT_LIVE_ENABLED`, `MAS_ROLLOUT_AUTO_ENABLED`
+- Disabled providers report `disabled` readiness, `is_available=False`, health status `disabled`
+- Works seamlessly with readiness flags, health diagnostics, and circuit breaker
+- Zero breaking changes to existing CLI, API, history, metrics, dashboard, auth, access logging
+- New endpoints: `GET /config`, `POST /config/reload`
+- CLI now supports `--show-config` for centralized config inspection
+- P7 Phase 4 implemented: Safe Fallback and Degraded-Mode Visibility
+- New endpoint: `GET /system/degradation-status`
+- All providers expose `degradation_status()` with `is_degraded`, `active_path`, `reason`, `recommendations`
+- Auto-failover provider detects: live unavailable, circuit breaker open, rollout disabled
+- Integration with readiness flags, health diagnostics, rollout controls, and circuit breaker
 
 Current completed scope:
 - delivery-risk-analysis
@@ -120,8 +120,8 @@ Current completed scope:
 - server access logging
 - provider capability registry + readiness flags
 - live provider health check and diagnostics
-|- per-provider rollout controls
-|- safe fallback and degraded-mode visibility
+- per-provider rollout controls
+- safe fallback and degraded-mode visibility
 
 ## P5 Productionization / Live Integration Planning
 
@@ -190,7 +190,7 @@ When a new Codex / AI session starts, do this first:
 | ~~5~~ | ~~Provider capability registry + readiness flags~~ | ~~Foundation for live integration readiness~~ |
 | ~~6~~ | ~~Live provider health check~~ | ~~Diagnostics for production ERP/MCP sources~~ |
 | ~~7~~ | ~~Per-provider rollout controls~~ | ~~Config-driven deployment controls~~ |
-|| ~~8~~ | ~~Safe fallback and degraded-mode visibility~~ | ~~Make degraded live behavior visible and operable~~ |
+| ~~8~~ | ~~Safe fallback and degraded-mode visibility~~ | ~~Make degraded live behavior visible and operable~~ |
 
 ## Ready-To-Use Prompt For The Next AI
 
