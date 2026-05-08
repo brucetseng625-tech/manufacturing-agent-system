@@ -49,6 +49,8 @@ The current workflows route queries to:
 - `schedule-conflict-check`
 - `quote-comparison-summary`
 - `sales-response-draft`
+- `internal-action-summary`
+- `expedite-options`
 
 It reads mock data from:
 

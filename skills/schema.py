@@ -35,7 +35,8 @@ SCHEMA_METADATA = {
             "sales-response-draft": ["shipment_status", "key_message", "product"],
             "internal-action-summary": ["asana_note"],
             "quote-comparison-summary": ["materials", "recommended_supplier", "price_spread", "lead_time_summary", "risks", "supplier_scores", "tradeoffs"],
-            "schedule-conflict-check": ["conflicts"]
+            "schedule-conflict-check": ["conflicts"],
+            "expedite-options": ["options", "option_summary", "days_left"]
         }
     },
     "team_workflow_structure": {
@@ -107,6 +108,7 @@ def normalize_skill_response(skill_name, base_data, overrides=None):
         "internal-action-summary": ["asana_note"],
         "quote-comparison-summary": ["materials", "material", "recommended_supplier", "price_spread", "lead_time_summary", "risks", "supplier_scores", "tradeoffs"],
         "schedule-conflict-check": ["conflicts"],
+        "expedite-options": ["options", "option_summary", "days_left"],
     }
     
     specific_keys = skill_specific_keys.get(skill_name, [])
@@ -152,4 +154,12 @@ def _generate_summary(data, skill_name):
             return f"Schedule conflict detected: {len(conflicts)} overlap(s) found."
         return "No schedule conflicts detected."
         
+    elif skill_name == "expedite-options":
+        opt_summary = data.get("option_summary", {})
+        rec = opt_summary.get("top_recommendation", "None")
+        count = opt_summary.get("recommended_count", 0)
+        if count > 0:
+            return f"Expedite analysis for Order {order_id}: {count} recommended option(s), top={rec}."
+        return f"Expedite analysis for Order {order_id}: no strongly recommended options. Review feasibility details."
+
     return f"Skill {skill_name} completed with decision: {decision}."

@@ -9,6 +9,7 @@ from skills.schedule_conflict_check import check_schedule_conflict
 from skills.quote_comparison_summary import handle_quote_comparison
 from skills.sales_response_draft import handle_sales_response_draft
 from skills.internal_action_summary import handle_internal_action_summary
+from skills.expedite_options import handle_expedite_options
 
 class SkillRegistry:
     """
@@ -95,6 +96,21 @@ class SkillRegistry:
             "passes_query": True,
             "priority": 3,
             "data_files": ["orders.json", "work_orders.json", "materials.json", "machines.json", "operators.json", "schedule.json"]
+        })
+
+        # 6. Expedite Options
+        # Planning skill for at-risk orders — evaluates concrete recovery options
+        self.register({
+            "name": "expedite-options",
+            "intent": "expedite_options",
+            "keywords": ["加急", "expedite", "趕工", "overtime", "搶救", "recovery", "選項", "options", "方案"],
+            "exact_keywords": ["加急方案", "expedite options", "趕工選項", "recovery plan"],
+            "handler": handle_expedite_options,
+            "requires_order_id": True,
+            "triggers_on_multi_order": False,
+            "passes_query": True,
+            "priority": 5,  # Higher priority for explicit expedite intent
+            "data_files": ["orders.json", "work_orders.json", "materials.json", "machines.json", "schedule.json"]
         })
 
     def _register_teams(self):

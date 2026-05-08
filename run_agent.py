@@ -215,6 +215,8 @@ def print_team_report(result):
                 print_schedule_report(step_result)
             elif skill == "quote-comparison-summary":
                 print_quote_report(step_result)
+            elif skill == "expedite-options":
+                print_expedite_report(step_result)
             else:
                 print(json.dumps(step_result, indent=2, ensure_ascii=False))
         except Exception as e:
@@ -226,6 +228,54 @@ def print_team_report(result):
     for item in result.get("trace", []):
         print(f"- {item}")
     print(f"{'=' * 44}")
+
+def print_expedite_report(result):
+    """View: Print expedite options report."""
+    print("\n" + "=" * 44)
+    print("EXPEDITE OPTIONS")
+    print("=" * 44)
+    print(f"Order: {result.get('order_id')}")
+    print(f"Customer: {result.get('customer')}")
+    print(f"Decision: {result.get('decision')}")
+    print(f"Days left: {result.get('details', {}).get('days_left', result.get('days_left', 'N/A'))}")
+    print()
+
+    opt_summary = result.get("details", {}).get("option_summary", {})
+    total = opt_summary.get("total_evaluated", 0)
+    recommended = opt_summary.get("recommended_count", 0)
+    top = opt_summary.get("top_recommendation", "None")
+    print(f"Options evaluated: {total}")
+    print(f"Recommended: {recommended} (Top: {top})")
+    print()
+
+    options = result.get("details", {}).get("options", [])
+    if not options:
+        print("No options available.")
+    else:
+        for i, opt in enumerate(options, 1):
+            rec_marker = " [RECOMMENDED]" if opt.get("recommended") else ""
+            print(f"--- Option {i}: {opt.get('label')}{rec_marker} ---")
+            print(f"  Feasibility: {opt.get('feasibility')} — {opt.get('feasibility_reason')}")
+            print(f"  Impact: {opt.get('expected_impact')}")
+            print(f"  Cost: {opt.get('cost_implication')}")
+            if opt.get("blockers"):
+                print(f"  Blockers: {'; '.join(opt['blockers'])}")
+            if opt.get("key_assumptions"):
+                print(f"  Assumptions: {'; '.join(opt['key_assumptions'][:2])}")
+            print()
+
+    print("Top Blockers")
+    for b in result.get("blockers", []) or ["No critical blockers."]:
+        print(f"- {b}")
+    print()
+    print("Recommendation")
+    print(result.get("next_action"))
+    print()
+    print("Trace")
+    for item in result.get("trace", []):
+        print(f"- {item}")
+    print("=" * 44)
+
 
 def main():
     parser = argparse.ArgumentParser(description="Manufacturing Agent CLI")
@@ -336,6 +386,11 @@ def main():
         elif skill == "sales-response-draft":
             print("Routing to: sales-response-draft skill")
             print_sales_response_report(data)
+            print("\nRaw JSON")
+            print(json.dumps(data, indent=2, ensure_ascii=False))
+        elif skill == "expedite-options":
+            print("Routing to: expedite-options skill")
+            print_expedite_report(data)
             print("\nRaw JSON")
             print(json.dumps(data, indent=2, ensure_ascii=False))
 

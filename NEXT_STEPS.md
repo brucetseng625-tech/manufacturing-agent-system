@@ -28,6 +28,7 @@ Current completed scope:
 - parallel team execution
 - web dashboard mvp
 - MCP / ERP integration layer
+- expedite-options skill
 
 ## Start Here
 
