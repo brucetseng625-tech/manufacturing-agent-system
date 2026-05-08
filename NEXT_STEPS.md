@@ -3,13 +3,13 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `6fe4fa0` `test(p6): add auth coverage to smoke tests and setup verification`
+- `32c3e93` `feat(p6): add circuit breaker for live provider`
 
 Latest roadmap sync commit on `main`:
-- `6fe4fa0` `test(p6): add auth coverage to smoke tests and setup verification`
-- Full unit test status at handoff: `386 / 386 passed`
-- Smoke test status at handoff: `36 / 36 passed`
-- Setup verification status at handoff: `48 / 48 passed`
+- `6e73349` `docs: sync next steps after circuit breaker phase`
+- Full unit test status at handoff: `404 / 404 passed`
+- Smoke test status at handoff: `38 / 38 passed`
+- Setup verification status at handoff: `51 / 51 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
