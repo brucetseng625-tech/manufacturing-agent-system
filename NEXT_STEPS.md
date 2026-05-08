@@ -3,13 +3,13 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- P7-3 in progress — per-provider rollout controls
+- `7c1dd31` `feat(p7): add per-provider rollout controls`
 
 Latest verified feature commit on `main`:
-- `918f091` `feat(p7): add live provider health check and diagnostics`
+- `7c1dd31` `feat(p7): add per-provider rollout controls`
 
-P7 completed commits:
-- `918f091` `feat(p7): add live provider health check and diagnostics`
+Latest roadmap sync commit on `main`:
+- `7c1dd31` `feat(p7): add per-provider rollout controls`
 - Full unit test status at handoff: `455 / 455 passed`
 - Smoke test status at handoff: `42 / 42 passed`
 - Setup verification status at handoff: `60 / 60 passed`
@@ -115,6 +115,7 @@ Current completed scope:
 - server access logging
 - provider capability registry + readiness flags
 - live provider health check and diagnostics
+- per-provider rollout controls
 
 ## P5 Productionization / Live Integration Planning
 
@@ -182,7 +183,7 @@ When a new Codex / AI session starts, do this first:
 | ~~4~~ | ~~Additional planning refinements~~ | ~~Reserve for future expansion after core platform hardening~~ |
 | ~~5~~ | ~~Provider capability registry + readiness flags~~ | ~~Foundation for live integration readiness~~ |
 | ~~6~~ | ~~Live provider health check~~ | ~~Diagnostics for production ERP/MCP sources~~ |
-| 7 | Per-provider rollout controls | Config-driven deployment controls |
+| ~~7~~ | ~~Per-provider rollout controls~~ | ~~Config-driven deployment controls~~ |
 | 8 | Safe fallback and degraded-mode visibility | Make degraded live behavior visible and operable |
 
 ## Ready-To-Use Prompt For The Next AI
