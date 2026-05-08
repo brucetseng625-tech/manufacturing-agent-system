@@ -357,6 +357,43 @@ export ASANA_ACCESS_TOKEN="your-personal-access-token"
 python3 server.py --port 8000
 ```
 
+### API Authentication
+
+All mutation endpoints (`POST /run`, `POST /batch`, `POST /config/reload`, `POST /policy/reload`) require authentication when an API token is configured. Read-only endpoints (`GET /health`, `GET /config`, `GET /metrics`, etc.) remain accessible without a token.
+
+**Dev mode**: If no token is configured (`security.api_token` is empty or `null`), all requests are allowed.
+
+**Configure a token** via `config.json` or environment:
+
+```json
+{
+  "security": {
+    "api_token": "your-secret-token"
+  }
+}
+```
+
+```bash
+export MAS_API_TOKEN="your-secret-token"
+python3 server.py --port 8000
+```
+
+**Authenticate requests** using one of:
+- `Authorization: Bearer <token>` header
+- `X-API-Token: <token>` header
+
+```bash
+curl -X POST http://localhost:8000/run \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-secret-token" \
+  -d '{"query": "ORD-1001 出貨"}'
+```
+
+Unauthorized requests return `401` with:
+```json
+{"status": "error", "error_type": "unauthorized", "message": "Invalid or missing API token"}
+```
+
 ### Endpoints
 
 - **GET /health**
