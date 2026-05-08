@@ -3,13 +3,13 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `ff09dd7` `feat(p8): add dry-run execution controls for /run and /batch`
+- `679b8e9` `docs: update NEXT_STEPS.md handoff metadata for P8-3`
 
 Latest verified feature commit on `main`:
 - `ff09dd7` `feat(p8): add dry-run execution controls for /run and /batch`
 
 Latest roadmap sync commit on `main`:
-- `ff09dd7` `feat(p8): add dry-run execution controls for /run and /batch`
+- `679b8e9` `docs: update NEXT_STEPS.md handoff metadata for P8-3`
 - Full unit test status at handoff: `498 / 498 passed`
 - Smoke test status at handoff: `64 / 64 passed`
 - Setup verification status at handoff: `71 / 71 passed`
@@ -133,13 +133,13 @@ Current completed scope:
 - per-provider rollout controls
 - safe fallback and degraded-mode visibility
 - aggregated system status endpoint
-|- dashboard operations panels
-|- dry-run execution controls
-|- P8 Phase 3 implemented: Dry-Run Execution Controls
-|- `POST /run` and `POST /batch` now support `dry_run: true` flag
-|- Dry-run validates request, extracts orders, previews routing — no side effects
-|- No skill execution, no Asana posting, no audit log writes in dry-run mode
-|- Response includes: matched skill/team, order_ids, intent, steps
+- dashboard operations panels
+- dry-run execution controls
+- P8 Phase 3 implemented: Dry-Run Execution Controls
+- `POST /run` and `POST /batch` now support `dry_run: true` flag
+- Dry-run validates request, extracts orders, previews routing — no side effects
+- No skill execution, no Asana posting, no audit log writes in dry-run mode
+- Response includes: matched skill/team, order_ids, intent, steps
 
 ## P5 Productionization / Live Integration Planning
 
