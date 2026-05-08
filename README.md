@@ -905,6 +905,46 @@ Access logs are written as JSONLines to `logs/access.log`:
   - `circuit_open` — Circuit breaker tripped, live source temporarily blocked
   - `unhealthy` — Both live and fallback sources have issues
 
+- **GET /system/degradation-status**
+  ```bash
+  curl http://localhost:8000/system/degradation-status
+  curl "http://localhost:8000/system/degradation-status?data_dir=/path/to/data"
+  ```
+  Returns structured visibility into whether the system is serving in degraded mode, which data path is active, why, and recommended actions:
+  ```json
+  {
+    "is_degraded": true,
+    "mode": "auto",
+    "active_path": "fallback",
+    "reason": "Live provider not configured — using local fallback",
+    "live_readiness": "not_configured",
+    "fallback_readiness": "ready",
+    "circuit_breaker": null,
+    "recommendations": [
+      "Configure live provider (ERP/MCP endpoint) for full functionality"
+    ]
+  }
+  ```
+
+  **Key fields:**
+  - `is_degraded` (bool) — whether the system is serving in a degraded mode
+  - `active_path` (str) — which data path is currently serving: `live`, `fallback`, or `none`
+  - `reason` (str) — human-readable explanation of why degraded (empty if not degraded)
+  - `live_readiness` / `fallback_readiness` — current readiness state of each path
+  - `circuit_breaker` — circuit breaker status dict (null if not configured)
+  - `recommendations` (list) — actionable suggestions to restore full operation
+
+  **Degradation scenarios detected:**
+  - Live provider unavailable → serving from fallback
+  - Circuit breaker OPEN → live blocked, fallback serving
+  - Live provider readiness degraded/not_configured
+  - Rollout controls disabled a path (live or auto)
+
+  All provider modes support `degradation_status()`:
+  - `local`: always `is_degraded=false` (this is the intended path)
+  - `live`: degraded if live provider not available
+  - `auto`: degraded if fallback is active or circuit breaker is open
+
 - **POST /batch**
 
 To add a new skill (e.g., `quote-comparison`, `sales-analysis`), follow these steps:

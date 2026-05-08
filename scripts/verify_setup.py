@@ -201,6 +201,17 @@ def main():
           os.path.isfile(os.path.join(base, "tests", "test_rollout.py")),
           "rollout test file present")
 
+    # Degradation status
+    check("Degradation: degradation_status method exists on DataProvider",
+          "def degradation_status" in open(os.path.join(base, "data_source.py")).read(),
+          "degradation_status() method present in data_source.py")
+    check("Degradation: get_degradation_status function exists",
+          "def get_degradation_status" in open(os.path.join(base, "data_source.py")).read(),
+          "get_degradation_status() function present in data_source.py")
+    check("Degradation: test_degradation.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_degradation.py")),
+          "degradation test file present")
+
     # Summary
     print()
     print("=" * 50)

@@ -172,6 +172,31 @@ class DataProvider(ABC):
             "details": {"message": "Health check not implemented for this provider"},
         }
 
+    def degradation_status(self, data_dir: str = None) -> dict:
+        """Return degradation-mode visibility info.
+
+        Default: this provider has no degradation concept.
+
+        Returns:
+            dict with keys:
+                is_degraded (bool): whether serving in degraded mode
+                mode (str): provider mode
+                active_path (str): which path is currently serving
+                reason (str): why degraded (empty if not degraded)
+                live_readiness (str|None): live provider readiness if applicable
+                fallback_readiness (str|None): fallback readiness if applicable
+                recommendations (list): suggested actions
+        """
+        return {
+            "is_degraded": False,
+            "mode": self.name(),
+            "active_path": self.name(),
+            "reason": "",
+            "live_readiness": None,
+            "fallback_readiness": None,
+            "recommendations": [],
+        }
+
 
 class LocalFileProvider(DataProvider):
     """Loads data from local JSON/CSV files. Preserves existing behavior."""
@@ -271,6 +296,18 @@ class LocalFileProvider(DataProvider):
             return False
         return os.path.isdir(data_dir)
 
+    def degradation_status(self, data_dir: str = None) -> dict:
+        """Local-only mode: not degraded, this is the intended path."""
+        return {
+            "is_degraded": False,
+            "mode": "local",
+            "active_path": "local",
+            "reason": "",
+            "live_readiness": None,
+            "fallback_readiness": None,
+            "recommendations": [],
+        }
+
 
 class LiveDataProvider(DataProvider):
     """Skeleton provider for MCP/ERP integration.
@@ -339,6 +376,46 @@ class LiveDataProvider(DataProvider):
                 "message": "LiveDataProvider is a skeleton — override health_check() to implement real diagnostics",
                 "configured": False,
             },
+        }
+
+    def degradation_status(self, data_dir: str = None) -> dict:
+        """Live-only mode: if not available, this IS a degradation."""
+        live_ready = self.is_available(data_dir) if data_dir else False
+        rollout_enabled = get_config_value("rollout.live.enabled", True)
+
+        if not rollout_enabled:
+            return {
+                "is_degraded": True,
+                "mode": "live",
+                "active_path": "none",
+                "reason": "Live provider disabled by rollout control",
+                "live_readiness": "disabled",
+                "fallback_readiness": None,
+                "recommendations": ["Set rollout.live.enabled=true to re-enable live path"],
+            }
+
+        if not live_ready:
+            return {
+                "is_degraded": True,
+                "mode": "live",
+                "active_path": "none",
+                "reason": "Live provider not available (not configured or unreachable)",
+                "live_readiness": "not_configured",
+                "fallback_readiness": None,
+                "recommendations": [
+                    "Configure live provider (ERP/MCP endpoint) for full functionality",
+                    "Consider switching to 'auto' mode for automatic fallback",
+                ],
+            }
+
+        return {
+            "is_degraded": False,
+            "mode": "live",
+            "active_path": "live",
+            "reason": "",
+            "live_readiness": "ready",
+            "fallback_readiness": None,
+            "recommendations": [],
         }
 
 
@@ -500,6 +577,82 @@ class AutoFailoverProvider(DataProvider):
             return False
         return self._live.is_available(data_dir) or self._fallback.is_available(data_dir)
 
+    def degradation_status(self, data_dir: str = None) -> dict:
+        """Determine if auto-failover is serving in degraded mode.
+
+        Degraded scenarios:
+        - Live provider unavailable and serving from fallback
+        - Circuit breaker is OPEN (live blocked, using fallback)
+        - Live provider readiness is degraded/not_configured
+        - Rollout controls disabled a path
+
+        Returns structured visibility into which path is active and why.
+        """
+        if not get_config_value("rollout.auto.enabled", True):
+            return {
+                "is_degraded": True,
+                "mode": "auto",
+                "active_path": "none",
+                "reason": "Auto-failover provider disabled by rollout control",
+                "live_readiness": "disabled",
+                "fallback_readiness": "disabled",
+                "circuit_breaker": None,
+                "recommendations": ["Set rollout.auto.enabled=true to re-enable auto mode"],
+            }
+
+        live_ready = self._live.is_available(data_dir) if data_dir else False
+        fallback_ready = self._fallback.is_available(data_dir) if data_dir else False
+        live_readiness = self._live.readiness(data_dir)
+        fallback_readiness = self._fallback.readiness(data_dir)
+        circuit = self.get_circuit_status()
+        circuit_state = circuit["state"] if circuit else None
+
+        # Determine which path is currently active
+        if circuit_state == "open":
+            active_path = "fallback"
+            reason = f"Circuit breaker is OPEN — live provider blocked after failures (fallback serving)"
+            is_degraded = True
+        elif not live_ready:
+            active_path = "fallback"
+            if live_readiness == "not_configured":
+                reason = "Live provider not configured — using local fallback"
+            elif live_readiness == "disabled":
+                reason = "Live provider disabled by rollout control — using local fallback"
+            else:
+                reason = f"Live provider unavailable (readiness={live_readiness}) — using local fallback"
+            is_degraded = True
+        else:
+            active_path = "live"
+            reason = ""
+            is_degraded = False
+
+        # Build recommendations
+        recommendations = []
+        if not fallback_ready and is_degraded:
+            recommendations.append("CRITICAL: Fallback (local) is also unavailable — system cannot serve data")
+        if live_readiness == "not_configured":
+            recommendations.append("Configure live provider (ERP/MCP endpoint) for full functionality")
+        if live_readiness == "disabled":
+            recommendations.append("Set rollout.live.enabled=true to re-enable live path")
+        if circuit_state == "open":
+            recommendations.append(
+                f"Circuit breaker will probe live provider in {circuit['recovery_seconds']}s "
+                f"if not already in half-open state"
+            )
+        if circuit_state == "half_open":
+            recommendations.append("Circuit breaker is probing live provider — monitor for recovery")
+
+        return {
+            "is_degraded": is_degraded,
+            "mode": "auto",
+            "active_path": active_path,
+            "reason": reason,
+            "live_readiness": live_readiness,
+            "fallback_readiness": fallback_readiness,
+            "circuit_breaker": circuit,
+            "recommendations": recommendations,
+        }
+
 
 # Valid data source modes
 VALID_MODES = ("local", "live", "auto")
@@ -583,3 +736,18 @@ def get_provider_health(data_dir: str = None) -> dict:
     """
     provider = get_data_source()
     return provider.health_check(data_dir)
+
+
+def get_degradation_status(data_dir: str = None) -> dict:
+    """Get degradation-mode visibility for the active provider.
+
+    Returns a dict showing whether the system is serving in degraded mode,
+    which path is active, why, and recommendations.
+
+    Works with any provider mode:
+    - local: always not_degraded (this is the intended path)
+    - live: degraded if live provider not available
+    - auto: degraded if fallback is active or circuit breaker is open
+    """
+    provider = get_data_source()
+    return provider.degradation_status(data_dir)

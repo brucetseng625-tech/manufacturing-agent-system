@@ -265,6 +265,22 @@ def main():
               status_body.get("readiness") in ("ready", "degraded"),
               f"local readiness={status_body.get('readiness')}")
 
+        # 25. Degradation status endpoint
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/system/degradation-status") as resp:
+            deg_body = json.loads(resp.read())
+        check("Degradation status endpoint: responds 200",
+              resp.status == 200,
+              f"status={resp.status}")
+        check("Degradation status: has is_degraded field",
+              "is_degraded" in deg_body,
+              f"keys={list(deg_body.keys())}")
+        check("Degradation status: has active_path field",
+              "active_path" in deg_body,
+              f"active_path={deg_body.get('active_path')}")
+        check("Degradation status: has recommendations field",
+              "recommendations" in deg_body,
+              f"recommendations={deg_body.get('recommendations')}")
+
     finally:
         server.shutdown()
 
