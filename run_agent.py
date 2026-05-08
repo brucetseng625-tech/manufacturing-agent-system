@@ -3,7 +3,7 @@ import json
 import os
 import sys
 import argparse
-from orchestrator import route_query
+from orchestrator import route_query, batch_queries
 from data_source import set_data_source, create_provider, get_provider_name
 from skills.policy import get_policy, load_policy, DEFAULT_POLICY
 from skills.observability import log_request, log_asana_post, generate_run_id, set_run_id
@@ -484,7 +484,8 @@ def main():
     parser.add_argument("--channel", default=None, help="Filter by channel: cli or http (used with --history)")
     parser.add_argument("--run-id", default=None, help="Filter by specific run ID (used with --history)")
     parser.add_argument("--policy", action="store_true", help="Show active policy configuration and exit")
-    parser.add_argument("query", nargs="*", help="Natural language query (omit when using --history)")
+    parser.add_argument("--batch-file", default=None, help="Path to file containing one query per line (batch mode)")
+    parser.add_argument("query", nargs="*", help="Natural language query (omit when using --history or --batch-file)")
     args = parser.parse_args()
 
     # Policy inspection mode
@@ -510,22 +511,54 @@ def main():
         return
 
     # Execution mode
+    data_dir = args.data_dir or os.path.join(os.path.dirname(__file__), "mock_data")
+    set_data_source(create_provider(args.data_source))
+    print(f"Data Source: {data_dir} (mode: {get_provider_name()})")
+
+    if args.batch_file:
+        # Batch mode
+        with open(args.batch_file, "r", encoding="utf-8") as f:
+            queries = [line.strip() for line in f if line.strip()]
+        if not queries:
+            print("Error: Batch file is empty or contains no valid queries.")
+            sys.exit(1)
+
+        log_request(f"batch:{len(queries)}", "cli", data_source=args.data_source)
+        print(f"\nBatch mode: {len(queries)} queries loaded from {args.batch_file}")
+        
+        batch_result = batch_queries(queries, data_dir)
+        
+        print(f"\n{'='*44}")
+        print(f"BATCH SUMMARY: {batch_result['success_count']}/{batch_result['total']} succeeded")
+        print(f"{'='*44}")
+        
+        for item in batch_result["results"]:
+            res = item["result"]
+            status_icon = "OK" if res["status"] == "success" else "FAIL"
+            print(f"\n[{status_icon}] #{item['index']+1}: {item['query']}")
+            if res["status"] == "success":
+                print(f"  Skill: {res.get('skill', 'N/A')} | Run ID: {res.get('run_id', '-')}")
+            else:
+                print(f"  Error: {res.get('error', 'Unknown')}")
+        
+        # Log batch results
+        for item in batch_result["results"]:
+            res = item["result"]
+            log_run({
+                "status": res["status"], "query": item["query"], "data_dir": data_dir,
+                "order_ids": res.get("order_ids", []), "intent": res.get("intent"),
+                "skill": res.get("skill"), "run_id": res.get("run_id"),
+                "type": res.get("error_type"), "data": {} if res["status"] == "success" else None,
+            }, "cli")
+        
+        sys.exit(0 if batch_result["error_count"] == 0 else 1)
+
+    # Single query mode
     if not args.query:
         parser.print_help()
         sys.exit(1)
 
     query = " ".join(args.query)
-    data_dir = args.data_dir or os.path.join(os.path.dirname(__file__), "mock_data")
-
-    # Configure data source
-    set_data_source(create_provider(args.data_source))
-
-    # Log request
-    log_request(query, "cli", data_source=args.data_source)
-
-    print(f"Data Source: {data_dir} (mode: {get_provider_name()})")
-
-    print(f"Agent received: '{query}'")
 
     # Orchestrate
     print("\nData Validation Check...")

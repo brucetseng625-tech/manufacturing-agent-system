@@ -6,7 +6,7 @@ import argparse
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
-from orchestrator import route_query
+from orchestrator import route_query, batch_queries
 from integrations.asana_client import post_comment, format_success_report, format_error_report
 from audit_logger import log_run, query_runs
 from skills.registry import get_registry
@@ -255,11 +255,18 @@ class AgentHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         parsed_path = urlparse(self.path)
-        if parsed_path.path != "/run":
+        path = parsed_path.path
+
+        if path == "/run":
+            self._handle_run()
+        elif path == "/batch":
+            self._handle_batch()
+        else:
             self._drain_request_body()
             self._send_error_response(404, "not_found", "Endpoint not found")
             return
 
+    def _handle_run(self):
         try:
             content_length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(content_length).decode("utf-8")
@@ -276,6 +283,55 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._send_error_response(400, "missing_query", "Request payload must include 'query'")
             return
 
+        self._process_run(query, data_dir, asana_task, payload)
+
+    def _handle_batch(self):
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(content_length).decode("utf-8")
+            payload = json.loads(body)
+        except (json.JSONDecodeError, ValueError) as e:
+            self._send_error_response(400, "invalid_json", f"Request body is not valid JSON: {e}")
+            return
+
+        queries = payload.get("queries", [])
+        if not queries or not isinstance(queries, list):
+            self._send_error_response(400, "missing_queries", "Request payload must include 'queries' list")
+            return
+
+        data_dir = payload.get("data_dir", None)
+        if data_dir is None:
+            data_dir = os.path.join(os.path.dirname(__file__), "mock_data")
+
+        data_source_mode = payload.get("data_source", "local")
+        if data_source_mode not in VALID_DATA_SOURCES:
+            self._send_error_response(400, "invalid_data_source",
+                f"Invalid data_source: {data_source_mode}. Must be one of: {list(VALID_DATA_SOURCES)}")
+            return
+        set_data_source(create_provider(data_source_mode))
+
+        log_request(f"batch:{len(queries)}", "http", data_source=data_source_mode)
+
+        batch_result = batch_queries(queries, data_dir)
+
+        # Log each batch item
+        for item in batch_result["results"]:
+            res = item["result"]
+            log_run({
+                "status": res["status"],
+                "query": item["query"],
+                "data_dir": data_dir,
+                "order_ids": res.get("order_ids", []),
+                "intent": res.get("intent"),
+                "skill": res.get("skill"),
+                "run_id": res.get("run_id"),
+                "type": res.get("error_type"),
+                "data": {} if res["status"] == "success" else None,
+            }, "http")
+
+        self._send_json_response(200, batch_result)
+
+    def _process_run(self, query, data_dir, asana_task, payload):
         # Resolve data_dir
         if data_dir is None:
             data_dir = os.path.join(os.path.dirname(__file__), "mock_data")

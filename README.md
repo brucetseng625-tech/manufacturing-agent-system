@@ -410,6 +410,34 @@ python3 server.py --port 8000
   }
   ```
 
+  - **data_source**: `local`, `live`, or `auto`.
+
+- **POST /batch**
+  ```bash
+  curl -X POST http://localhost:8000/batch \
+    -H "Content-Type: application/json" \
+    -d '{
+      "queries": ["ORD-1001 能不能準時出？", "ORD-1002 檢查排程衝突"],
+      "data_dir": "mock_data"
+    }'
+  ```
+  - **queries**: List of natural language queries.
+  - **data_dir**: Path to data directory (optional).
+  - **data_source**: Data source mode (optional).
+
+  Returns batch summary and individual results:
+  ```json
+  {
+    "total": 2,
+    "success_count": 2,
+    "error_count": 0,
+    "results": [
+      {"index": 0, "query": "...", "result": {"status": "success", ...}},
+      {"index": 1, "query": "...", "result": {"status": "success", ...}}
+    ]
+  }
+  ```
+
 ### Response Format
 
 ```json

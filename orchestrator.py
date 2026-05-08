@@ -15,6 +15,41 @@ SCHEMA_MAP = {
     "schedule.json": "schedule", "schedule.csv": "schedule"
 }
 
+
+def batch_queries(queries, data_dir):
+    """Process a list of queries sequentially."""
+    results = []
+    success_count = 0
+    error_count = 0
+
+    for i, query in enumerate(queries):
+        result = route_query(query, data_dir)
+        if result["status"] == "success":
+            success_count += 1
+        else:
+            error_count += 1
+
+        results.append({
+            "index": i,
+            "query": query,
+            "result": {
+                "status": result["status"],
+                "intent": result.get("intent"),
+                "skill": result.get("skill"),
+                "order_ids": result.get("order_ids", []),
+                "run_id": result.get("run_id"),
+                "error_type": result.get("type") if result["status"] == "error" else None,
+                "error": result.get("details") if result["status"] == "error" else None,
+            }
+        })
+
+    return {
+        "total": len(queries),
+        "success_count": success_count,
+        "error_count": error_count,
+        "results": results,
+    }
+
 def extract_order_ids(query):
     match = re.findall(r"\bORD-[A-Z0-9-]+\b", query, re.IGNORECASE)
     return [m.upper() for m in match]
