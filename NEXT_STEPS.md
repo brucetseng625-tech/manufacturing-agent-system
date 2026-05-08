@@ -3,16 +3,16 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `918f091` `feat(p7): add live provider health check and diagnostics`
+- P7-3 in progress — per-provider rollout controls
 
 Latest verified feature commit on `main`:
 - `918f091` `feat(p7): add live provider health check and diagnostics`
 
-Latest roadmap sync commit on `main`:
+P7 completed commits:
 - `918f091` `feat(p7): add live provider health check and diagnostics`
-- Full unit test status at handoff: `449 / 449 passed`
-- Smoke test status at handoff: `41 / 41 passed`
-- Setup verification status at handoff: `58 / 58 passed`
+- Full unit test status at handoff: `455 / 455 passed`
+- Smoke test status at handoff: `42 / 42 passed`
+- Setup verification status at handoff: `60 / 60 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
@@ -65,6 +65,12 @@ Current post-P4 follow-up:
 - All providers now expose a unified `health_check()` contract
 - Auto-failover health aggregates live, fallback, and circuit-breaker state
 - Health states include ok, unreachable, not_configured, degraded, circuit_open, unhealthy
+- P7 Phase 3 implemented: Per-Provider Rollout Controls
+- Config-driven rollout gates: `rollout.local.enabled`, `rollout.live.enabled`, `rollout.auto.enabled`
+- Environment overrides: `MAS_ROLLOUT_LOCAL_ENABLED`, `MAS_ROLLOUT_LIVE_ENABLED`, `MAS_ROLLOUT_AUTO_ENABLED`
+- Disabled providers report `disabled` readiness, `is_available=False`, health status `disabled`
+- Works seamlessly with readiness flags, health diagnostics, and circuit breaker
+- Zero breaking changes to existing CLI, API, history, metrics, dashboard, auth, access logging
 - New endpoints: `GET /config`, `POST /config/reload`
 - CLI now supports `--show-config` for centralized config inspection
 
@@ -146,7 +152,7 @@ Goal: Make provider capabilities, live readiness, and degraded-mode behavior exp
 | --- | --- | --- | --- | --- | --- |
 | ~~P7~~ | ~~Provider capability registry + readiness flags~~ | ~~Expose what each provider can do and whether it is ready~~ | ~~Capability metadata, readiness states, `/provider/status`, tests~~ | ~~P6 complete~~ | ~~Codex~~ |
 | ~~P7~~ | ~~Live provider health check and diagnostics~~ | ~~Detect real-source connectivity and failure causes~~ | ~~Health checks, diagnostics output, tests~~ | ~~Provider status available~~ | ~~Codex~~ |
-| P7 | Per-provider rollout controls | Control exposure of live features by provider | Config gates, rollout flags, tests | Config layer + provider readiness | Codex |
+| ~~P7~~ | ~~Per-provider rollout controls~~ | ~~Control exposure of live features by provider~~ | ~~Config gates, rollout flags, tests~~ | ~~Config layer + provider readiness~~ | ~~Codex~~ |
 | P7 | Safe fallback and degraded-mode visibility | Make degraded operation explicit and supportable | Fallback visibility, degraded status surfacing, tests | Health checks + rollout controls | Codex |
 
 ## Start Here
@@ -194,7 +200,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P7-2 (Live provider health check) is complete. Continue with P7-3: Per-provider rollout controls.
+P7-3 (Per-provider rollout controls) is complete. Continue with P7-4: Safe fallback and degraded-mode visibility.
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them

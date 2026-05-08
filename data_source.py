@@ -6,6 +6,7 @@ import time
 import threading
 from abc import ABC, abstractmethod
 from enum import Enum
+from config import get_config_value
 
 class CircuitState(Enum):
     CLOSED = "closed"
@@ -175,6 +176,8 @@ class DataProvider(ABC):
 class LocalFileProvider(DataProvider):
     """Loads data from local JSON/CSV files. Preserves existing behavior."""
 
+    mode = "local"
+
     def name(self) -> str:
         return "local"
 
@@ -182,11 +185,19 @@ class LocalFileProvider(DataProvider):
         return [ProviderCapability.READ.value]
 
     def readiness(self, data_dir: str = None) -> str:
+        if not get_config_value("rollout.local.enabled", True):
+            return ProviderReadiness.DISABLED.value
         if data_dir and not self.is_available(data_dir):
             return ProviderReadiness.DISABLED.value
         return ProviderReadiness.READY.value
 
     def health_check(self, data_dir: str = None) -> dict:
+        if not get_config_value("rollout.local.enabled", True):
+            return {
+                "supported": True,
+                "status": "disabled",
+                "details": {"message": "Local provider disabled by rollout control"},
+            }
         """Local provider health: check if data dir exists and is readable."""
         if data_dir is None:
             return {
@@ -256,6 +267,8 @@ class LocalFileProvider(DataProvider):
         return []
 
     def is_available(self, data_dir: str) -> bool:
+        if not get_config_value("rollout.local.enabled", True):
+            return False
         return os.path.isdir(data_dir)
 
 
@@ -269,6 +282,8 @@ class LiveDataProvider(DataProvider):
     so the fallback to local files triggers automatically.
     """
 
+    mode = "live"
+
     def name(self) -> str:
         return "live"
 
@@ -280,6 +295,8 @@ class LiveDataProvider(DataProvider):
         ]
 
     def readiness(self, data_dir: str = None) -> str:
+        if not get_config_value("rollout.live.enabled", True):
+            return ProviderReadiness.DISABLED.value
         """Live provider is NOT_CONFIGURED until a real implementation is provided."""
         return ProviderReadiness.NOT_CONFIGURED.value
 
@@ -294,6 +311,8 @@ class LiveDataProvider(DataProvider):
         )
 
     def is_available(self, data_dir: str) -> bool:
+        if not get_config_value("rollout.live.enabled", True):
+            return False
         """Check if live source is reachable.
 
         Override this to implement health checks (e.g., ping ERP endpoint).
@@ -302,6 +321,12 @@ class LiveDataProvider(DataProvider):
         return False
 
     def health_check(self, data_dir: str = None) -> dict:
+        if not get_config_value("rollout.live.enabled", True):
+            return {
+                "supported": True,
+                "status": "disabled",
+                "details": {"message": "Live provider disabled by rollout control"},
+            }
         """Live provider health: reports not configured by default.
 
         Subclasses should override to implement real diagnostics
@@ -327,6 +352,8 @@ class AutoFailoverProvider(DataProvider):
     a failing live source and enable automatic recovery probing.
     """
 
+    mode = "auto"
+
     def __init__(self, live: LiveDataProvider, fallback: LocalFileProvider,
                  failure_threshold=0, recovery_seconds=60):
         self._live = live
@@ -346,6 +373,8 @@ class AutoFailoverProvider(DataProvider):
 
     def readiness(self, data_dir: str = None) -> str:
         """Readiness based on live availability and circuit state."""
+        if not get_config_value("rollout.auto.enabled", True):
+            return ProviderReadiness.DISABLED.value
         if self._circuit is not None:
             try:
                 self._circuit.before_call()
@@ -360,6 +389,13 @@ class AutoFailoverProvider(DataProvider):
 
     def status(self, data_dir: str = None) -> dict:
         """Extended status including circuit breaker and sub-provider info."""
+        if not get_config_value("rollout.auto.enabled", True):
+            return {
+                "name": self.name(),
+                "capabilities": self.capabilities(),
+                "readiness": ProviderReadiness.DISABLED.value,
+                "available": False,
+            }
         result = {
             "name": self.name(),
             "capabilities": self.capabilities(),
@@ -383,6 +419,12 @@ class AutoFailoverProvider(DataProvider):
 
     def health_check(self, data_dir: str = None) -> dict:
         """Aggregate health diagnostics from live and fallback providers."""
+        if not get_config_value("rollout.auto.enabled", True):
+            return {
+                "supported": True,
+                "status": "disabled",
+                "details": {"message": "Auto-failover provider disabled by rollout control"},
+            }
         live_health = self._live.health_check(data_dir)
         fallback_health = self._fallback.health_check(data_dir)
 
@@ -454,6 +496,8 @@ class AutoFailoverProvider(DataProvider):
         return self._circuit.get_status()
 
     def is_available(self, data_dir: str) -> bool:
+        if not get_config_value("rollout.auto.enabled", True):
+            return False
         return self._live.is_available(data_dir) or self._fallback.is_available(data_dir)
 
 

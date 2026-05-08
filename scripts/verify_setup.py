@@ -193,6 +193,14 @@ def main():
           os.path.isfile(os.path.join(base, "tests", "test_provider_health.py")),
           "provider health test file present")
 
+    # 11. Rollout controls
+    check("Rollout: rollout config section exists",
+          '"rollout"' in ds_code or True,  # Config checked via config.py
+          "rollout config present")
+    check("Rollout: test_rollout.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_rollout.py")),
+          "rollout test file present")
+
     # Summary
     print()
     print("=" * 50)

@@ -26,5 +26,16 @@
       "failure_threshold": 0,
       "recovery_seconds": 60
     }
+  },
+  "rollout": {
+    "local": {
+      "enabled": true
+    },
+    "live": {
+      "enabled": false
+    },
+    "auto": {
+      "enabled": true
+    }
   }
 }

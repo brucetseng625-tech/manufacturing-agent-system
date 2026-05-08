@@ -260,6 +260,11 @@ def main():
               "supported" in health_body and "status" in health_body and "details" in health_body,
               f"status={health_body.get('status')}, supported={health_body.get('supported')}")
 
+        # 24. Rollout: local provider enabled
+        check("Rollout: local provider enabled",
+              status_body.get("readiness") in ("ready", "degraded"),
+              f"local readiness={status_body.get('readiness')}")
+
     finally:
         server.shutdown()
 

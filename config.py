@@ -50,6 +50,17 @@ DEFAULT_CONFIG = {
     "integrations": {
         "default_asana_task": None,
     },
+    "rollout": {
+        "local": {
+            "enabled": True,
+        },
+        "live": {
+            "enabled": True,
+        },
+        "auto": {
+            "enabled": True,
+        },
+    },
 }
 
 _ORIGINAL_DEFAULTS = copy.deepcopy(DEFAULT_CONFIG)
@@ -73,6 +84,9 @@ _ENV_OVERRIDES = {
     "MAS_LOG_DIR": ("paths", "log_dir", str),
     "MAS_API_TOKEN": ("security", "api_token", str),
     "MAS_DEFAULT_ASANA_TASK": ("integrations", "default_asana_task", str),
+    "MAS_ROLLOUT_LOCAL_ENABLED": ("rollout", "local", "enabled", bool),
+    "MAS_ROLLOUT_LIVE_ENABLED": ("rollout", "live", "enabled", bool),
+    "MAS_ROLLOUT_AUTO_ENABLED": ("rollout", "auto", "enabled", bool),
 }
 
 
@@ -81,12 +95,20 @@ def _default_config_path():
 
 
 def _apply_env_overrides(config):
-    for env_name, (section, key, caster) in _ENV_OVERRIDES.items():
+    for env_name, path_info in _ENV_OVERRIDES.items():
         raw = os.environ.get(env_name)
         if raw in (None, ""):
             continue
-        config.setdefault(section, {})
-        config[section][key] = caster(raw)
+        # Handle nested paths: rollout.local.enabled vs runtime.default_data_dir
+        if len(path_info) == 3:
+            section, key, caster = path_info
+            config.setdefault(section, {})
+            config[section][key] = caster(raw)
+        elif len(path_info) == 4:
+            section, subsection, key, caster = path_info
+            config.setdefault(section, {})
+            config[section].setdefault(subsection, {})
+            config[section][subsection][key] = caster(raw)
     return config
 
 
