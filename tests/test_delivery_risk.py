@@ -24,7 +24,7 @@ class DeliveryRiskTest(unittest.TestCase):
 
         self.assertIn("Schedule conflict", " ".join(result["blockers"]))
         self.assertIn("ORD-1001, ORD-1002", " ".join(result["blockers"]))
-        self.assertIn("Schedule conflict status: conflict_detected.", result["evidence"])
+        self.assertIn("Schedule conflict status: conflict_detected.", " ".join(result.get("details", {}).get("evidence", [])))
         self.assertEqual(result["decision"], "at_risk")
         self.assertEqual(result["confidence"], "Medium")
 
@@ -43,7 +43,7 @@ class DeliveryRiskTest(unittest.TestCase):
         self.assertEqual(result["decision"], "can_ship_on_time")
         self.assertEqual(result["confidence"], "High")
         self.assertEqual(result["blockers"], ["No critical blockers found in current mock data."])
-        self.assertIn("Schedule conflict status: no_conflict.", result["evidence"])
+        self.assertIn("Schedule conflict status: no_conflict.", " ".join(result.get("details", {}).get("evidence", [])))
 
 
 if __name__ == "__main__":

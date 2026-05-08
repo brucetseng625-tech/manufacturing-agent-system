@@ -1,4 +1,5 @@
 from skills.delivery_risk import analyze_delivery_risk
+from skills.schema import normalize_skill_response
 
 def handle_internal_action_summary(order_ids, data_dir, query=None):
     """
@@ -38,23 +39,25 @@ def handle_internal_action_summary(order_ids, data_dir, query=None):
         escalation = "Immediate escalation required. Notify Sales and Production Director."
 
     # Generate Asana note
-    asana_note = f"Action Required for {delivery_report['order_id']}: "
+    asana_note = f"Action Required for {delivery_report.get('order_id')}: "
     asana_note += f"Status: {decision}. "
     if actionable_blockers:
         asana_note += f"Blocker: {actionable_blockers[0]}. "
     asana_note += f"Owner: {owner}. "
     asana_note += "Next Step: Execute immediate actions."
 
-    return {
-        "order_id": delivery_report["order_id"],
-        "customer": delivery_report["customer"],
-        "current_decision": decision,
-        "confidence": delivery_report["confidence"],
+    raw_data = {
+        "order_id": delivery_report.get("order_id"),
+        "customer": delivery_report.get("customer"),
+        "decision": decision,
+        "confidence": delivery_report.get("confidence"),
         "top_blockers": actionable_blockers[:3],
         "immediate_actions": immediate_actions,
         "owner_suggestion": owner,
         "escalation_suggestion": escalation,
         "asana_note": asana_note,
-        "trace": delivery_report["trace"] + ["generated internal action summary"],
-        "eta": delivery_report["due_date"],
+        "trace": delivery_report.get("trace", []) + ["generated internal action summary"],
+        "eta": delivery_report.get("due_date"),
     }
+    
+    return normalize_skill_response("internal-action-summary", raw_data)

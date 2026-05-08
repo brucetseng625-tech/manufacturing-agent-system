@@ -26,8 +26,9 @@ class QuoteComparisonTest(unittest.TestCase):
         self.assertEqual(result["status"], "success")
         self.assertEqual(result["skill"], "quote-comparison-summary")
         self.assertEqual(result["order_ids"], [])
-        self.assertEqual(result["data"]["material"], "Steel")
-        self.assertNotIn("materials", result["data"])
+        # Single material query returns fields directly
+        self.assertEqual(result["data"]["details"]["material"], "Steel")
+        self.assertIn("recommended_supplier", result["data"]["details"])
 
     def test_skill_csv_mode(self):
         """Skill reads correctly from CSV data."""
@@ -40,7 +41,7 @@ class QuoteComparisonTest(unittest.TestCase):
         
         self.assertEqual(result["status"], "success")
         self.assertEqual(result["skill"], "quote-comparison-summary")
-        self.assertEqual(result["data"]["material"], "Steel")
+        self.assertEqual(result["data"]["details"]["material"], "Steel")
 
     def test_skill_recommendation_logic(self):
         """Skill recommends lowest risk/reasonable price supplier."""
@@ -48,10 +49,14 @@ class QuoteComparisonTest(unittest.TestCase):
         result = handle_quote_comparison([], mock_data_dir, "Steel 報價")
         
         self.assertNotIn("error", result)
-        self.assertEqual(result["material"], "Steel")
-        self.assertIn("recommended_supplier", result)
-        self.assertIn("price_spread", result)
-        self.assertIn("risks", result)
+        # Check standardized fields
+        self.assertIn("decision", result)
+        self.assertIn("confidence", result)
+        # Check material-specific fields in details
+        self.assertEqual(result["details"]["material"], "Steel")
+        self.assertIn("recommended_supplier", result["details"])
+        self.assertIn("price_spread", result["details"])
+        self.assertIn("risks", result["details"])
 
     def test_unspecified_material_returns_all_materials(self):
         """Generic quote query returns all material summaries."""
@@ -59,8 +64,9 @@ class QuoteComparisonTest(unittest.TestCase):
         result = route_query("幫我比較供應商報價", mock_data_dir)
 
         self.assertEqual(result["status"], "success")
-        self.assertIn("materials", result["data"])
-        self.assertGreater(len(result["data"]["materials"]), 1)
+        # Materials are now in details
+        self.assertIn("materials", result["data"]["details"])
+        self.assertGreater(len(result["data"]["details"]["materials"]), 1)
 
     def test_validation_catches_quote_errors(self):
         """Validation detects missing fields or bad types in quotes."""

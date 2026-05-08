@@ -36,22 +36,26 @@ class InternalActionTest(unittest.TestCase):
         self.assertEqual(result["skill"], "internal-action-summary")
         
         data = result["data"]
+        # Check standardized fields
         self.assertIn("order_id", data)
         self.assertIn("customer", data)
-        self.assertIn("current_decision", data)
-        self.assertIn("top_blockers", data)
-        self.assertIn("immediate_actions", data)
-        self.assertIn("owner_suggestion", data)
-        self.assertIn("escalation_suggestion", data)
-        self.assertIn("asana_note", data)
+        self.assertIn("decision", data)
+        self.assertIn("confidence", data)
+        self.assertIn("blockers", data)
+        self.assertIn("owner", data)
+        self.assertIn("eta", data)
+        self.assertIn("next_action", data)
+        self.assertIn("escalation", data)
         self.assertIn("trace", data)
+        # Check skill-specific fields in details
+        self.assertIn("details", data)
 
     def test_skill_asana_note_format(self):
-        """Asana note is a single line string."""
+        """Asana note is in details."""
         mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
         result = route_query("ORD-1001 行動", mock_data_dir)
         
-        asana_note = result["data"]["asana_note"]
+        asana_note = result["data"].get("details", {}).get("asana_note", "")
         self.assertIsInstance(asana_note, str)
         self.assertIn("Action Required", asana_note)
         self.assertIn("Owner:", asana_note)
@@ -61,9 +65,9 @@ class InternalActionTest(unittest.TestCase):
         mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
         result = route_query("ORD-1001 action plan", mock_data_dir)
         
-        escalation = result["data"]["escalation_suggestion"]
+        escalation = result["data"].get("escalation", "")
         self.assertIsInstance(escalation, str)
         self.assertGreater(len(escalation), 0)
         # If decision is can_ship_on_time, escalation is "None"
-        if result["data"]["current_decision"] == "can_ship_on_time":
+        if result["data"]["decision"] == "can_ship_on_time":
             self.assertEqual(escalation, "None")

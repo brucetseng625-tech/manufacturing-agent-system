@@ -52,9 +52,12 @@ class AsanaClientTest(unittest.TestCase):
                 "decision": "can_ship_on_time",
                 "confidence": "High",
                 "due_date": "2026-05-20",
-                "blockers": ["No critical blockers found in current mock data."],
+                "blockers": [],
                 "owner": "Production Team",
-                "recommendation": "Proceed with normal production.",
+                "eta": "2026-05-20",
+                "next_action": "Proceed with normal production.",
+                "escalation": None,
+                "summary": "Order ORD-1001 is on track.",
                 "trace": ["loaded orders", "evaluated delivery risk"],
             }
         }
@@ -80,7 +83,9 @@ class AsanaClientTest(unittest.TestCase):
                 "due_date": "2026-05-20",
                 "blockers": ["Material shortage: Steel"],
                 "owner": "Production Team",
-                "recommendation": "Escalate to Ops Manager.",
+                "eta": "2026-05-20",
+                "next_action": "Escalate to Ops Manager.",
+                "escalation": "Escalate if blockers persist",
                 "trace": ["loaded orders", "evaluated delivery risk"],
             }
         }
@@ -116,14 +121,17 @@ class AsanaClientTest(unittest.TestCase):
             "data": {
                 "order_id": "ORD-1001",
                 "customer": "Test Customer",
-                "shipment_status": "recovery_in_progress",
                 "decision": "cannot_ship_on_time",
                 "confidence": "High",
-                "key_message": "Current production constraints may affect the committed delivery date.",
-                "due_date": "2026-05-20",
                 "owner": "Sales Team",
-                "risk_summary": ["Material shortage: Steel"],
-                "internal_guidance": "Draft customer delay notification.",
+                "eta": "2026-05-20",
+                "blockers": ["Material shortage: Steel"],
+                "next_action": "Draft customer delay notification.",
+                "escalation": None,
+                "details": {
+                    "shipment_status": "recovery_in_progress",
+                    "key_message": "Current production constraints may affect the committed delivery date.",
+                },
                 "trace": ["loaded orders", "generated sales response draft"],
             },
         }

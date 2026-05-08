@@ -1,4 +1,5 @@
 from data_loader import load_json_or_csv
+from skills.schema import normalize_skill_response
 
 
 def _requested_material(query, available_materials):
@@ -81,5 +82,9 @@ def handle_quote_comparison(order_ids, data_dir, query=None):
         })
         
     if len(summary) == 1:
-        return summary[0]
-    return {"materials": summary, "trace": ["loaded quotes", "grouped by material", "analyzed all materials"]}
+        raw_data = summary[0]
+        raw_data["order_ids"] = []
+        return normalize_skill_response("quote-comparison-summary", raw_data)
+    
+    raw_data = {"materials": summary, "trace": ["loaded quotes", "grouped by material", "analyzed all materials"], "order_ids": []}
+    return normalize_skill_response("quote-comparison-summary", raw_data)

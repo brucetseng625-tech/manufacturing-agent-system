@@ -1,6 +1,7 @@
 
 from datetime import datetime
 from data_loader import load_json_or_csv
+from skills.schema import normalize_skill_response
 
 
 PRIORITY_RANK = {
@@ -76,8 +77,12 @@ def check_schedule_conflict(order_ids, mock_data_dir):
                     "suggestion": f"Reschedule {loser} to start after {suggested_start.isoformat()} or use alternate machine."
                 })
 
-    return {
+    raw_data = {
         "conflicts": conflicts,
         "status": "conflict_detected" if conflicts else "no_conflict",
-        "trace": ["loaded schedule", "loaded orders", "checked overlaps", "resolved priorities"]
+        "trace": ["loaded schedule", "loaded orders", "checked overlaps", "resolved priorities"],
+        "order_ids": order_ids,
+        "decision": "conflict_detected" if conflicts else "no_conflict",
     }
+    
+    return normalize_skill_response("schedule-conflict-check", raw_data)

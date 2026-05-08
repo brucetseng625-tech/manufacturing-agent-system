@@ -12,27 +12,28 @@ def print_decision_report(result):
     print("\n" + "=" * 44)
     print("DECISION REPORT")
     print("=" * 44)
-    print(f"Order: {result['order_id']}")
-    print(f"Decision: {result['decision']}")
-    print(f"Confidence: {result['confidence']}")
-    print(f"Due date: {result['due_date']}")
+    print(f"Order: {result.get('order_id')}")
+    print(f"Customer: {result.get('customer')}")
+    print(f"Decision: {result.get('decision')}")
+    print(f"Confidence: {result.get('confidence')}")
+    print(f"Due date: {result.get('eta')}")
     print()
     print("Evidence")
-    for item in result["evidence"]:
+    for item in result.get("details", {}).get("evidence", []):
         print(f"- {item}")
     print()
     print("Blockers")
-    for item in result["blockers"]:
+    for item in result.get("blockers", []):
         print(f"- {item}")
     print()
     print("Recommendation")
-    print(result["recommendation"])
+    print(result.get("next_action"))
     print()
     print("Customer Reply")
-    print(result["customer_reply"])
+    print(result.get("reply_draft"))
     print()
     print("Trace")
-    for item in result["trace"]:
+    for item in result.get("trace", []):
         print(f"- {item}")
     print("=" * 44)
 
@@ -41,9 +42,10 @@ def print_schedule_report(result):
     print("\n" + "=" * 44)
     print("SCHEDULE CONFLICT REPORT")
     print("=" * 44)
-    print(f"Status: {result['status'].upper()}")
-    if result["conflicts"]:
-        for c in result["conflicts"]:
+    print(f"Status: {result.get('decision', 'unknown').upper()}")
+    conflicts = result.get("details", {}).get("conflicts", [])
+    if conflicts:
+        for c in conflicts:
             print(f"\nCONFLICT on {c['machine_id']}")
             print(f"   Time: {c['overlap_start']} ~ {c['overlap_end']}")
             print(f"   Orders: {', '.join(c['orders'])}")
@@ -54,7 +56,7 @@ def print_schedule_report(result):
         print("No conflicts found for the selected orders.")
     print()
     print("Trace")
-    for item in result["trace"]:
+    for item in result.get("trace", []):
         print(f"- {item}")
     print("=" * 44)
 
@@ -63,41 +65,44 @@ def print_quote_report(result):
     print("\n" + "=" * 44)
     print("QUOTE COMPARISON REPORT")
     print("=" * 44)
-    if "materials" in result:
-        for m in result["materials"]:
-            print(f"\nMaterial: {m['material']}")
-            print(f"Recommended: {m['recommended_supplier']}")
-            print(f"Decision: {m['decision']}")
-            print(f"Confidence: {m['confidence']}")
-            print(f"Price Spread: ${m['price_spread']}")
-            lt = m['lead_time_summary']
-            print(f"Lead Time: Avg {lt['avg_days']}d (Min: {lt['min_days']}d, Max: {lt['max_days']}d)")
+    materials = result.get("details", {}).get("materials", [result])
+    if materials and isinstance(materials, list):
+        for m in materials:
+            print(f"\nMaterial: {m.get('material')}")
+            print(f"Recommended: {m.get('recommended_supplier')}")
+            print(f"Decision: {m.get('decision')}")
+            print(f"Confidence: {m.get('confidence')}")
+            print(f"Price Spread: ${m.get('price_spread')}")
+            lt = m.get('lead_time_summary', {})
+            print(f"Lead Time: Avg {lt.get('avg_days')}d (Min: {lt.get('min_days')}d, Max: {lt.get('max_days')}d)")
             print("Risks:")
-            print(f"  High Risk Suppliers: {m['risks']['high_risk_suppliers']}")
+            risks = m.get('risks', {})
+            print(f"  High Risk Suppliers: {risks.get('high_risk_suppliers', 0)}")
             print("Evidence:")
-            for e in m["evidence"]:
+            for e in m.get("evidence", []):
                 print(f"- {e}")
-            print(f"Recommendation: {m['recommendation']}")
+            print(f"Recommendation: {m.get('recommendation')}")
     else:
-        print(f"Material: {result['material']}")
-        print(f"Recommended: {result['recommended_supplier']}")
-        print(f"Decision: {result['decision']}")
-        print(f"Confidence: {result['confidence']}")
-        print(f"Price Spread: ${result['price_spread']}")
-        lt = result['lead_time_summary']
-        print(f"Lead Time: Avg {lt['avg_days']}d (Min: {lt['min_days']}d, Max: {lt['max_days']}d)")
+        print(f"Material: {result.get('material')}")
+        print(f"Recommended: {result.get('recommended_supplier')}")
+        print(f"Decision: {result.get('decision')}")
+        print(f"Confidence: {result.get('confidence')}")
+        print(f"Price Spread: ${result.get('price_spread')}")
+        lt = result.get('lead_time_summary', {})
+        print(f"Lead Time: Avg {lt.get('avg_days')}d (Min: {lt.get('min_days')}d, Max: {lt.get('max_days')}d)")
         print("Risks:")
-        print(f"  High Risk Suppliers: {result['risks']['high_risk_suppliers']}")
+        risks = result.get('risks', {})
+        print(f"  High Risk Suppliers: {risks.get('high_risk_suppliers', 0)}")
         print("Evidence:")
-        for e in result["evidence"]:
+        for e in result.get("evidence", []):
             print(f"- {e}")
-        print(f"Recommendation: {result['recommendation']}")
+        print(f"Recommendation: {result.get('recommendation')}")
         print()
         print("Supplier Reply Draft")
-        print(result["supplier_reply_draft"])
+        print(result.get("reply_draft"))
     print()
     print("Trace")
-    for item in result["trace"]:
+    for item in result.get("trace", []):
         print(f"- {item}")
     print("=" * 44)
 
@@ -106,25 +111,25 @@ def print_sales_response_report(result):
     print("\n" + "=" * 44)
     print("SALES RESPONSE DRAFT")
     print("=" * 44)
-    print(f"Order: {result['order_id']}")
-    print(f"Customer: {result['customer']}")
-    print(f"Decision: {result['decision']}")
-    print(f"Confidence: {result['confidence']}")
-    print(f"Shipment Status: {result['shipment_status']}")
-    print(f"Key Message: {result['key_message']}")
+    print(f"Order: {result.get('order_id')}")
+    print(f"Customer: {result.get('customer')}")
+    print(f"Decision: {result.get('decision')}")
+    print(f"Confidence: {result.get('confidence')}")
+    print(f"Shipment Status: {result.get('details', {}).get('shipment_status')}")
+    print(f"Key Message: {result.get('details', {}).get('key_message')}")
     print()
     print("Risk Summary")
-    for item in result["risk_summary"] or ["No critical risks highlighted."]:
+    for item in result.get("blockers", []) or ["No critical risks highlighted."]:
         print(f"- {item}")
     print()
     print("Internal Guidance")
-    print(result["internal_guidance"])
+    print(result.get("next_action"))
     print()
     print("Customer Reply Draft")
-    print(result["customer_reply_draft"])
+    print(result.get("reply_draft"))
     print()
     print("Trace")
-    for item in result["trace"]:
+    for item in result.get("trace", []):
         print(f"- {item}")
     print("=" * 44)
 
@@ -133,27 +138,31 @@ def print_internal_action_report(result):
     print("\n" + "=" * 44)
     print("INTERNAL ACTION SUMMARY")
     print("=" * 44)
-    print(f"Order: {result['order_id']}")
-    print(f"Customer: {result['customer']}")
-    print(f"Decision: {result['current_decision']}")
-    print(f"Confidence: {result['confidence']}")
+    print(f"Order: {result.get('order_id')}")
+    print(f"Customer: {result.get('customer')}")
+    print(f"Decision: {result.get('decision')}")
+    print(f"Confidence: {result.get('confidence')}")
     print()
     print("Top Blockers")
-    for b in result.get("top_blockers", []):
+    for b in result.get("blockers", []):
         print(f"- {b}")
     print()
     print("Immediate Actions")
-    for a in result.get("immediate_actions", []):
-        print(f"- {a}")
+    next_action = result.get("next_action", [])
+    if isinstance(next_action, list):
+        for a in next_action:
+            print(f"- {a}")
+    else:
+        print(f"- {next_action}")
     print()
-    print(f"Owner: {result['owner_suggestion']}")
-    print(f"Escalation: {result['escalation_suggestion']}")
+    print(f"Owner: {result.get('owner')}")
+    print(f"Escalation: {result.get('escalation')}")
     print()
     print("Asana Note (Copy/Paste)")
-    print(result['asana_note'])
+    print(result.get("details", {}).get("asana_note", ""))
     print()
     print("Trace")
-    for item in result["trace"]:
+    for item in result.get("trace", []):
         print(f"- {item}")
     print("=" * 44)
 

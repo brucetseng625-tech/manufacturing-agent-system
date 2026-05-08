@@ -1,5 +1,6 @@
 
 from data_loader import load_json_or_csv
+from skills.schema import normalize_skill_response
 
 from skills.schedule_conflict_check import check_schedule_conflict
 
@@ -70,8 +71,9 @@ def analyze_delivery_risk(order_id, mock_data_dir):
         )
 
     schedule_report = check_schedule_conflict([order_id], mock_data_dir)
-    evidence.append(f"Schedule conflict status: {schedule_report['status']}.")
-    for conflict in schedule_report["conflicts"]:
+    evidence.append(f"Schedule conflict status: {schedule_report.get('decision', schedule_report.get('status', 'unknown'))}.")
+    conflicts = schedule_report.get("details", {}).get("conflicts", [])
+    for conflict in conflicts:
         blockers.append(
             f"Schedule conflict: {', '.join(conflict['orders'])} overlap on "
             f"{conflict['machine_id']} from {conflict['overlap_start']} to "
@@ -106,7 +108,7 @@ def analyze_delivery_risk(order_id, mock_data_dir):
             "working on recovery actions and will provide an updated delivery commitment."
         )
 
-    report = {
+    raw_report = {
         "order_id": order_id,
         "customer": order["customer"],
         "product": order["product"],
@@ -128,6 +130,9 @@ def analyze_delivery_risk(order_id, mock_data_dir):
             "evaluated delivery risk",
         ],
         "owner": "Production Team",
+        "eta": order["due_date"],
         "next_action": recommendation,
+        "escalation": "Escalate immediately" if len(blockers) > 2 else ("Escalate if blockers persist" if blockers else "None"),
     }
-    return report
+    
+    return normalize_skill_response("delivery-risk-analysis", raw_report)

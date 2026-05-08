@@ -14,6 +14,12 @@ class OrchestratorTest(unittest.TestCase):
         self.assertEqual(result["skill"], "delivery-risk-analysis")
         self.assertEqual(result["order_ids"], ["ORD-1001"])
         self.assertEqual(result["data"]["order_id"], "ORD-1001")
+        # Check standardized fields
+        self.assertIn("decision", result["data"])
+        self.assertIn("confidence", result["data"])
+        self.assertIn("blockers", result["data"])
+        self.assertIn("owner", result["data"])
+        self.assertIn("eta", result["data"])
 
     def test_route_query_conflict_intent(self):
         mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")

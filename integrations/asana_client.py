@@ -52,43 +52,26 @@ def format_success_report(response):
         ""
     ]
     
-    # Standard fields to display if available
-    # Map skill-specific keys to standard keys
-    standard_data = {}
+    # Use standardized fields from unified schema
+    # All skills now return: decision, confidence, owner, eta, blockers, next_action, escalation, summary
     
+    # Skill-specific header info
     if intent == "delivery_risk_analysis":
-        standard_data["decision"] = data.get("decision")
-        standard_data["confidence"] = data.get("confidence")
-        standard_data["owner"] = data.get("owner")
-        standard_data["eta"] = data.get("due_date")
-        standard_data["blockers"] = data.get("blockers", [])
-        standard_data["next_action"] = data.get("recommendation")
-        standard_data["escalation"] = None # Inferred from blockers count usually
-        
-        # Blockers processing
-        actionable_blockers = [
-            blocker for blocker in standard_data["blockers"]
-            if not str(blocker).startswith("No critical blockers")
-        ]
-        standard_data["blockers"] = actionable_blockers
-        
         lines.extend([
             f"Order: {data.get('order_id')}",
             f"Customer: {data.get('customer')}",
         ])
-        
     elif intent == "schedule_conflict_check":
         status = data.get("status", "unknown")
+        conflicts = data.get("details", {}).get("conflicts", [])
         lines.extend([
             f"Conflict Status: `{status}`",
-            f"Conflicts Found: {len(data.get('conflicts', []))}",
+            f"Conflicts Found: {len(conflicts)}",
         ])
         trace = data.get("trace", [])
-        # Fall through to trace printing at end
         return _append_trace(lines, trace)
-        
     elif intent == "quote_comparison_summary":
-        materials = data.get("materials", [data])
+        materials = data.get("details", {}).get("materials", [data])
         lines.append(f"Materials Compared: {len(materials)}")
         for material in materials[:5]:
             lines.extend([
@@ -101,65 +84,54 @@ def format_success_report(response):
         if not trace and len(materials) == 1:
             trace = materials[0].get("trace", [])
         return _append_trace(lines, trace)
-        
     elif intent == "sales_response_draft":
-        standard_data["decision"] = data.get("decision")
-        standard_data["confidence"] = data.get("confidence")
-        standard_data["owner"] = data.get("owner")
-        standard_data["eta"] = data.get("due_date")
-        standard_data["blockers"] = data.get("risk_summary", [])
-        standard_data["next_action"] = data.get("internal_guidance")
-        standard_data["escalation"] = None
-        
         lines.extend([
             f"Order: {data.get('order_id')}",
             f"Customer: {data.get('customer')}",
-            f"Shipment Status: `{data.get('shipment_status')}`",
-            f"Key Message: {data.get('key_message')}",
+            f"Shipment Status: `{data.get('details', {}).get('shipment_status')}`",
+            f"Key Message: {data.get('details', {}).get('key_message')}",
         ])
-        
     elif intent == "internal_action_summary":
-        standard_data["decision"] = data.get("current_decision")
-        standard_data["confidence"] = data.get("confidence")
-        standard_data["owner"] = data.get("owner_suggestion")
-        standard_data["eta"] = data.get("eta")
-        standard_data["blockers"] = data.get("top_blockers", [])
-        standard_data["next_action"] = data.get("immediate_actions")
-        standard_data["escalation"] = data.get("escalation_suggestion")
-        
         lines.extend([
             f"Order: {data.get('order_id')}",
             f"Customer: {data.get('customer')}",
         ])
 
-    # Render standardized fields for production/ops skills
-    if standard_data:
-        lines.append(f"Decision: `{standard_data['decision']}`")
-        lines.append(f"Confidence: {standard_data['confidence']}")
-        lines.append(f"Owner: {standard_data['owner']}")
-        lines.append(f"ETA: {standard_data['eta']}")
+    # Render standardized fields (common to most skills)
+    lines.append(f"Decision: `{data.get('decision')}`")
+    lines.append(f"Confidence: {data.get('confidence')}")
+    lines.append(f"Owner: {data.get('owner')}")
+    lines.append(f"ETA: {data.get('eta')}")
+    
+    blockers = data.get("blockers", [])
+    if blockers:
+        lines.append("Blockers:")
+        for b in blockers:
+            lines.append(f"- {b}")
+    else:
+        lines.append("Blockers: None")
         
-        if standard_data["blockers"]:
-            lines.append("Blockers:")
-            for b in standard_data["blockers"]:
-                lines.append(f"- {b}")
+    next_action = data.get("next_action")
+    if next_action:
+        if isinstance(next_action, list):
+            lines.append("Next Action:")
+            for a in next_action:
+                lines.append(f"- {a}")
         else:
-            lines.append("Blockers: None")
+            lines.append(f"Next Action: {next_action}")
             
-        if standard_data["next_action"]:
-            if isinstance(standard_data["next_action"], list):
-                lines.append("Next Action:")
-                for a in standard_data["next_action"]:
-                    lines.append(f"- {a}")
-            else:
-                lines.append(f"Next Action: {standard_data['next_action']}")
-                
-        if standard_data.get("escalation"):
-            lines.append(f"Escalation: {standard_data['escalation']}")
-        else:
-            lines.append("Escalation: None")
-            
-        trace = data.get("trace", [])
+    escalation = data.get("escalation")
+    if escalation:
+        lines.append(f"Escalation: {escalation}")
+    else:
+        lines.append("Escalation: None")
+        
+    # Add summary if available
+    summary = data.get("summary")
+    if summary:
+        lines.append(f"Summary: {summary}")
+        
+    trace = data.get("trace", [])
 
     return _append_trace(lines, trace)
 
