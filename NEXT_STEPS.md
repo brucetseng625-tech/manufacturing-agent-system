@@ -3,7 +3,7 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `e86faf3` `feat: standardize Asana workflow reporting`
+- `efa3f45` `feat: implement score-based query routing`
 
 Current completed scope:
 - delivery-risk-analysis
@@ -17,6 +17,7 @@ Current completed scope:
 - sales-response-draft
 - internal-action-summary
 - Asana workflow enhancement
+- query routing improvement
 
 ## Start Here
 
@@ -48,13 +49,12 @@ When a new Codex / AI session starts, do this first:
 | Order | Work Item | Why Now |
 | --- | --- | --- |
 | 1 | Output schema unification | Best next step now that Asana-side reporting is standardized |
-| 2 | Query routing improvement | Prevents regression as more skills are added |
-| 3 | Agent Teams implementation | Builds on more stable interfaces |
-| 4 | Run history query support | Makes the system more operationally useful |
-| 5 | API enhancement | Easier once outputs and history are more stable |
-| 6 | Error handling hardening | Best informed by real workflow growth |
-| 7 | Data model expansion | More valuable after workflow scaffolding is stronger |
-| 8 | New recovery / planning skills | Safer to add after platform basics are stronger |
+| 2 | Agent Teams implementation | Next best step now that routing and schema are more stable |
+| 3 | Run history query support | Makes the system more operationally useful |
+| 4 | API enhancement | Easier once outputs and history are more stable |
+| 5 | Error handling hardening | Best informed by real workflow growth |
+| 6 | Data model expansion | More valuable after workflow scaffolding is stronger |
+| 7 | New recovery / planning skills | Safer to add after platform basics are stronger |
 
 ## Ready-To-Use Prompt For The Next AI
 
@@ -71,12 +71,12 @@ First actions:
 4. Continue from the top Priority 1 item unless the user reprioritizes
 
 Current expected next task:
-Implement output schema unification across all skills
+Implement Agent Teams execution flow on top of the existing skeleton
 
 Requirements:
-- Reuse existing outputs from all current skills without rewriting business logic
-- Standardize top-level response fields such as decision, blockers, owner, next action, ETA, escalation, summary, and trace
-- Keep CLI, API, Asana formatter, and audit log compatible while reducing field-name divergence
+- Reuse existing skills instead of rewriting their business logic
+- Define team roles / ownership and a simple handoff or chaining workflow
+- Start from the existing Agent Teams skeleton and make it executable
 - Add tests
 - Update README if needed
 - Run tests and report results
