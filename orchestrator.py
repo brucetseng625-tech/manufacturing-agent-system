@@ -55,7 +55,36 @@ def route_query(query, data_dir):
         "order_ids": order_ids,
     }
     
-    # 1. Skill Matching via Registry
+    # 1. Skill/Team Matching via Registry
+    matched_team = get_registry().match_team(query, order_ids)
+    
+    # If team matched, execute team workflow
+    if matched_team:
+        if matched_team.get("requires_order_id") and not order_ids:
+            return {
+                **response_base,
+                "status": "error",
+                "type": "missing_order_id",
+                "details": f"Order ID is required for {matched_team['name']} team workflow."
+            }
+        try:
+            team_result = get_registry().execute_team(matched_team, order_ids, data_dir, query)
+            return {
+                **response_base,
+                "status": "success",
+                "intent": matched_team["intent"],
+                "skill": f"team:{matched_team['name']}",
+                "data": team_result,
+                "is_team": True
+            }
+        except Exception as e:
+            return {
+                **response_base,
+                "status": "error",
+                "type": "team_error",
+                "details": str(e)
+            }
+    
     matched_skill = get_registry().match_skill(query, order_ids)
     
     if matched_skill is None:

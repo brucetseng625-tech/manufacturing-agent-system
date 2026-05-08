@@ -169,6 +169,39 @@ def print_internal_action_report(result):
         print(f"- {item}")
     print("=" * 44)
 
+def print_team_report(result):
+    """View: Print team execution report."""
+    team_name = result.get("team_name", "Unknown Team")
+    print(f"\n{'=' * 44}")
+    print(f"TEAM WORKFLOW: {team_name.upper()}")
+    print(f"{'=' * 44}")
+    
+    steps = result.get("results", {})
+    for alias, step_result in steps.items():
+        print(f"\n{'-' * 30}")
+        print(f"STEP: {alias.upper()}")
+        print(f"{'-' * 30}")
+        
+        if "error" in step_result:
+            print(f"ERROR: {step_result['error']}")
+            continue
+            
+        skill = step_result.get("skill", alias)
+        if skill == "delivery-risk-analysis":
+            print_decision_report(step_result)
+        elif skill == "sales-response-draft":
+            print_sales_response_report(step_result)
+        elif skill == "internal-action-summary":
+            print_internal_action_report(step_result)
+        else:
+            print(json.dumps(step_result, indent=2, ensure_ascii=False))
+            
+    print(f"\n{'=' * 44}")
+    print("TEAM TRACE")
+    for item in result.get("trace", []):
+        print(f"- {item}")
+    print(f"{'=' * 44}")
+
 def main():
     parser = argparse.ArgumentParser(description="Manufacturing Agent CLI")
     parser.add_argument("--data-dir", default=None, help="Path to data directory (default: mock_data)")
@@ -211,7 +244,12 @@ def main():
         skill = response["skill"]
         data = response["data"]
 
-        if skill == "delivery-risk-analysis":
+        if response.get("is_team"):
+            print(f"Routing to: team workflow ({skill})")
+            print_team_report(data)
+            print("\nRaw JSON")
+            print(json.dumps(data, indent=2, ensure_ascii=False))
+        elif skill == "delivery-risk-analysis":
             print("Routing to: delivery-risk-analysis skill")
             print_decision_report(data)
             print("\nRaw JSON")

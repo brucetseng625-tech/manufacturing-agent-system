@@ -172,3 +172,45 @@ class OrchestratorTest(unittest.TestCase):
         
         self.assertEqual(result["status"], "success")
         self.assertEqual(result["skill"], "delivery-risk-analysis")
+
+    def test_team_comprehensive_analysis(self):
+        """Query with comprehensive keywords should trigger team workflow."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("ORD-1001 全面分析", mock_data_dir)
+        
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["skill"], "team:comprehensive-analysis")
+        self.assertTrue(result.get("is_team"))
+        self.assertIn("risk", result["data"]["results"])
+        self.assertIn("sales", result["data"]["results"])
+        self.assertIn("internal", result["data"]["results"])
+
+    def test_team_risk_response(self):
+        """Query with risk response keywords should trigger team workflow."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("ORD-1001 風險應對", mock_data_dir)
+        
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["skill"], "team:risk-response")
+        self.assertIn("risk", result["data"]["results"])
+        self.assertIn("sales", result["data"]["results"])
+        self.assertNotIn("internal", result["data"]["results"])
+
+    def test_team_missing_order_id(self):
+        """Team workflow without order ID returns missing_order_id."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("全面分析", mock_data_dir)
+        
+        self.assertEqual(result["status"], "error")
+        self.assertEqual(result["type"], "missing_order_id")
+
+    def test_team_execution_trace(self):
+        """Team execution should include trace for each step."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("ORD-1001 風險應對", mock_data_dir)
+        
+        self.assertEqual(result["status"], "success")
+        trace = result["data"]["trace"]
+        self.assertTrue(len(trace) >= 2)
+        self.assertIn("executed delivery-risk-analysis via team workflow", trace)
+        self.assertIn("executed sales-response-draft via team workflow", trace)

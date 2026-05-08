@@ -12,13 +12,15 @@ from skills.internal_action_summary import handle_internal_action_summary
 
 class SkillRegistry:
     """
-    Central registry for all agent skills.
+    Central registry for all agent skills and teams.
     Uses score-based priority matching to resolve keyword collisions.
     """
     
     def __init__(self):
         self.skills = []
+        self.teams = []
         self._register_builtins()
+        self._register_teams()
     
     def _register_builtins(self):
         """Register built-in skills with routing metadata."""
@@ -94,6 +96,58 @@ class SkillRegistry:
             "priority": 3,
             "data_files": ["orders.json", "work_orders.json", "materials.json", "machines.json", "operators.json", "schedule.json"]
         })
+
+    def _register_teams(self):
+        """Register team workflows that chain multiple skills."""
+        
+        # 1. Comprehensive Order Analysis
+        # Triggers on "全面分析", "comprehensive", "all reports", "完整報告"
+        # Chain: delivery-risk -> sales-response-draft + internal-action-summary
+        self.register_team({
+            "name": "comprehensive-analysis",
+            "intent": "comprehensive_analysis",
+            "keywords": ["全面分析", "comprehensive", "all reports", "完整報告", "全方位"],
+            "exact_keywords": ["comprehensive analysis", "完整報告", "全面分析"],
+            "steps": [
+                {"skill": "delivery-risk-analysis", "alias": "risk"},
+                {"skill": "sales-response-draft", "alias": "sales"},
+                {"skill": "internal-action-summary", "alias": "internal"},
+            ],
+            "requires_order_id": True,
+            "priority": 10,
+        })
+
+        # 2. Risk Response Pack
+        # Triggers on "風險應對", "risk response", "出貨應變", "delivery response"
+        # Chain: delivery-risk -> sales-response-draft
+        self.register_team({
+            "name": "risk-response",
+            "intent": "risk_response",
+            "keywords": ["風險應對", "risk response", "出貨應變", "delivery response", "客戶應對"],
+            "exact_keywords": ["風險應對", "risk response", "出貨應變"],
+            "steps": [
+                {"skill": "delivery-risk-analysis", "alias": "risk"},
+                {"skill": "sales-response-draft", "alias": "sales"},
+            ],
+            "requires_order_id": True,
+            "priority": 9,
+        })
+        
+    def register_team(self, team_config):
+        """
+        Register a new team workflow.
+        Args:
+            team_config (dict): {
+                "name": str,
+                "intent": str,
+                "keywords": list,
+                "exact_keywords": list,
+                "steps": list of {"skill": str, "alias": str},
+                "requires_order_id": bool,
+                "priority": int,
+            }
+        """
+        self.teams.append(team_config)
     
     def register(self, skill_config):
         """
@@ -163,6 +217,82 @@ class SkillRegistry:
         # Sort: highest score first, then highest priority, then earliest registration
         valid.sort(key=lambda x: (-x[1], -x[0].get("priority", 0), x[2]))
         return valid[0][0]
+    
+    def match_team(self, query, order_ids):
+        """
+        Find the best matching team workflow using score-based routing.
+        Follows the same scoring rules as match_skill but applies to teams.
+        
+        Returns:
+            dict: Matched team config, or None if no match.
+        """
+        query_lower = query.lower()
+        candidates = []
+        
+        for idx, team in enumerate(self.teams):
+            score = 0
+            
+            # Exact keyword matches (high weight)
+            for kw in team.get("exact_keywords", []):
+                if kw.lower() in query_lower:
+                    score += 5
+                    
+            # Partial keyword matches (standard weight)
+            for kw in team.get("keywords", []):
+                if kw.lower() in query_lower:
+                    score += 2
+                    
+            # Base priority ONLY applies if there's at least one keyword match
+            if score > 0:
+                score += team.get("priority", 0)
+                
+            candidates.append((team, score, idx))
+            
+        valid = [(t, sc, i) for t, sc, i in candidates if sc > 0]
+        
+        if not valid:
+            return None
+            
+        valid.sort(key=lambda x: (-x[1], -x[0].get("priority", 0), x[2]))
+        return valid[0][0]
+    
+    def execute_team(self, team_config, order_ids, data_dir, query=None):
+        """
+        Execute a team workflow by chaining multiple skills.
+        Returns a unified team output.
+        """
+        results = {}
+        trace = []
+        
+        for step in team_config.get("steps", []):
+            skill_name = step["skill"]
+            alias = step.get("alias", skill_name)
+            
+            # Find the skill in registry
+            matched_skill = None
+            for skill in self.skills:
+                if skill["name"] == skill_name:
+                    matched_skill = skill
+                    break
+            
+            if matched_skill:
+                try:
+                    res = self.execute(matched_skill, order_ids, data_dir, query)
+                    results[alias] = res
+                    trace.append(f"executed {skill_name} via team workflow")
+                except Exception as e:
+                    results[alias] = {"error": str(e)}
+                    trace.append(f"failed {skill_name}: {e}")
+            else:
+                results[alias] = {"error": f"Skill {skill_name} not found"}
+                
+        return {
+            "team_name": team_config["name"],
+            "intent": team_config["intent"],
+            "results": results,
+            "trace": trace,
+            "order_id": order_ids[0] if order_ids else None,
+        }
     
     def execute(self, skill_config, order_ids, data_dir, query=None):
         """

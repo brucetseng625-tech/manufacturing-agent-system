@@ -52,6 +52,27 @@ def format_success_report(response):
         ""
     ]
     
+    # Check if this is a team result
+    if response.get("is_team"):
+        team_name = data.get("team_name", "Unknown Team")
+        lines.append(f"Team Workflow: `{team_name}`")
+        lines.append("")
+        results = data.get("results", {})
+        for alias, step in results.items():
+            step_intent = step.get("intent", alias)
+            step_decision = step.get("decision", "N/A")
+            lines.append(f"**{alias.upper()}**")
+            lines.append(f"Decision: `{step_decision}`")
+            lines.append(f"Confidence: {step.get('confidence', 'N/A')}")
+            blockers = step.get("blockers", [])
+            if blockers:
+                lines.append("Blockers:")
+                for b in blockers[:2]:
+                    lines.append(f"- {b}")
+            lines.append("")
+        trace = data.get("trace", [])
+        return _append_trace(lines, trace)
+
     # Use standardized fields from unified schema
     # All skills now return: decision, confidence, owner, eta, blockers, next_action, escalation, summary
     
