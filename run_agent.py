@@ -101,6 +101,33 @@ def print_quote_report(result):
         print(f"- {item}")
     print("=" * 44)
 
+def print_sales_response_report(result):
+    """View: Print sales response draft report."""
+    print("\n" + "=" * 44)
+    print("SALES RESPONSE DRAFT")
+    print("=" * 44)
+    print(f"Order: {result['order_id']}")
+    print(f"Customer: {result['customer']}")
+    print(f"Decision: {result['decision']}")
+    print(f"Confidence: {result['confidence']}")
+    print(f"Shipment Status: {result['shipment_status']}")
+    print(f"Key Message: {result['key_message']}")
+    print()
+    print("Risk Summary")
+    for item in result["risk_summary"] or ["No critical risks highlighted."]:
+        print(f"- {item}")
+    print()
+    print("Internal Guidance")
+    print(result["internal_guidance"])
+    print()
+    print("Customer Reply Draft")
+    print(result["customer_reply_draft"])
+    print()
+    print("Trace")
+    for item in result["trace"]:
+        print(f"- {item}")
+    print("=" * 44)
+
 def main():
     parser = argparse.ArgumentParser(description="Manufacturing Agent CLI")
     parser.add_argument("--data-dir", default=None, help="Path to data directory (default: mock_data)")
@@ -156,6 +183,11 @@ def main():
         elif skill == "quote-comparison-summary":
             print("Routing to: quote-comparison-summary skill")
             print_quote_report(data)
+            print("\nRaw JSON")
+            print(json.dumps(data, indent=2, ensure_ascii=False))
+        elif skill == "sales-response-draft":
+            print("Routing to: sales-response-draft skill")
+            print_sales_response_report(data)
             print("\nRaw JSON")
             print(json.dumps(data, indent=2, ensure_ascii=False))
 

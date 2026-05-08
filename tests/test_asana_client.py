@@ -95,6 +95,27 @@ class AsanaClientTest(unittest.TestCase):
         self.assertIn("Supplier A", comment)
         self.assertIn("Price Spread: 15.0", comment)
 
+    def test_format_success_report_sales_response(self):
+        response = {
+            "intent": "sales_response_draft",
+            "data": {
+                "order_id": "ORD-1001",
+                "shipment_status": "recovery_in_progress",
+                "decision": "cannot_ship_on_time",
+                "confidence": "High",
+                "key_message": "Current production constraints may affect the committed delivery date.",
+                "risk_summary": ["Material shortage: Steel"],
+                "trace": ["loaded orders", "generated sales response draft"],
+            },
+        }
+
+        comment = format_success_report(response)
+
+        self.assertIn("sales_response_draft", comment)
+        self.assertIn("recovery_in_progress", comment)
+        self.assertIn("Material shortage: Steel", comment)
+        self.assertIn("generated sales response draft", comment)
+
     def test_format_error_report_validation(self):
         response = {
             "type": "validation_failed",

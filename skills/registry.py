@@ -7,6 +7,7 @@ from data_validator import validate_dataset
 from skills.delivery_risk import analyze_delivery_risk
 from skills.schedule_conflict_check import check_schedule_conflict
 from skills.quote_comparison_summary import handle_quote_comparison
+from skills.sales_response_draft import handle_sales_response_draft
 
 class SkillRegistry:
     """
@@ -56,6 +57,18 @@ class SkillRegistry:
             "triggers_on_multi_order": False,
             "passes_query": True,
             "data_files": ["quotes.json"]
+        })
+
+        # 4. Sales Response Draft
+        self.register({
+            "name": "sales-response-draft",
+            "intent": "sales_response_draft",
+            "keywords": ["回覆", "客戶", "sales", "reply", "draft", "email", "customer update"],
+            "handler": handle_sales_response_draft,
+            "requires_order_id": True,
+            "triggers_on_multi_order": False,
+            "passes_query": True,
+            "data_files": ["orders.json", "work_orders.json", "materials.json", "machines.json", "operators.json", "schedule.json"]
         })
     
     def register(self, skill_config):

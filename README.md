@@ -21,6 +21,12 @@ Run with CSV sample data:
 python3 run_agent.py --data-dir data "這張急單 ORD-CSV-001 能不能準時出？"
 ```
 
+Generate a customer-facing sales reply draft:
+
+```bash
+python3 run_agent.py "請幫我寫 ORD-1001 的客戶回覆草稿"
+```
+
 ## Test
 
 ```bash
@@ -29,7 +35,12 @@ python3 -B -m unittest discover -s tests
 
 ## Current Prototype
 
-The first workflow routes delivery questions to `delivery-risk-analysis`.
+The current workflows route queries to:
+
+- `delivery-risk-analysis`
+- `schedule-conflict-check`
+- `quote-comparison-summary`
+- `sales-response-draft`
 
 It reads mock data from:
 

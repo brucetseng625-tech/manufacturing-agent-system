@@ -90,6 +90,20 @@ def format_success_report(response):
         trace = data.get("trace", [])
         if not trace and len(materials) == 1:
             trace = materials[0].get("trace", [])
+    elif intent == "sales_response_draft":
+        lines.extend([
+            f"Order: {data.get('order_id')}",
+            f"Shipment Status: `{data.get('shipment_status')}`",
+            f"Decision: `{data.get('decision')}`",
+            f"Confidence: {data.get('confidence')}",
+            f"Key Message: {data.get('key_message')}",
+        ])
+        risk_summary = data.get("risk_summary", [])
+        if risk_summary:
+            lines.append("Top Risks:")
+            for risk in risk_summary[:3]:
+                lines.append(f"- {risk}")
+        trace = data.get("trace", [])
 
     if trace:
         lines.extend(["", "Trace:"])
