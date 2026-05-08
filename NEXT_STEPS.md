@@ -3,16 +3,16 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `979deda` `docs: update NEXT_STEPS.md handoff metadata for P8-2`
+- `ff09dd7` `feat(p8): add dry-run execution controls for /run and /batch`
 
 Latest verified feature commit on `main`:
-- `f4ae827` `feat(p8): add dashboard operations panels`
+- `ff09dd7` `feat(p8): add dry-run execution controls for /run and /batch`
 
 Latest roadmap sync commit on `main`:
-- `979deda` `docs: update NEXT_STEPS.md handoff metadata for P8-2`
-- Full unit test status at handoff: `485 / 485 passed`
-- Smoke test status at handoff: `58 / 58 passed`
-- Setup verification status at handoff: `68 / 68 passed`
+- `ff09dd7` `feat(p8): add dry-run execution controls for /run and /batch`
+- Full unit test status at handoff: `498 / 498 passed`
+- Smoke test status at handoff: `64 / 64 passed`
+- Setup verification status at handoff: `71 / 71 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
@@ -133,7 +133,13 @@ Current completed scope:
 - per-provider rollout controls
 - safe fallback and degraded-mode visibility
 - aggregated system status endpoint
-- dashboard operations panels
+|- dashboard operations panels
+|- dry-run execution controls
+|- P8 Phase 3 implemented: Dry-Run Execution Controls
+|- `POST /run` and `POST /batch` now support `dry_run: true` flag
+|- Dry-run validates request, extracts orders, previews routing — no side effects
+|- No skill execution, no Asana posting, no audit log writes in dry-run mode
+|- Response includes: matched skill/team, order_ids, intent, steps
 
 ## P5 Productionization / Live Integration Planning
 
@@ -184,7 +190,7 @@ Goal: Provide aggregated operator-facing visibility and safe execution controls 
 | --- | --- | --- | --- | --- | --- |
 | ~~P8~~ | ~~System status endpoint~~ | ~~Single operator-facing aggregated system view~~ | ~~`/system/status`, tests~~ | ~~P7 complete~~ | ~~Codex~~ |
 | ~~P8~~ | ~~Dashboard ops panels~~ | ~~Show health, degradation, provider status on dashboard~~ | ~~Dashboard panels, tests~~ | ~~System status endpoint~~ | ~~Codex~~ |
-| P8 | Query execution controls | Safe dry-run mode for /run and /batch | `dry_run` flag, tests | Stable /run contract | Codex |
+| ~~P8~~ | ~~Query execution controls~~ | ~~Safe dry-run mode for /run and /batch~~ | ~~`dry_run` flag, tests~~ | ~~Stable /run contract~~ | ~~Codex~~ |
 | P8 | Alert/notification hooks | Automated alerts on degradation events | Webhook config, tests | Degradation visibility | Codex |
 
 ## Start Here
@@ -232,7 +238,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P8-2 (Dashboard ops panels) is complete. Continue with P8-3 (Query execution controls / dry-run) or P8-4 (Alert hooks).
+P8-3 (Dry-run execution controls) is complete. Continue with P8-4 (Alert/notification hooks) or define P9.
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them
