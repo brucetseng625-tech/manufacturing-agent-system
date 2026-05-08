@@ -3,11 +3,11 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `5686c17` `feat(p5): add policy hot-reload — API + CLI`
+- `d885d11` `feat(p5): add data dir auto-reload — status endpoint + CLI + mtime tracking`
 
 Latest roadmap sync commit on `main`:
-- `78bf534` `docs: update next steps after batch query phase`
-- Full unit test status at handoff: `330 / 330 passed`
+- `27952f7` `docs: update next steps after policy hot-reload phase`
+- Full unit test status at handoff: `345 / 345 passed`
 - Smoke test status at handoff: `33 / 33 passed`
 - Setup verification status at handoff: `42 / 42 passed`
 - Working tree at handoff: clean
@@ -34,6 +34,9 @@ Current post-P4 follow-up:
 - P5 Phase 3 implemented: Policy Hot-Reload
 - New endpoint: `POST /policy/reload`
 - CLI now supports `--reload-policy` for immediate policy refresh
+- P5 Phase 4 implemented: Data Dir Auto-Reload
+- New endpoint: `GET /data/status`
+- CLI now supports `--data-dir-status` for directory change visibility
 
 Current completed scope:
 - delivery-risk-analysis
