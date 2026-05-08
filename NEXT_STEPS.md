@@ -3,16 +3,16 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `bac921a` `feat(p7): add safe fallback and degraded-mode visibility`
+- `c467342` `feat(p8): add aggregated system status endpoint`
 
 Latest verified feature commit on `main`:
-- `bac921a` `feat(p7): add safe fallback and degraded-mode visibility`
+- `c467342` `feat(p8): add aggregated system status endpoint`
 
 Latest roadmap sync commit on `main`:
-- `bac921a` `feat(p7): add safe fallback and degraded-mode visibility`
-- Full unit test status at handoff: `472 / 472 passed`
-- Smoke test status at handoff: `46 / 46 passed`
-- Setup verification status at handoff: `63 / 63 passed`
+- `c467342` `feat(p8): add aggregated system status endpoint`
+- Full unit test status at handoff: `485 / 485 passed`
+- Smoke test status at handoff: `54 / 54 passed`
+- Setup verification status at handoff: `65 / 65 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
@@ -77,7 +77,12 @@ Current post-P4 follow-up:
 - New endpoint: `GET /system/degradation-status`
 - All providers expose `degradation_status()` with `is_degraded`, `active_path`, `reason`, `recommendations`
 - Auto-failover provider detects: live unavailable, circuit breaker open, rollout disabled
-- Integration with readiness flags, health diagnostics, rollout controls, and circuit breaker
+|- Integration with readiness flags, health diagnostics, rollout controls, and circuit breaker
+|- P8 Phase 1 implemented: Aggregated System Status Endpoint
+|- New endpoint: `GET /system/status`
+|- Aggregated operator-facing view: provider + health + degradation + config + data_dir
+|- Overall system status: ok/degraded/unhealthy based on health + degradation state
+|- Server uptime tracking (set at startup)
 
 Current completed scope:
 - delivery-risk-analysis
@@ -121,7 +126,8 @@ Current completed scope:
 - provider capability registry + readiness flags
 - live provider health check and diagnostics
 - per-provider rollout controls
-- safe fallback and degraded-mode visibility
+|- safe fallback and degraded-mode visibility
+|- aggregated system status endpoint
 
 ## P5 Productionization / Live Integration Planning
 
@@ -170,7 +176,7 @@ Goal: Provide aggregated operator-facing visibility and safe execution controls 
 
 | Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
 | --- | --- | --- | --- | --- | --- |
-| P8 | System status endpoint | Single operator-facing aggregated system view | `/system/status`, tests | P7 complete | Codex |
+| ~~P8~~ | ~~System status endpoint~~ | ~~Single operator-facing aggregated system view~~ | ~~`/system/status`, tests~~ | ~~P7 complete~~ | ~~Codex~~ |
 | P8 | Dashboard ops panels | Show health, degradation, provider status on dashboard | Dashboard panels, tests | System status endpoint | Codex |
 | P8 | Query execution controls | Safe dry-run mode for /run and /batch | `dry_run` flag, tests | Stable /run contract | Codex |
 | P8 | Alert/notification hooks | Automated alerts on degradation events | Webhook config, tests | Degradation visibility | Codex |
@@ -220,7 +226,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P8-1 (System status endpoint) is being implemented. See P8 roadmap above.
+P8-1 (System status endpoint) is complete. Continue with P8-2 (Dashboard ops panels), P8-3 (Query execution controls / dry-run), or P8-4 (Alert hooks).
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them
