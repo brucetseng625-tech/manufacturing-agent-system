@@ -3,7 +3,7 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `1d56d5a` `feat: enhance quote comparison with weighted supplier scoring`
+- `b27a009` `feat: implement parallel team execution with ThreadPoolExecutor`
 
 Current completed scope:
 - delivery-risk-analysis
@@ -25,6 +25,7 @@ Current completed scope:
 - error handling hardening
 - data model expansion
 - quote comparison enhancement
+- parallel team execution
 
 ## Start Here
 
@@ -39,7 +40,6 @@ When a new Codex / AI session starts, do this first:
 
 | Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
 | --- | --- | --- | --- | --- | --- |
-| P3 | Parallel team execution | Improve throughput by running independent team steps concurrently | Parallel-safe team executor, ordering rules, tests | Agent Teams MVP and error handling now exist | Codex / systems AI |
 | P3 | Web dashboard | Add a visual layer over the existing API and history endpoints | Dashboard screens, API consumption, basic UX | API enhancement and run history support are complete | Frontend AI |
 | P3 | MCP / ERP integration | Replace static files with live operational inputs | Connector layer, config, fallback behavior, tests | Current API and data model are stable enough to integrate | Integration AI |
 | P3 | New recovery / planning skills | Expand practical manufacturing use cases | `expedite-options`, `material-shortage-recovery`, `capacity-rebalance`, `supplier-followup-draft` | Routing and schema should be stronger first | Feature AI |
@@ -51,10 +51,10 @@ When a new Codex / AI session starts, do this first:
 
 | Order | Work Item | Why Now |
 | --- | --- | --- |
-| 1 | Parallel team execution | Best next step now that team workflows, history, API, and hardening are in place |
-| 2 | Web dashboard | High leverage now that structured endpoints exist |
-| 3 | MCP / ERP integration | Natural next step once the internal workflow surface is stable |
-| 4 | New recovery / planning skills | Safer to add after platform basics are stronger |
+| 1 | Web dashboard | High leverage now that structured endpoints and history APIs exist |
+| 2 | MCP / ERP integration | Natural next step once the internal workflow surface is stable |
+| 3 | New recovery / planning skills | Safer to add after platform basics are stronger |
+| 4 | Configurable rules / policy layer | Good follow-on once the user-facing surfaces are clearer |
 
 ## Ready-To-Use Prompt For The Next AI
 
@@ -71,12 +71,12 @@ First actions:
 4. Continue from the top Priority 1 item unless the user reprioritizes
 
 Current expected next task:
-Implement parallel team execution for independent team workflow steps
+Build a web dashboard on top of the existing API and history endpoints
 
 Requirements:
-- Reuse the existing Agent Teams structure instead of rewriting team routing
-- Run independent steps concurrently where ordering is not required, while preserving deterministic output and trace
-- Keep CLI, API, formatter, and error-handling behavior stable under parallel execution
+- Reuse the existing `/skills`, `/schema`, `/history`, and `/run` APIs instead of rebuilding backend logic
+- Focus on an MVP dashboard that lets users inspect available skills/teams, submit a query, and review recent run history
+- Keep the current CLI, API, formatter, and error-handling behavior unchanged
 - Add tests
 - Update README if needed
 - Run tests and report results
