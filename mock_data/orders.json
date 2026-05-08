@@ -5,7 +5,11 @@
     "product": "精密軸承 A1",
     "quantity": 500,
     "due_date": "2026-05-15",
-    "priority": "High"
+    "priority": "High",
+    "customer_tier": "VIP",
+    "penalty_per_day": 5000.0,
+    "expedite_option": "overtime",
+    "expedite_cost": 15000.0
   },
   {
     "order_id": "ORD-1002",
@@ -13,7 +17,11 @@
     "product": "連接器 C3",
     "quantity": 2000,
     "due_date": "2026-05-20",
-    "priority": "Normal"
+    "priority": "Normal",
+    "customer_tier": "Standard",
+    "penalty_per_day": 1000.0,
+    "expedite_option": "extra_shift",
+    "expedite_cost": 8000.0
   },
   {
     "order_id": "ORD-1003",
@@ -21,6 +29,10 @@
     "product": "支架 B2",
     "quantity": 300,
     "due_date": "2026-05-22",
-    "priority": "Low"
+    "priority": "Low",
+    "customer_tier": "Budget",
+    "penalty_per_day": 200.0,
+    "expedite_option": "none",
+    "expedite_cost": 0.0
   }
 ]

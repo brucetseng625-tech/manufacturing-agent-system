@@ -102,7 +102,7 @@ def normalize_skill_response(skill_name, base_data, overrides=None):
     
     # Preserve skill-specific fields in details
     skill_specific_keys = {
-        "delivery-risk-analysis": ["product", "evidence", "evidence_summary"],
+        "delivery-risk-analysis": ["product", "evidence", "evidence_summary", "customer_tier", "penalty_per_day", "expedite_option", "expedite_cost", "cost_notes"],
         "sales-response-draft": ["product", "key_message", "shipment_status"],
         "internal-action-summary": ["asana_note"],
         "quote-comparison-summary": ["materials", "material", "recommended_supplier", "price_spread", "lead_time_summary", "risks"],

@@ -4,7 +4,7 @@ import datetime
 SCHEMAS = {
     "orders": {
         "required": ["order_id", "customer", "product", "quantity", "due_date", "priority"],
-        "types": {"quantity": int}
+        "types": {"quantity": int, "penalty_per_day": float, "expedite_cost": float}
     },
     "work_orders": {
         "required": ["wo_id", "order_id", "status", "machine_id", "progress_percent", "estimated_completion"],
@@ -12,11 +12,11 @@ SCHEMAS = {
     },
     "materials": {
         "required": ["order_id", "material", "required_qty", "available_qty", "status"],
-        "types": {"required_qty": int, "available_qty": int}
+        "types": {"required_qty": int, "available_qty": int, "safety_stock": int, "supplier_lead_time_days": int, "unit_cost": float}
     },
     "machines": {
         "required": ["machine_id", "status", "load_percent", "next_maintenance"],
-        "types": {"load_percent": int}
+        "types": {"load_percent": int, "max_capacity_percent": int}
     },
     "operators": {
         "required": ["operator_id", "skill", "shift", "status"],

@@ -4,13 +4,21 @@
     "material": "Steel Alloy 4140",
     "required_qty": 100,
     "available_qty": 120,
-    "status": "Ready"
+    "status": "Ready",
+    "safety_stock": 50,
+    "supplier_lead_time_days": 7,
+    "supplier_reliability": 0.95,
+    "unit_cost": 45.0
   },
   {
     "order_id": "ORD-1001",
     "material": "Coating Fluid X",
     "required_qty": 50,
     "available_qty": 20,
-    "status": "Shortage"
+    "status": "Shortage",
+    "safety_stock": 30,
+    "supplier_lead_time_days": 14,
+    "supplier_reliability": 0.70,
+    "unit_cost": 120.0
   }
 ]

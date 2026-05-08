@@ -62,6 +62,47 @@ It can also read CSV exports from:
 
 Before running an agent workflow, the CLI validates required fields, empty values, numeric fields, and date/datetime formats. If validation fails, the run stops with clear errors.
 
+## Data Model
+
+The system reads structured data from JSON or CSV files. Below are the supported datasets and their key fields.
+
+### Core Datasets
+
+| Dataset | Key Fields | Purpose |
+|---------|-----------|---------|
+| **orders** | `order_id`, `customer`, `product`, `quantity`, `due_date`, `priority` | Order master data |
+| | `customer_tier` (VIP/Standard/Budget) | Customer priority tier |
+| | `penalty_per_day` (float) | Late delivery penalty cost per day |
+| | `expedite_option` (none/overtime/extra_shift) | Available expedite method |
+| | `expedite_cost` (float) | Estimated cost to expedite |
+| **work_orders** | `wo_id`, `order_id`, `status`, `machine_id`, `progress_percent`, `estimated_completion` | Production work orders |
+| **materials** | `order_id`, `material`, `required_qty`, `available_qty`, `status` | Material availability |
+| | `safety_stock` (int) | Minimum safety stock level |
+| | `supplier_lead_time_days` (int) | Days to reorder material |
+| | `supplier_reliability` (float 0–1) | Supplier on-time delivery rate |
+| | `unit_cost` (float) | Per-unit material cost |
+| **machines** | `machine_id`, `status`, `load_percent`, `next_maintenance` | Machine status |
+| | `backup_available` (bool) | Is a backup machine available? |
+| | `max_capacity_percent` (int) | Maximum theoretical capacity |
+| | `overtime_available` (bool) | Can run overtime? |
+| **operators** | `operator_id`, `skill`, `shift`, `status` | Workforce coverage |
+| **schedule** | `order_id`, `machine_id`, `start`, `end` | Production schedule |
+| **quotes** | `quote_id`, `material`, `supplier`, `unit_price`, `lead_time_days`, `moq`, `quality_rating`, `risk_level`, `valid_until` | Supplier quotes |
+
+### Decision Integration
+
+New fields directly affect `delivery-risk-analysis` decisions:
+- **Safety stock breaches** add blockers when `available_qty <= safety_stock`.
+- **Supplier lead time vs. due date** determines if reordering is feasible.
+- **Supplier reliability** adjusts effective lead time (lower reliability = longer effective lead).
+- **Machine backup availability** prevents "machine down" from becoming a blocker.
+- **Customer tier + penalty** determines escalation path (VIP + high penalty → immediate VP escalation).
+- **Expedite options** are recommended in next_action with cost estimates.
+
+### Extending the Schema
+
+Add new fields to `data_validator.py` SCHEMAS dict. Optional fields should be added to the `types` section (not `required`) to maintain backward compatibility with existing data files.
+
 Each CLI or HTTP run writes a JSONL audit record to `logs/runs.jsonl` under the current working directory. Set `AGENT_LOG_DIR` to write logs elsewhere.
 
 The report includes:

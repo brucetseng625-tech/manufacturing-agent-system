@@ -1,2 +1,2 @@
-order_id,material,required_qty,available_qty,status
-ORD-CSV-001,Steel,50,50,Ready
+order_id,material,required_qty,available_qty,status,safety_stock,supplier_lead_time_days,supplier_reliability,unit_cost
+ORD-CSV-001,Steel,50,50,Ready,25,7,0.90,30.0

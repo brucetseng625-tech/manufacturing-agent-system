@@ -3,12 +3,18 @@
     "machine_id": "CNC-01",
     "status": "Running",
     "load_percent": 85,
-    "next_maintenance": "2026-05-18"
+    "next_maintenance": "2026-05-18",
+    "backup_available": true,
+    "max_capacity_percent": 120,
+    "overtime_available": true
   },
   {
     "machine_id": "CNC-02",
     "status": "Down",
     "load_percent": 0,
-    "next_maintenance": "2026-05-10"
+    "next_maintenance": "2026-05-10",
+    "backup_available": false,
+    "max_capacity_percent": 100,
+    "overtime_available": false
   }
 ]
