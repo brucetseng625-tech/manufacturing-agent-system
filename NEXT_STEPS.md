@@ -3,7 +3,7 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `05e6283` `feat: add run history query support`
+- `638d827` `feat: add structured API endpoints (/skills, /schema) + history validation`
 
 Current completed scope:
 - delivery-risk-analysis
@@ -21,6 +21,7 @@ Current completed scope:
 - query routing improvement
 - Agent Teams MVP
 - run history query support
+- API enhancement
 
 ## Start Here
 
@@ -35,7 +36,6 @@ When a new Codex / AI session starts, do this first:
 
 | Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
 | --- | --- | --- | --- | --- | --- |
-| P2 | API enhancement | Make external integration easier | `/skills`, `/history`, `/schema` endpoints, tests | Core routing, schema, and history are now available | Codex / API AI |
 | P3 | Error handling hardening | Improve resilience under bad data or integration issues | Better degraded responses, retry / fallback rules, tests | Existing API and skill outputs | Codex |
 | P3 | Data model expansion | Improve decision quality with richer operational inputs | Inventory, supplier lead times, capacity signals, expedite cost fields | Existing core workflows stable | Data / domain AI |
 | P3 | New recovery / planning skills | Expand practical manufacturing use cases | `expedite-options`, `material-shortage-recovery`, `capacity-rebalance`, `supplier-followup-draft` | Routing and schema should be stronger first | Feature AI |
@@ -47,10 +47,9 @@ When a new Codex / AI session starts, do this first:
 
 | Order | Work Item | Why Now |
 | --- | --- | --- |
-| 1 | API enhancement | Best next step now that routing, schema, teams, and history layers exist |
-| 2 | Error handling hardening | Best informed by the larger surface area now in place |
-| 3 | Data model expansion | More valuable after platform scaffolding is stronger |
-| 4 | New recovery / planning skills | Safer to add after platform basics are stronger |
+| 1 | Error handling hardening | Best next step now that the system surface area is much larger |
+| 2 | Data model expansion | More valuable after platform scaffolding is stronger |
+| 3 | New recovery / planning skills | Safer to add after platform basics are stronger |
 
 ## Ready-To-Use Prompt For The Next AI
 
@@ -67,12 +66,12 @@ First actions:
 4. Continue from the top Priority 1 item unless the user reprioritizes
 
 Current expected next task:
-Implement API enhancement on top of the current skill, team, and history layers
+Implement error handling hardening across skill, team, CLI, and API paths
 
 Requirements:
-- Reuse existing routing, schema, and history query helpers instead of rewriting business logic
-- Add or improve structured endpoints such as `/skills`, `/history`, and `/schema`
-- Keep the API shape consistent with the current CLI and formatter expectations
+- Improve degraded responses under bad data, missing dependencies, malformed inputs, and partial team failures
+- Keep existing CLI, API, routing, and audit log behavior stable while making failures clearer
+- Add targeted tests for failure paths and edge cases
 - Add tests
 - Update README if needed
 - Run tests and report results
