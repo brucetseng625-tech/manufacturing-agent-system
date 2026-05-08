@@ -3,11 +3,11 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `09a695f` `feat: add recovery planning team workflow`
+- `87bf0c4` `feat(p5): add metrics API + dashboard stats panel`
 
 Latest roadmap sync commit on `main`:
-- `400479d` `docs: clarify post-p4 local follow-up status`
-- Full unit test status at handoff: `304 / 304 passed`
+- `26baf1a` `docs: sync next steps after recovery planning`
+- Full unit test status at handoff: `316 / 316 passed`
 - Smoke test status at handoff: `33 / 33 passed`
 - Setup verification status at handoff: `42 / 42 passed`
 - Working tree at handoff: clean
@@ -25,6 +25,9 @@ Current post-P4 follow-up:
 - Additional planning refinements implemented as an integrated recovery planning team workflow
 - New team workflow: `team:recovery-planning`
 - Scope: bundle shortage recovery, expedite options, capacity rebalance, and supplier follow-up into one coordinated planning entrypoint
+- P5 Phase 1 implemented: Metrics API + Dashboard Stats
+- New endpoint: `GET /metrics`
+- Dashboard now includes stats cards and skill distribution visualization
 
 Current completed scope:
 - delivery-risk-analysis
