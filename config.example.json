@@ -20,5 +20,11 @@
   },
   "integrations": {
     "default_asana_task": null
+  },
+  "live_provider": {
+    "circuit_breaker": {
+      "failure_threshold": 0,
+      "recovery_seconds": 60
+    }
   }
 }

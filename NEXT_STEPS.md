@@ -3,17 +3,20 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `54e4b7f` `docs: final sync after P6 completion`
+- P7-1 in progress — provider capability registry + readiness flags
 
 Latest verified feature commit on `main`:
 - `03fcf6c` `feat(p6): add structured server access logging`
 
-Latest roadmap sync commits on `main`:
+P6 completed commits:
+- `03fcf6c` `feat(p6): add structured server access logging`
 - `9130174` `docs: add access logging documentation and config example`
 - `54e4b7f` `docs: final sync after P6 completion`
-- Full unit test status at handoff: `408 / 408 passed`
-- Smoke test status at handoff: `38 / 38 passed`
-- Setup verification status at handoff: `53 / 53 passed`
+- `6e73349` `docs: sync next steps after circuit breaker phase`
+- `0d89cac` `docs: correct commit refs`
+- Full unit test status at handoff: `434 / 434 passed`
+- Smoke test status at handoff: `40 / 40 passed`
+- Setup verification status at handoff: `56 / 56 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
@@ -149,6 +152,9 @@ When a new Codex / AI session starts, do this first:
 | ~~2~~ | ~~Deployment readiness~~ | ~~Natural follow-on once policy boundaries and runtime expectations are clearer~~ |
 | ~~3~~ | ~~Observability and traceability~~ | ~~High leverage after workflow surface has stabilized~~ |
 | ~~4~~ | ~~Additional planning refinements~~ | ~~Reserve for future expansion after core platform hardening~~ |
+| 5 | Provider capability registry + readiness flags | Foundation for live integration readiness |
+| 6 | Live provider health check | Diagnostics for production ERP/MCP sources |
+| 7 | Per-provider rollout controls | Config-driven deployment controls |
 
 ## Ready-To-Use Prompt For The Next AI
 
@@ -165,7 +171,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P6 is complete. Define the next roadmap phase (P7) or add new items.
+P7-1 (Provider capability registry) is complete. Continue with P7-2: Live provider health check and diagnostics.
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them

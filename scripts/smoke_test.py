@@ -242,6 +242,18 @@ def main():
         rc, out, err = run_cli(["--data-source", "local", "ORD-1001", "出貨"])
         check("CLI --data-source local", rc == 0 and "mode: local" in out, f"rc={rc}")
 
+        # 21. Provider status endpoint
+        status_body = get("/provider/status", port)
+        check("Provider status endpoint",
+              "name" in status_body and "capabilities" in status_body and "readiness" in status_body,
+              f"name={status_body.get('name')}, readiness={status_body.get('readiness')}")
+
+        # 22. Provider readiness is valid enum value
+        valid_readiness = {"ready", "not_configured", "degraded", "disabled", "circuit_open"}
+        check("Provider readiness valid",
+              status_body.get("readiness") in valid_readiness,
+              f"readiness={status_body.get('readiness')}")
+
     finally:
         server.shutdown()
 

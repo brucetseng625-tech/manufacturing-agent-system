@@ -172,6 +172,19 @@ def main():
     check("No .env in git", not os.path.isfile(os.path.join(base, ".env")), ".env not found (good)")
     check("No .env.local in git", not os.path.isfile(os.path.join(base, ".env.local")), ".env.local not found (good)")
 
+    # 10. Provider capability registry
+    check("Provider: ProviderCapability enum exists",
+          "ProviderCapability" in ds_code,
+          "ProviderCapability enum present in data_source.py")
+
+    check("Provider: ProviderReadiness enum exists",
+          "ProviderReadiness" in ds_code,
+          "ProviderReadiness enum present in data_source.py")
+
+    check("Provider: test_provider_status.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_provider_status.py")),
+          "provider status test file present")
+
     # Summary
     print()
     print("=" * 50)

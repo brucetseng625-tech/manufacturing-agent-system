@@ -102,6 +102,22 @@ class CircuitBreaker:
             }
 
 
+
+class ProviderCapability(Enum):
+    """Provider capability flags."""
+    READ = "read"           # Can load data
+    WRITE = "write"         # Can write/update data
+    HEALTH_CHECK = "health_check"  # Can perform health diagnostics
+
+
+class ProviderReadiness(Enum):
+    """Provider readiness states."""
+    READY = "ready"
+    NOT_CONFIGURED = "not_configured"
+    DEGRADED = "degraded"
+    DISABLED = "disabled"
+    CIRCUIT_OPEN = "circuit_open"
+
 # Thread-local storage for the active data source
 _local = threading.local()
 
@@ -121,12 +137,39 @@ class DataProvider(ABC):
         """Check if this provider can serve data. Default: True."""
         return True
 
+    def capabilities(self) -> list:
+        """Return list of ProviderCapability values this provider supports."""
+        return [ProviderCapability.READ.value]
+
+    def readiness(self, data_dir: str = None) -> str:
+        """Return ProviderReadiness state. Default: READY if available, else DISABLED."""
+        if data_dir and not self.is_available(data_dir):
+            return ProviderReadiness.DISABLED.value
+        return ProviderReadiness.READY.value
+
+    def status(self, data_dir: str = None) -> dict:
+        """Return comprehensive provider status dict."""
+        return {
+            "name": self.name(),
+            "capabilities": self.capabilities(),
+            "readiness": self.readiness(data_dir),
+            "available": self.is_available(data_dir) if data_dir else None,
+        }
+
 
 class LocalFileProvider(DataProvider):
     """Loads data from local JSON/CSV files. Preserves existing behavior."""
 
     def name(self) -> str:
         return "local"
+
+    def capabilities(self) -> list:
+        return [ProviderCapability.READ.value]
+
+    def readiness(self, data_dir: str = None) -> str:
+        if data_dir and not self.is_available(data_dir):
+            return ProviderReadiness.DISABLED.value
+        return ProviderReadiness.READY.value
 
     def load(self, data_dir: str, filename: str) -> list:
         base_name = os.path.splitext(filename)[0]
@@ -183,6 +226,17 @@ class LiveDataProvider(DataProvider):
     def name(self) -> str:
         return "live"
 
+    def capabilities(self) -> list:
+        return [
+            ProviderCapability.READ.value,
+            ProviderCapability.WRITE.value,
+            ProviderCapability.HEALTH_CHECK.value,
+        ]
+
+    def readiness(self, data_dir: str = None) -> str:
+        """Live provider is NOT_CONFIGURED until a real implementation is provided."""
+        return ProviderReadiness.NOT_CONFIGURED.value
+
     def load(self, data_dir: str, filename: str) -> list:
         """Attempt to load from a live source.
 
@@ -223,6 +277,48 @@ class AutoFailoverProvider(DataProvider):
 
     def name(self) -> str:
         return "auto"
+
+    def capabilities(self) -> list:
+        """Union of live and fallback capabilities."""
+        caps = set(self._live.capabilities()) | set(self._fallback.capabilities())
+        return sorted(caps)
+
+    def readiness(self, data_dir: str = None) -> str:
+        """Readiness based on live availability and circuit state."""
+        if self._circuit is not None:
+            try:
+                self._circuit.before_call()
+            except RuntimeError:
+                return ProviderReadiness.CIRCUIT_OPEN.value
+        if data_dir and self._live.is_available(data_dir):
+            return ProviderReadiness.READY.value
+        # Fallback to local is available
+        if data_dir and self._fallback.is_available(data_dir):
+            return ProviderReadiness.DEGRADED.value
+        return ProviderReadiness.DISABLED.value
+
+    def status(self, data_dir: str = None) -> dict:
+        """Extended status including circuit breaker and sub-provider info."""
+        result = {
+            "name": self.name(),
+            "capabilities": self.capabilities(),
+            "readiness": self.readiness(data_dir),
+            "available": self.is_available(data_dir) if data_dir else None,
+        }
+        circuit = self.get_circuit_status()
+        if circuit is not None:
+            result["circuit_breaker"] = circuit
+        result["live_provider"] = {
+            "name": self._live.name(),
+            "capabilities": self._live.capabilities(),
+            "readiness": self._live.readiness(data_dir),
+        }
+        result["fallback_provider"] = {
+            "name": self._fallback.name(),
+            "capabilities": self._fallback.capabilities(),
+            "readiness": self._fallback.readiness(data_dir),
+        }
+        return result
 
     def load(self, data_dir: str, filename: str) -> list:
         # Circuit breaker path
@@ -333,3 +429,13 @@ def load_data(data_dir: str, filename: str) -> list:
 def get_provider_name() -> str:
     """Get the name of the active provider."""
     return get_data_source().name()
+
+
+def get_provider_status(data_dir: str = None) -> dict:
+    """Get comprehensive status of the active provider.
+
+    Returns a dict with name, capabilities, readiness, and optionally
+    circuit breaker and sub-provider details for auto mode.
+    """
+    provider = get_data_source()
+    return provider.status(data_dir)

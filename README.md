@@ -560,6 +560,33 @@ Unauthorized requests return `401` with:
 
   Use this to detect when data files have been added, modified, or removed without restarting the server.
 
+- **GET /provider/status**
+  ```bash
+  # Default data directory
+  curl http://localhost:8000/provider/status
+
+  # Custom data directory
+  curl "http://localhost:8000/provider/status?data_dir=/path/to/data"
+  ```
+  Returns active provider metadata including capabilities, readiness state, and sub-provider details (for auto mode):
+  ```json
+  {
+    "name": "local",
+    "capabilities": ["read"],
+    "readiness": "ready",
+    "available": true
+  }
+  ```
+
+  **Readiness states:**
+  - `ready` — Provider is fully operational
+  - `not_configured` — Live provider skeleton, no real implementation connected
+  - `degraded` — Live source unavailable, running on local fallback
+  - `disabled` — Provider cannot serve data
+  - `circuit_open` — Circuit breaker tripped, live source temporarily blocked
+
+  **Auto mode** additionally includes `circuit_breaker`, `live_provider`, and `fallback_provider` details.
+
 - **POST /batch**
   ```bash
   curl -X POST http://localhost:8000/batch \
@@ -797,9 +824,36 @@ Access logs are written as JSONLines to `logs/access.log`:
 {"timestamp": "2026-05-08T14:30:01Z", "method": "POST", "path": "/run", "status_code": 200, "duration_ms": 45.2, "client": "127.0.0.1", "run_id": "run-20260508-abc123"}
 ```
 
-Each entry includes: `timestamp`, `method`, `path`, `status_code`, `duration_ms`, `client`, and optionally `run_id`.
+  Use this to detect when data files have been added, modified, or removed without restarting the server.
 
-## How to Add a Skill
+- **GET /provider/status**
+  ```bash
+  # Default data directory
+  curl http://localhost:8000/provider/status
+
+  # Custom data directory
+  curl "http://localhost:8000/provider/status?data_dir=/path/to/data"
+  ```
+  Returns active provider metadata including capabilities, readiness state, and sub-provider details (for auto mode):
+  ```json
+  {
+    "name": "local",
+    "capabilities": ["read"],
+    "readiness": "ready",
+    "available": true
+  }
+  ```
+
+  **Readiness states:**
+  - `ready` — Provider is fully operational
+  - `not_configured` — Live provider skeleton, no real implementation connected
+  - `degraded` — Live source unavailable, running on local fallback
+  - `disabled` — Provider cannot serve data
+  - `circuit_open` — Circuit breaker tripped, live source temporarily blocked
+
+  **Auto mode** additionally includes `circuit_breaker`, `live_provider`, and `fallback_provider` details.
+
+- **POST /batch**
 
 To add a new skill (e.g., `quote-comparison`, `sales-analysis`), follow these steps:
 
