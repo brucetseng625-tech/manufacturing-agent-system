@@ -3,7 +3,7 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `4d11d16` `fix: harden team workflow validation`
+- `05e6283` `feat: add run history query support`
 
 Current completed scope:
 - delivery-risk-analysis
@@ -17,8 +17,10 @@ Current completed scope:
 - sales-response-draft
 - internal-action-summary
 - Asana workflow enhancement
+- output schema unification
 - query routing improvement
 - Agent Teams MVP
+- run history query support
 
 ## Start Here
 
@@ -33,11 +35,7 @@ When a new Codex / AI session starts, do this first:
 
 | Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
 | --- | --- | --- | --- | --- | --- |
-| P1 | Output schema unification | Make all skills return a predictable shared shape | Shared response fields, formatter updates, regression tests | Existing skills in registry | Codex / integration AI |
-| P2 | Query routing improvement | Reduce keyword collisions and improve intent accuracy | Priority-based matching, fallback behavior, routing tests | Current skill registry | Feature AI |
-| P2 | Agent Teams implementation | Turn skeleton into usable multi-role workflow | Team definitions, handoff flow, team execution tests | Output schema should be more stable first | Feature AI |
-| P2 | Run history query support | Make audit log operationally useful | History reader, compare past runs, optional API endpoint, tests | Audit log already exists | Feature AI |
-| P2 | API enhancement | Make external integration easier | `/skills`, `/history`, `/schema` endpoints, tests | Output schema unification recommended | Codex / API AI |
+| P2 | API enhancement | Make external integration easier | `/skills`, `/history`, `/schema` endpoints, tests | Core routing, schema, and history are now available | Codex / API AI |
 | P3 | Error handling hardening | Improve resilience under bad data or integration issues | Better degraded responses, retry / fallback rules, tests | Existing API and skill outputs | Codex |
 | P3 | Data model expansion | Improve decision quality with richer operational inputs | Inventory, supplier lead times, capacity signals, expedite cost fields | Existing core workflows stable | Data / domain AI |
 | P3 | New recovery / planning skills | Expand practical manufacturing use cases | `expedite-options`, `material-shortage-recovery`, `capacity-rebalance`, `supplier-followup-draft` | Routing and schema should be stronger first | Feature AI |
@@ -49,13 +47,10 @@ When a new Codex / AI session starts, do this first:
 
 | Order | Work Item | Why Now |
 | --- | --- | --- |
-| 1 | Output schema unification | Best next step now that Asana-side reporting is standardized |
-| 2 | Agent Teams implementation | Next best step now that routing and schema are more stable |
-| 3 | Run history query support | Makes the system more operationally useful |
-| 4 | API enhancement | Easier once outputs and history are more stable |
-| 5 | Error handling hardening | Best informed by real workflow growth |
-| 6 | Data model expansion | More valuable after workflow scaffolding is stronger |
-| 7 | New recovery / planning skills | Safer to add after platform basics are stronger |
+| 1 | API enhancement | Best next step now that routing, schema, teams, and history layers exist |
+| 2 | Error handling hardening | Best informed by the larger surface area now in place |
+| 3 | Data model expansion | More valuable after platform scaffolding is stronger |
+| 4 | New recovery / planning skills | Safer to add after platform basics are stronger |
 
 ## Ready-To-Use Prompt For The Next AI
 
@@ -72,12 +67,12 @@ First actions:
 4. Continue from the top Priority 1 item unless the user reprioritizes
 
 Current expected next task:
-Implement Agent Teams execution flow on top of the existing skeleton
+Implement API enhancement on top of the current skill, team, and history layers
 
 Requirements:
-- Reuse existing skills instead of rewriting their business logic
-- Define team roles / ownership and a simple handoff or chaining workflow
-- Start from the existing Agent Teams skeleton and make it executable
+- Reuse existing routing, schema, and history query helpers instead of rewriting business logic
+- Add or improve structured endpoints such as `/skills`, `/history`, and `/schema`
+- Keep the API shape consistent with the current CLI and formatter expectations
 - Add tests
 - Update README if needed
 - Run tests and report results
