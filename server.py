@@ -14,6 +14,7 @@ from skills.schema import SCHEMA_METADATA
 from skills.policy import get_policy, DEFAULT_POLICY, reload_policy, get_reload_metadata
 from skills.observability import log_request, log_asana_post
 from metrics import compute_metrics
+from data_dir_monitor import scan_data_dir, get_data_dir_metadata
 from data_source import set_data_source, create_provider, get_provider_name
 
 DEFAULT_PORT = 8000
@@ -76,6 +77,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_policy()
         elif path == "/metrics":
             self._handle_metrics()
+        elif path == "/data/status":
+            self._handle_data_status(parsed_path)
         else:
             self._send_error_response(404, "not_found", "Endpoint not found")
 
@@ -199,6 +202,19 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._send_json_response(200, result)
         except Exception as e:
             self._send_error_response(500, "internal_error", "Failed to compute metrics", str(e))
+
+    def _handle_data_status(self, parsed_path):
+        """Handle GET /data/status — return data directory metadata."""
+        try:
+            params = parse_qs(parsed_path.query)
+            data_dir = params.get("data_dir", [None])[0]
+            if data_dir is None:
+                data_dir = os.path.join(os.path.dirname(__file__), "mock_data")
+
+            metadata = get_data_dir_metadata(data_dir)
+            self._send_json_response(200, metadata)
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to scan data directory", str(e))
 
     def _handle_history(self, parsed_path):
         """Handle GET /history with optional query parameters for filtering."""

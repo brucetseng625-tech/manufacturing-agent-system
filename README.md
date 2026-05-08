@@ -434,6 +434,33 @@ python3 server.py --port 8000
 
   - **data_source**: `local`, `live`, or `auto`.
 
+- **GET /data/status**
+  ```bash
+  # Default data directory (mock_data)
+  curl http://localhost:8000/data/status
+
+  # Custom data directory
+  curl "http://localhost:8000/data/status?data_dir=/path/to/data"
+  ```
+  - **data_dir**: Path to data directory (optional, defaults to mock_data).
+
+  Returns data directory metadata:
+  ```json
+  {
+    "data_dir": "/path/to/mock_data",
+    "file_count": 6,
+    "files": [
+      {"name": "orders.json", "path": "...", "mtime": "2026-05-08T..."},
+      ...
+    ],
+    "last_modified": "2026-05-08T...",
+    "scanned_at": "2026-05-08T...",
+    "error": null
+  }
+  ```
+
+  Use this to detect when data files have been added, modified, or removed without restarting the server.
+
 - **POST /batch**
   ```bash
   curl -X POST http://localhost:8000/batch \

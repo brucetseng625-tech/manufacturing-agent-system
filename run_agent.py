@@ -4,6 +4,7 @@ import os
 import sys
 import argparse
 from orchestrator import route_query, batch_queries
+from data_dir_monitor import scan_data_dir, get_data_dir_metadata
 from data_source import set_data_source, create_provider, get_provider_name
 from skills.policy import get_policy, load_policy, DEFAULT_POLICY, reload_policy, get_reload_metadata
 from skills.observability import log_request, log_asana_post, generate_run_id, set_run_id
@@ -485,6 +486,7 @@ def main():
     parser.add_argument("--run-id", default=None, help="Filter by specific run ID (used with --history)")
     parser.add_argument("--policy", action="store_true", help="Show active policy configuration and exit")
     parser.add_argument("--reload-policy", action="store_true", help="Reload policy from config file and exit")
+    parser.add_argument("--data-dir-status", action="store_true", help="Show data directory status and exit")
     parser.add_argument("--batch-file", default=None, help="Path to file containing one query per line (batch mode)")
     parser.add_argument("query", nargs="*", help="Natural language query (omit when using --history or --batch-file)")
     args = parser.parse_args()
@@ -506,6 +508,23 @@ def main():
             print(f"Error: {result['error']}")
         print(f"Reload count: {meta['reload_count']}")
         print(f"Last reload: {meta['last_reload_at'] or 'never'}")
+        return
+
+    # Data directory status mode
+    if args.data_dir_status:
+        data_dir = args.data_dir or os.path.join(os.path.dirname(__file__), "mock_data")
+        meta = get_data_dir_metadata(data_dir)
+        print(f"Data directory: {meta['data_dir']}")
+        print(f"Files: {meta['file_count']}")
+        if meta['last_modified']:
+            print(f"Last modified: {meta['last_modified']}")
+        if meta['error']:
+            print(f"Error: {meta['error']}")
+        print(f"Scanned at: {meta['scanned_at']}")
+        if meta['files']:
+            print("\nFiles:")
+            for f in meta['files']:
+                print(f"  {f['name']} (mtime: {f['mtime']})")
         return
 
     # History query mode
