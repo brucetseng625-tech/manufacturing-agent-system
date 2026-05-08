@@ -110,6 +110,11 @@ class SupplierFollowupDraftSkillTest(unittest.TestCase):
             )
             self.assertTrue(found)
 
+    def test_blockers_show_correct_shortage_quantity(self):
+        result = handle_supplier_followup_draft(["ORD-1001"], self.mock_data_dir)
+        blockers = result.get("blockers", [])
+        self.assertTrue(any("shortage: 30 units" in blocker for blocker in blockers))
+
 
 class SupplierFollowupRoutingTest(unittest.TestCase):
     """Tests for skill routing in the orchestrator."""

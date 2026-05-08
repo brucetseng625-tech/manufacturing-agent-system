@@ -402,16 +402,22 @@ def handle_supplier_followup_draft(order_ids, data_dir, query=None):
         f"Urgency: {top['urgency_level']}. {top['urgency_reason']}"
     )
 
+    blocker_lines = []
+    for s in context["shortage_materials"]:
+        available_qty = _safe_int(s.get("available_qty"), 0)
+        required_qty = _safe_int(s.get("required_qty"), 0)
+        shortage_qty = required_qty - available_qty
+        blocker_lines.append(
+            f"{s.get('material', 'Unknown')}: {available_qty}/{required_qty} available "
+            f"(shortage: {shortage_qty} units)"
+        )
+
     raw_data = {
         "order_id": order_id,
         "customer": order.get("customer"),
         "decision": "followup_generated",
         "confidence": "High" if context["has_shortage"] else "Medium",
-        "blockers": [
-            f"{s.get('material', 'Unknown')}: {s.get('available_qty', 0)}/{s.get('required_qty', 0)} available "
-            f"(shortage: {s.get('shortage_qty', 0)} units)"
-            for s in context["shortage_materials"]
-        ] if context["shortage_materials"] else ["No critical blockers."],
+        "blockers": blocker_lines if blocker_lines else ["No critical blockers."],
         "owner": "Procurement Manager",
         "eta": order.get("due_date"),
         "next_action": summary_text,
