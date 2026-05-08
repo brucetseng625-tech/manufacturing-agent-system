@@ -133,6 +133,63 @@ The output includes:
 
 Add new fields to `data_validator.py` SCHEMAS dict. Optional fields should be added to the `types` section (not `required`) to maintain backward compatibility with existing data files.
 
+## Configurable Policy Layer
+
+All decision thresholds, routing weights, and escalation rules are now centralized in `skills/policy.py` and can be overridden via a JSON config file.
+
+### Default Behavior
+
+Without any config file, the system uses built-in defaults that exactly match the previous hardcoded behavior.
+
+### Config File
+
+Place a JSON file at `policies/active.json` to override policy values. Only specify the values you want to change — all others fall back to defaults.
+
+**Example `policies/active.json`:**
+```json
+{
+  "routing": {
+    "exact_keyword_weight": 10
+  },
+  "delivery_risk": {
+    "at_risk_blocker_max": 3,
+    "vip_penalty_threshold": 5000
+  },
+  "quote_scoring": {
+    "price_weight": 0.40,
+    "reliability_weight": 0.30,
+    "quality_weight": 0.15,
+    "lead_time_weight": 0.10,
+    "risk_weight": 0.05
+  }
+}
+```
+
+### Inspecting Active Policy
+
+**CLI:**
+```bash
+python3 run_agent.py --policy
+```
+
+**API:**
+```bash
+curl http://localhost:8000/policy
+```
+
+### Policy Sections
+
+| Section | Controls |
+|---------|----------|
+| `routing` | Keyword matching weights for skill/team routing |
+| `delivery_risk` | Blocker thresholds, VIP penalty escalation |
+| `quote_scoring` | Supplier scoring weights (price, reliability, quality, lead time, risk) |
+| `option_ranking` | Feasibility scores and recommendation bonuses |
+| `shortage_recovery` | Reliability thresholds, partial production criteria |
+| `capacity_rebalance` | Capacity pressure threshold, penalty criteria |
+| `supplier_followup` | Urgency level priorities |
+| `defaults` | Reliability defaults, emergency lead reduction |
+
 ## Team Workflow Execution
 
 Team workflows execute their steps **in parallel** using `ThreadPoolExecutor` for maximum throughput:

@@ -2,6 +2,7 @@ import json
 import os
 from data_loader import load_json_or_csv
 from data_validator import validate_dataset
+from skills.policy import get_policy
 
 # Import existing skills
 from skills.delivery_risk import analyze_delivery_risk
@@ -251,20 +252,25 @@ class SkillRegistry:
         
         for idx, skill in enumerate(self.skills):
             score = 0
-            
+            policy = get_policy()
+            routing = policy.get("routing", {})
+            exact_w = routing.get("exact_keyword_weight", 5)
+            kw_w = routing.get("keyword_weight", 2)
+            multi_w = routing.get("multi_order_boost", 3)
+
             # Exact keyword matches (high weight)
             for kw in skill.get("exact_keywords", []):
                 if kw.lower() in query_lower:
-                    score += 5
-                    
+                    score += exact_w
+
             # Partial keyword matches (standard weight)
             for kw in skill.get("keywords", []):
                 if kw.lower() in query_lower:
-                    score += 2
-                    
+                    score += kw_w
+
             # Multi-order boost
             if len(order_ids) > 1 and skill.get("triggers_on_multi_order"):
-                score += 3
+                score += multi_w
                 
             # Base priority ONLY applies if there's at least one keyword match or explicit trigger
             if score > 0:
@@ -295,16 +301,20 @@ class SkillRegistry:
         
         for idx, team in enumerate(self.teams):
             score = 0
-            
+            policy = get_policy()
+            routing = policy.get("routing", {})
+            exact_w = routing.get("exact_keyword_weight", 5)
+            kw_w = routing.get("keyword_weight", 2)
+
             # Exact keyword matches (high weight)
             for kw in team.get("exact_keywords", []):
                 if kw.lower() in query_lower:
-                    score += 5
-                    
+                    score += exact_w
+
             # Partial keyword matches (standard weight)
             for kw in team.get("keywords", []):
                 if kw.lower() in query_lower:
-                    score += 2
+                    score += kw_w
                     
             # Base priority ONLY applies if there's at least one keyword match
             if score > 0:

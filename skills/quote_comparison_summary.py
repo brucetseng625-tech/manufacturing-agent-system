@@ -1,5 +1,6 @@
 from data_loader import load_json_or_csv
 from skills.schema import normalize_skill_response
+from skills.policy import get_policy
 
 
 def _safe_float(value, default=0.0):
@@ -81,12 +82,20 @@ def _score_supplier(quote, price_range, lead_time_range):
     risk_scores = {"low": 1.0, "medium": 0.5, "high": 0.0}
     risk_score = risk_scores.get(risk, 0.0)
 
+    policy = get_policy()
+    qs = policy.get("quote_scoring", {})
+    price_w = qs.get("price_weight", 0.30)
+    reliability_w = qs.get("reliability_weight", 0.25)
+    quality_w = qs.get("quality_weight", 0.20)
+    lead_time_w = qs.get("lead_time_weight", 0.15)
+    risk_w = qs.get("risk_weight", 0.10)
+
     total = (
-        0.30 * price_score +
-        0.25 * reliability_score +
-        0.20 * quality_score +
-        0.15 * lead_time_score +
-        0.10 * risk_score
+        price_w * price_score +
+        reliability_w * reliability_score +
+        quality_w * quality_score +
+        lead_time_w * lead_time_score +
+        risk_w * risk_score
     )
 
     return round(total * 100, 1), {

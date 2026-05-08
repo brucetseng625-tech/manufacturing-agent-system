@@ -5,6 +5,7 @@ import sys
 import argparse
 from orchestrator import route_query
 from data_source import set_data_source, create_provider, get_provider_name
+from skills.policy import get_policy, load_policy, DEFAULT_POLICY
 from integrations.asana_client import post_comment, format_success_report, format_error_report
 from audit_logger import log_run, query_runs, format_run_summary
 
@@ -480,8 +481,16 @@ def main():
     parser.add_argument("--status", default=None, help="Filter by status: success or error (used with --history)")
     parser.add_argument("--skill", default=None, help="Filter by skill name (used with --history)")
     parser.add_argument("--channel", default=None, help="Filter by channel: cli or http (used with --history)")
+    parser.add_argument("--policy", action="store_true", help="Show active policy configuration and exit")
     parser.add_argument("query", nargs="*", help="Natural language query (omit when using --history)")
     args = parser.parse_args()
+
+    # Policy inspection mode
+    if args.policy:
+        policy = load_policy()
+        print(f"Policy source: {policy.get('_source', 'default')}")
+        print(json.dumps({k: v for k, v in policy.items() if not k.startswith("_")}, indent=2))
+        return
 
     # History query mode
     if args.history:

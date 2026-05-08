@@ -11,6 +11,7 @@ from integrations.asana_client import post_comment, format_success_report, forma
 from audit_logger import log_run, query_runs
 from skills.registry import get_registry
 from skills.schema import SCHEMA_METADATA
+from skills.policy import get_policy, DEFAULT_POLICY
 from data_source import set_data_source, create_provider, get_provider_name
 
 DEFAULT_PORT = 8000
@@ -69,6 +70,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_skills()
         elif path == "/schema":
             self._handle_schema()
+        elif path == "/policy":
+            self._handle_policy()
         else:
             self._send_error_response(404, "not_found", "Endpoint not found")
 
@@ -162,6 +165,18 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._send_json_response(200, SCHEMA_METADATA)
         except Exception as e:
             self._send_error_response(500, "internal_error", "Failed to serve schema", str(e))
+
+    def _handle_policy(self):
+        """Handle GET /policy — return active policy configuration."""
+        try:
+            active = get_policy()
+            source = active.get("_source", "default")
+            self._send_json_response(200, {
+                "source": source,
+                "policy": {k: v for k, v in active.items() if not k.startswith("_")},
+            })
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to serve policy", str(e))
 
     def _handle_history(self, parsed_path):
         """Handle GET /history with optional query parameters for filtering."""

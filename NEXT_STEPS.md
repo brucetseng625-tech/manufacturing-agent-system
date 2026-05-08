@@ -3,7 +3,21 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `ef55c0d` `feat: add supplier-followup-draft skill for supplier communication`
+- `23f40d4` `fix: correct supplier followup shortage blockers`
+
+Accepted P3 completion context:
+- Base feature commit: `ef55c0d` `feat: add supplier-followup-draft skill for supplier communication`
+- Acceptance fix commit: `23f40d4` `fix: correct supplier followup shortage blockers`
+- Full test status at handoff: `259 / 259 passed`
+- Smoke tests confirmed:
+  - `ORD-1001 供應商跟進草稿` -> `supplier-followup-draft`
+  - `ORD-1001 supplier followup draft` -> `supplier-followup-draft`
+  - Missing order ID returns `missing_order_id`
+  - `/skills` correctly lists `supplier-followup-draft`
+- Acceptance fix summary:
+  - Supplier draft body correctly stated `shortage 30 units`
+  - `Top Blockers` had incorrectly shown `shortage: 0 units`
+  - This is now fixed so both surfaces are consistent
 
 Current completed scope:
 - delivery-risk-analysis
@@ -32,6 +46,7 @@ Current completed scope:
 - material-shortage-recovery skill
 - capacity-rebalance skill
 - supplier-followup-draft skill
+- configurable rules / policy layer
 
 ## Start Here
 
@@ -78,9 +93,10 @@ Implement Configurable Rules / Policy Layer on top of the current routing, schem
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, and provider layers instead of replacing them
-- Move hardcoded decision thresholds and rule selections into a configurable policy structure without changing the current user-facing workflow contracts
-- Keep the unified schema, history, dashboard, and Asana formatting behavior compatible
-- Add tests
-- Update README if needed
+- Move hardcoded decision thresholds, routing weights/priorities, escalation rules, and rule selections into a configurable policy structure without changing the current user-facing workflow contracts
+- Keep the unified schema, history, dashboard, CLI output, and Asana formatting behavior compatible
+- Prefer a minimal, incremental design that can later support per-skill or per-team policy overrides
+- Add tests for config loading, default fallback behavior, and at least one concrete policy override path
+- Update README and NEXT_STEPS.md if needed
 - Run tests and report results
 ```

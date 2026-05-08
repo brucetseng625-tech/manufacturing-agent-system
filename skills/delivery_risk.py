@@ -18,6 +18,7 @@ def _safe_float(value, default=0.0):
         return default
 from data_loader import load_json_or_csv
 from skills.schema import normalize_skill_response
+from skills.policy import get_policy
 
 from skills.schedule_conflict_check import check_schedule_conflict
 
@@ -171,12 +172,17 @@ def analyze_delivery_risk(order_id, mock_data_dir):
         )
 
     # --- Decision logic enhanced with new fields ---
+    policy = get_policy()
+    dr = policy.get("delivery_risk", {})
+    at_risk_max = dr.get("at_risk_blocker_max", 2)
+    vip_penalty = dr.get("vip_penalty_threshold", 2000)
+
     if not blockers:
         decision = "can_ship_on_time"
         confidence = "High"
         recommendation = "Proceed with the current production plan and keep normal monitoring."
         customer_reply = "Production is on track for the committed delivery date."
-    elif len(blockers) <= 2:
+    elif len(blockers) <= at_risk_max:
         decision = "at_risk"
         # New: adjust confidence based on expedite option availability
         if expedite_option != "none" and expedite_cost > 0:
@@ -198,7 +204,7 @@ def analyze_delivery_risk(order_id, mock_data_dir):
     else:
         decision = "cannot_ship_on_time"
         # New: VIP customers with high penalties get different confidence framing
-        if customer_tier == "VIP" and penalty_per_day > 2000:
+        if customer_tier == "VIP" and penalty_per_day > vip_penalty:
             confidence = "High"
             cost_notes.append(
                 f"VIP customer with high penalty exposure (${penalty_per_day:,.0f}/day). "
@@ -257,10 +263,16 @@ def analyze_delivery_risk(order_id, mock_data_dir):
 
 def _compute_escalation(blocker_count, customer_tier, penalty_per_day):
     """Compute escalation path considering customer tier and penalty exposure."""
-    if customer_tier == "VIP" and penalty_per_day > 2000:
+    policy = get_policy()
+    esc = policy.get("delivery_risk", {}).get("escalation", {})
+    vip_vp_penalty = esc.get("vip_vp_level_penalty", 2000)
+    immediate_threshold = esc.get("immediate_blocker_count", 3)
+    monitor_threshold = esc.get("monitor_blocker_count", 1)
+
+    if customer_tier == "VIP" and penalty_per_day > vip_vp_penalty:
         return "Immediate VP-level escalation required (VIP customer, high penalty exposure)."
-    if blocker_count > 2:
+    if blocker_count > immediate_threshold - 1:
         return "Escalate immediately to production manager."
-    if blocker_count > 0:
+    if blocker_count > monitor_threshold - 1:
         return "Escalate if blockers persist beyond 24 hours."
     return "None"
