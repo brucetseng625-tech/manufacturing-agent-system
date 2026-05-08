@@ -356,6 +356,75 @@ Response format:
 | `--skill` | string | Partial match on skill name (e.g., `team:` for all team workflows) |
 | `--channel`| `cli`, `http` | Filter by execution channel |
 
+## Data Source Architecture
+
+The system uses a pluggable **data provider** abstraction so skills can read data from local files, live ERP/MCP sources, or a hybrid auto-failover mode — without any changes to skill logic.
+
+### Provider Modes
+
+| Mode | Behavior | Use Case |
+|------|----------|----------|
+| `local` (default) | Reads from JSON/CSV files on disk | Development, demo, offline |
+| `live` | Connects to a live data source (MCP, REST API, database) | Production ERP integration |
+| `auto` | Tries live source first; falls back to local on failure | Gradual migration, resilience |
+
+### Architecture
+
+```
+skills/*.py ──→ data_loader.py ──→ data_source.py (provider layer)
+                                     ├── LocalFileProvider  (JSON/CSV)
+                                     ├── LiveDataProvider   (MCP/ERP skeleton)
+                                     └── AutoFailoverProvider (live + fallback)
+```
+
+All skills call `load_json_or_csv(data_dir, filename)` as before. The provider layer intercepts these calls and routes them to the configured source.
+
+### Usage
+
+**CLI:**
+```bash
+# Default: local files
+python3 run_agent.py "ORD-1001 能不能準時出？"
+
+# Explicit local mode
+python3 run_agent.py --data-source local "ORD-1001 能不能準時出？"
+
+# Auto mode (live with local fallback)
+python3 run_agent.py --data-source auto "ORD-1001 能不能準時出？"
+```
+
+**API:**
+```bash
+curl -X POST http://localhost:8000/run \
+  -H "Content-Type: application/json" \
+  -d '{"query": "ORD-1001 準時出貨", "data_source": "local"}'
+```
+
+Response includes the active provider:
+```json
+{"status": "success", "data_source": "local", ...}
+```
+
+### Adding a Live Provider
+
+Subclass `LiveDataProvider` and override `load()` and `is_available()`:
+
+```python
+from data_source import LiveDataProvider, set_data_source
+
+class MyERPProvider(LiveDataProvider):
+    def load(self, data_dir, filename):
+        # Call your ERP API / MCP server here
+        return fetch_from_erp(filename)
+
+    def is_available(self, data_dir):
+        return ping_erp_endpoint()
+
+set_data_source(MyERPProvider())
+```
+
+The `AutoFailoverProvider` wraps your live provider with automatic fallback to local files when the live source is unavailable or returns an error.
+
 ## How to Add a Skill
 
 To add a new skill (e.g., `quote-comparison`, `sales-analysis`), follow these steps:

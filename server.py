@@ -11,8 +11,10 @@ from integrations.asana_client import post_comment, format_success_report, forma
 from audit_logger import log_run, query_runs
 from skills.registry import get_registry
 from skills.schema import SCHEMA_METADATA
+from data_source import set_data_source, create_provider, get_provider_name
 
 DEFAULT_PORT = 8000
+VALID_DATA_SOURCES = ("local", "live", "auto")
 
 class AgentHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
@@ -238,6 +240,14 @@ class AgentHandler(BaseHTTPRequestHandler):
         # Resolve data_dir
         if data_dir is None:
             data_dir = os.path.join(os.path.dirname(__file__), "mock_data")
+
+        # Configure data source mode
+        data_source_mode = payload.get("data_source", "local")
+        if data_source_mode not in VALID_DATA_SOURCES:
+            self._send_error_response(400, "invalid_data_source",
+                f"Invalid data_source: {data_source_mode}. Must be one of: {list(VALID_DATA_SOURCES)}")
+            return
+        set_data_source(create_provider(data_source_mode))
         
         # Route the query
         try:
@@ -273,6 +283,7 @@ class AgentHandler(BaseHTTPRequestHandler):
             "order_ids": result.get("order_ids"),
             "asana_task": asana_task,
             "asana_posted": asana_posted,
+            "data_source": get_provider_name(),
         }
         
         if result["status"] == "success":

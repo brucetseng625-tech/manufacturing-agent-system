@@ -4,6 +4,7 @@ import os
 import sys
 import argparse
 from orchestrator import route_query
+from data_source import set_data_source, create_provider, get_provider_name
 from integrations.asana_client import post_comment, format_success_report, format_error_report
 from audit_logger import log_run, query_runs, format_run_summary
 
@@ -229,6 +230,8 @@ def print_team_report(result):
 def main():
     parser = argparse.ArgumentParser(description="Manufacturing Agent CLI")
     parser.add_argument("--data-dir", default=None, help="Path to data directory (default: mock_data)")
+    parser.add_argument("--data-source", default="local", choices=["local", "live", "auto"],
+                        help="Data source mode: local (files), live (MCP/ERP), auto (live with fallback)")
     parser.add_argument("--asana-task", default=None, help="Asana Task GID to post result comment")
     parser.add_argument("--history", action="store_true", help="Query run history instead of executing a new query")
     parser.add_argument("--last", type=int, default=10, help="Number of recent runs to show (default: 10, used with --history)")
@@ -260,8 +263,11 @@ def main():
     query = " ".join(args.query)
     data_dir = args.data_dir or os.path.join(os.path.dirname(__file__), "mock_data")
 
+    # Configure data source
+    set_data_source(create_provider(args.data_source))
+    print(f"Data Source: {data_dir} (mode: {get_provider_name()})")
+
     print(f"Agent received: '{query}'")
-    print(f"Data Source: {data_dir}")
 
     # Orchestrate
     print("\nData Validation Check...")

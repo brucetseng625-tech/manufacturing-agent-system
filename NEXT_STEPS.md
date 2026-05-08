@@ -4,6 +4,7 @@ Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
 - `bf72a21` `feat: add Web Dashboard MVP with skills, query runner, and run history`
+- MCP / ERP integration layer
 
 Current completed scope:
 - delivery-risk-analysis
@@ -27,6 +28,7 @@ Current completed scope:
 - quote comparison enhancement
 - parallel team execution
 - web dashboard mvp
+- MCP / ERP integration layer
 
 ## Start Here
 
