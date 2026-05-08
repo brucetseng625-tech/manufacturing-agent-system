@@ -99,6 +99,23 @@ New fields directly affect `delivery-risk-analysis` decisions:
 - **Customer tier + penalty** determines escalation path (VIP + high penalty → immediate VP escalation).
 - **Expedite options** are recommended in next_action with cost estimates.
 
+### Quote Comparison Scoring
+
+The `quote-comparison-summary` skill uses a **weighted scoring system** (0–100) to rank suppliers:
+
+| Criterion | Weight | Description |
+|-----------|--------|-------------|
+| Price | 30% | Cheapest supplier scores 100, most expensive scores 0 |
+| Supplier Reliability | 25% | `supplier_reliability` field (0–1), fallback to risk_level if missing |
+| Quality Rating | 20% | `quality_rating` normalized from 0–5 scale |
+| Lead Time | 15% | Fastest scores 100, slowest scores 0 |
+| Risk Level | 10% | low=100, medium=50, high=0 |
+
+The output includes:
+- **`supplier_scores`**: Per-supplier total score and 5-criteria breakdown.
+- **`tradeoffs`**: Notable tradeoffs (e.g., "Supplier B is cheaper but less reliable").
+- **Confidence**: Based on score margin between 1st and 2nd place (≥10 = high, ≥5 = medium, <5 = low).
+
 ### Extending the Schema
 
 Add new fields to `data_validator.py` SCHEMAS dict. Optional fields should be added to the `types` section (not `required`) to maintain backward compatibility with existing data files.

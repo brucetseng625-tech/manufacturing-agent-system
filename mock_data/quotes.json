@@ -9,7 +9,8 @@
     "moq": 100,
     "quality_rating": 4.5,
     "risk_level": "low",
-    "valid_until": "2026-06-01"
+    "valid_until": "2026-06-01",
+    "supplier_reliability": 0.95
   },
   {
     "quote_id": "Q-1002",
@@ -21,7 +22,8 @@
     "moq": 200,
     "quality_rating": 4.0,
     "risk_level": "medium",
-    "valid_until": "2026-05-15"
+    "valid_until": "2026-05-15",
+    "supplier_reliability": 0.70
   },
   {
     "quote_id": "Q-1003",
@@ -33,7 +35,8 @@
     "moq": 50,
     "quality_rating": 4.8,
     "risk_level": "low",
-    "valid_until": "2026-07-01"
+    "valid_until": "2026-07-01",
+    "supplier_reliability": 0.92
   },
   {
     "quote_id": "Q-2001",
@@ -45,7 +48,8 @@
     "moq": 150,
     "quality_rating": 4.2,
     "risk_level": "low",
-    "valid_until": "2026-06-15"
+    "valid_until": "2026-06-15",
+    "supplier_reliability": 0.95
   },
   {
     "quote_id": "Q-2002",
@@ -57,6 +61,7 @@
     "moq": 300,
     "quality_rating": 3.5,
     "risk_level": "high",
-    "valid_until": "2026-05-20"
+    "valid_until": "2026-05-20",
+    "supplier_reliability": 0.55
   }
 ]
