@@ -1,5 +1,7 @@
 import unittest
 import tempfile
+import subprocess
+import sys
 from pathlib import Path
 
 from orchestrator import extract_order_ids, validate_data_dir
@@ -28,6 +30,27 @@ class RunAgentTest(unittest.TestCase):
 
         self.assertTrue(errors)
         self.assertIn("Missing required field 'due_date'", " ".join(errors))
+
+    def test_live_data_source_cli_returns_structured_error(self):
+        repo_root = Path(__file__).resolve().parent.parent
+        proc = subprocess.run(
+            [
+                sys.executable,
+                "run_agent.py",
+                "--data-source",
+                "live",
+                "ORD-1001",
+                "準時出貨",
+            ],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(proc.returncode, 1)
+        self.assertIn("Operation Failed (internal_error)", proc.stdout)
+        self.assertIn("LiveDataProvider is a skeleton", proc.stdout)
+        self.assertNotIn("Traceback", proc.stderr)
 
 
 if __name__ == "__main__":

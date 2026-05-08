@@ -3,8 +3,7 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `bf72a21` `feat: add Web Dashboard MVP with skills, query runner, and run history`
-- MCP / ERP integration layer
+- `1df3147` `feat: add pluggable data source provider layer with local/live/auto modes`
 
 Current completed scope:
 - delivery-risk-analysis
@@ -43,7 +42,6 @@ When a new Codex / AI session starts, do this first:
 
 | Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
 | --- | --- | --- | --- | --- | --- |
-| P3 | MCP / ERP integration | Replace static files with live operational inputs | Connector layer, config, fallback behavior, tests | Current API and data model are stable enough to integrate | Integration AI |
 | P3 | New recovery / planning skills | Expand practical manufacturing use cases | `expedite-options`, `material-shortage-recovery`, `capacity-rebalance`, `supplier-followup-draft` | Routing and schema should be stronger first | Feature AI |
 | P4 | Configurable rules / policy layer | Move decision rules out of hardcoded logic | Rule config structure, loader, tests | Existing skills stable | Codex |
 | P4 | Deployment readiness | Prepare for actual internal use | Runbook, config docs, server mode validation | API and error handling maturity | Codex |
@@ -53,10 +51,10 @@ When a new Codex / AI session starts, do this first:
 
 | Order | Work Item | Why Now |
 | --- | --- | --- |
-| 1 | MCP / ERP integration | Best next step now that the local workflow surface and dashboard are in place |
-| 2 | New recovery / planning skills | Strong feature expansion once live data direction is clearer |
-| 3 | Configurable rules / policy layer | Good follow-on once integration boundaries are clearer |
-| 4 | Deployment readiness | Worth revisiting after the data source story is decided |
+| 1 | New recovery / planning skills | Best next step now that the provider layer and fallback story are in place |
+| 2 | Configurable rules / policy layer | Good follow-on once the next wave of skills expands rule complexity |
+| 3 | Deployment readiness | Worth revisiting after the data source story is decided |
+| 4 | Observability and traceability | Useful once usage volume grows beyond local testing |
 
 ## Ready-To-Use Prompt For The Next AI
 
@@ -73,12 +71,12 @@ First actions:
 4. Continue from the top Priority 1 item unless the user reprioritizes
 
 Current expected next task:
-Add MCP / ERP integration on top of the current local file-based workflow
+Add the next recovery / planning skill on top of the current routing, schema, and provider layers
 
 Requirements:
-- Reuse the existing routing, schema, team execution, and API layers instead of replacing them
-- Introduce a connector / adapter layer so live ERP-style inputs can coexist with current JSON/CSV fixtures
-- Preserve graceful fallback when live data is unavailable
+- Reuse the existing routing, schema, team execution, API, and provider layers instead of replacing them
+- Implement one high-value planning skill such as `expedite-options`, `material-shortage-recovery`, `capacity-rebalance`, or `supplier-followup-draft`
+- Keep the unified schema, history, dashboard, and Asana formatting behavior compatible
 - Add tests
 - Update README if needed
 - Run tests and report results

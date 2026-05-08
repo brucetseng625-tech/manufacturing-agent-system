@@ -271,7 +271,17 @@ def main():
 
     # Orchestrate
     print("\nData Validation Check...")
-    response = route_query(query, data_dir)
+    try:
+        response = route_query(query, data_dir)
+    except Exception as e:
+        response = {
+            "status": "error",
+            "type": "internal_error",
+            "details": str(e),
+            "query": query,
+            "data_dir": data_dir,
+            "order_ids": [],
+        }
 
     exit_code = 0
     asana_posted = None
