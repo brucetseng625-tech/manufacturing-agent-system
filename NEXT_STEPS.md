@@ -3,13 +3,13 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `f4ae827` `feat(p8): add dashboard operations panels`
+- `979deda` `docs: update NEXT_STEPS.md handoff metadata for P8-2`
 
 Latest verified feature commit on `main`:
 - `f4ae827` `feat(p8): add dashboard operations panels`
 
 Latest roadmap sync commit on `main`:
-- `f4ae827` `feat(p8): add dashboard operations panels`
+- `979deda` `docs: update NEXT_STEPS.md handoff metadata for P8-2`
 - Full unit test status at handoff: `485 / 485 passed`
 - Smoke test status at handoff: `58 / 58 passed`
 - Setup verification status at handoff: `68 / 68 passed`
@@ -82,12 +82,12 @@ Current post-P4 follow-up:
 - New endpoint: `GET /system/status`
 - Aggregated operator-facing view: provider + health + degradation + config + data_dir
 - Overall system status: ok/degraded/unhealthy based on health + degradation state
-|- Server uptime tracking (set at startup)
-|- P8 Phase 2 implemented: Dashboard Operations Panels
-|- New 'Ops' navigation view in dashboard
-|- 4 visual panels: System Status, Health Diagnostics, Degradation Visibility, Data Directory
-|- Color-coded status badges (green/yellow/red) based on system state
-|- Degradation reason warning banner and recommendations list
+- Server uptime tracking (set at startup)
+- P8 Phase 2 implemented: Dashboard Operations Panels
+- New 'Ops' navigation view in dashboard
+- 4 visual panels: System Status, Health Diagnostics, Degradation Visibility, Data Directory
+- Color-coded status badges (green/yellow/red) based on system state
+- Degradation reason warning banner and recommendations list
 
 Current completed scope:
 - delivery-risk-analysis
@@ -132,8 +132,8 @@ Current completed scope:
 - live provider health check and diagnostics
 - per-provider rollout controls
 - safe fallback and degraded-mode visibility
-|- aggregated system status endpoint
-|- dashboard operations panels
+- aggregated system status endpoint
+- dashboard operations panels
 
 ## P5 Productionization / Live Integration Planning
 
