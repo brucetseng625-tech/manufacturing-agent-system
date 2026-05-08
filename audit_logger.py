@@ -53,3 +53,104 @@ def log_run(result, channel, asana_task=None, asana_posted=None, log_dir=None):
     except Exception as e:
         # Fail-safe: Never crash the main application due to logging failure
         print(f"Warning: Failed to write audit log: {e}", file=sys.stderr)
+
+
+def query_runs(log_dir=None, last_n=None, status=None, intent=None, skill=None, channel=None):
+    """
+    Query run history from the JSONL audit log with filtering support.
+
+    Args:
+        log_dir (str): Directory containing runs.jsonl (default: resolve_log_dir()).
+        last_n (int): Return only the last N records.
+        status (str): Filter by status ("success" or "error").
+        intent (str): Filter by intent (e.g., "delivery_risk_analysis").
+        skill (str): Filter by skill name (e.g., "delivery-risk-analysis", supports "team:").
+        channel (str): Filter by channel ("cli" or "http").
+
+    Returns:
+        list[dict]: Matching records, newest first.
+    """
+    resolved_log_dir = resolve_log_dir(log_dir)
+    log_path = os.path.join(resolved_log_dir, "runs.jsonl")
+
+    if not os.path.exists(log_path):
+        return []
+
+    records = []
+    with open(log_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                # Skip malformed lines silently
+                continue
+            records.append(record)
+
+    # Filter
+    filtered = []
+    for r in records:
+        if status is not None and r.get("status") != status:
+            continue
+        if intent is not None and r.get("intent") != intent:
+            continue
+        if skill is not None:
+            record_skill = r.get("skill") or ""
+            if skill not in record_skill:
+                continue
+        if channel is not None and r.get("channel") != channel:
+            continue
+        filtered.append(r)
+
+    # Newest first
+    filtered.reverse()
+
+    # Limit
+    if last_n is not None:
+        filtered = filtered[:last_n]
+
+    return filtered
+
+
+def format_run_summary(runs, compact=False):
+    """
+    Format a list of run records into a human-readable summary.
+
+    Args:
+        runs (list[dict]): Records from query_runs().
+        compact (bool): If True, use one-line-per-run format.
+
+    Returns:
+        str: Formatted summary text.
+    """
+    if not runs:
+        return "No runs found matching the criteria."
+
+    lines = []
+    lines.append(f"Run History ({len(runs)} record(s)):")
+    lines.append("=" * 60)
+
+    for i, r in enumerate(runs, 1):
+        ts = r.get("timestamp", "unknown")[:19]
+        status = r.get("status", "unknown")
+        channel = r.get("channel", "?")
+        query = r.get("query", "")
+        skill = r.get("skill", r.get("intent", "unknown"))
+        order_ids = ", ".join(r.get("order_ids", [])) or "-"
+        error_type = r.get("error_type", "")
+
+        if compact:
+            status_icon = "OK" if status == "success" else f"FAIL({error_type})"
+            lines.append(f"[{ts}] {status_icon} | {channel} | {skill} | {query} | orders: {order_ids}")
+        else:
+            lines.append(f"\n#{i} [{ts}] ({channel.upper()})")
+            lines.append(f"  Status:  {status.upper()}")
+            lines.append(f"  Skill:   {skill}")
+            lines.append(f"  Query:   {query}")
+            lines.append(f"  Orders:  {order_ids}")
+            if error_type:
+                lines.append(f"  Error:   {error_type}")
+
+    return "\n".join(lines)

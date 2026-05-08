@@ -5,7 +5,7 @@ import sys
 import argparse
 from orchestrator import route_query
 from integrations.asana_client import post_comment, format_success_report, format_error_report
-from audit_logger import log_run
+from audit_logger import log_run, query_runs, format_run_summary
 
 def print_decision_report(result):
     """View: Print delivery risk report."""
@@ -206,8 +206,29 @@ def main():
     parser = argparse.ArgumentParser(description="Manufacturing Agent CLI")
     parser.add_argument("--data-dir", default=None, help="Path to data directory (default: mock_data)")
     parser.add_argument("--asana-task", default=None, help="Asana Task GID to post result comment")
-    parser.add_argument("query", nargs="+", help="Natural language query")
+    parser.add_argument("--history", action="store_true", help="Query run history instead of executing a new query")
+    parser.add_argument("--last", type=int, default=10, help="Number of recent runs to show (default: 10, used with --history)")
+    parser.add_argument("--status", default=None, help="Filter by status: success or error (used with --history)")
+    parser.add_argument("--skill", default=None, help="Filter by skill name (used with --history)")
+    parser.add_argument("--channel", default=None, help="Filter by channel: cli or http (used with --history)")
+    parser.add_argument("query", nargs="*", help="Natural language query (omit when using --history)")
     args = parser.parse_args()
+
+    # History query mode
+    if args.history:
+        runs = query_runs(
+            last_n=args.last,
+            status=args.status,
+            skill=args.skill,
+            channel=args.channel,
+        )
+        print(format_run_summary(runs, compact=False))
+        return
+
+    # Execution mode
+    if not args.query:
+        parser.print_help()
+        sys.exit(1)
 
     query = " ".join(args.query)
     data_dir = args.data_dir or os.path.join(os.path.dirname(__file__), "mock_data")

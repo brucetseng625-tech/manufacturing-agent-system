@@ -165,6 +165,57 @@ One JSON object per line (JSONL):
 - `error_type`: Validation or system error type (only for errors).
 - Logs are excluded from Git via `.gitignore`.
 
+## Run History
+
+Query and filter past execution records from the audit log:
+
+```bash
+# Show last 5 runs
+python3 run_agent.py --history --last 5
+
+# Show only error runs
+python3 run_agent.py --history --status error
+
+# Show runs for a specific skill
+python3 run_agent.py --history --skill delivery-risk-analysis
+
+# Show only CLI runs
+python3 run_agent.py --history --channel cli --last 10
+```
+
+### API Endpoint
+
+When the server is running, query history via:
+
+```bash
+# Last 5 runs
+curl "http://localhost:8000/history?last=5"
+
+# Filter by status and skill
+curl "http://localhost:8000/history?status=error&skill=delivery-risk-analysis"
+
+# Filter by channel
+curl "http://localhost:8000/history?channel=cli&last=20"
+```
+
+Response format:
+```json
+{
+  "total": 3,
+  "filters": {"last": 10, "status": "error", "skill": null, "channel": null},
+  "runs": [ ... ]
+}
+```
+
+### Filters
+
+| Parameter | Values | Description |
+|-----------|--------|-------------|
+| `--last`  | int    | Number of recent records (default: 10) |
+| `--status`| `success`, `error` | Filter by execution status |
+| `--skill` | string | Partial match on skill name (e.g., `team:` for all team workflows) |
+| `--channel`| `cli`, `http` | Filter by execution channel |
+
 ## How to Add a Skill
 
 To add a new skill (e.g., `quote-comparison`, `sales-analysis`), follow these steps:

@@ -4,11 +4,11 @@ import os
 import sys
 import argparse
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 
 from orchestrator import route_query
 from integrations.asana_client import post_comment, format_success_report, format_error_report
-from audit_logger import log_run
+from audit_logger import log_run, query_runs
 
 DEFAULT_PORT = 8000
 
@@ -27,8 +27,40 @@ class AgentHandler(BaseHTTPRequestHandler):
         parsed_path = urlparse(self.path)
         if parsed_path.path == "/health":
             self._send_json_response(200, {"status": "ok"})
+        elif parsed_path.path == "/history":
+            self._handle_history(parsed_path)
         else:
             self._send_json_response(404, {"error": "Not found"})
+
+    def _handle_history(self, parsed_path):
+        """Handle GET /history with optional query parameters for filtering."""
+        params = parse_qs(parsed_path.query)
+
+        last_n = int(params.get("last", [10])[0])
+        status = params.get("status", [None])[0]
+        intent = params.get("intent", [None])[0]
+        skill = params.get("skill", [None])[0]
+        channel = params.get("channel", [None])[0]
+
+        runs = query_runs(
+            last_n=last_n,
+            status=status,
+            intent=intent,
+            skill=skill,
+            channel=channel,
+        )
+
+        self._send_json_response(200, {
+            "total": len(runs),
+            "filters": {
+                "last": last_n,
+                "status": status,
+                "intent": intent,
+                "skill": skill,
+                "channel": channel,
+            },
+            "runs": runs,
+        })
 
     def do_POST(self):
         parsed_path = urlparse(self.path)
