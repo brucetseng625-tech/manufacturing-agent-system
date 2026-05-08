@@ -279,12 +279,16 @@ class SkillRegistry:
                 try:
                     res = self.execute(matched_skill, order_ids, data_dir, query)
                     results[alias] = res
-                    trace.append(f"executed {skill_name} via team workflow")
+                    if "error" in res:
+                        trace.append(f"failed {skill_name}: {res['error']}")
+                    else:
+                        trace.append(f"executed {skill_name} via team workflow")
                 except Exception as e:
                     results[alias] = {"error": str(e)}
                     trace.append(f"failed {skill_name}: {e}")
             else:
                 results[alias] = {"error": f"Skill {skill_name} not found"}
+                trace.append(f"failed {skill_name}: Skill {skill_name} not found")
                 
         return {
             "team_name": team_config["name"],

@@ -214,3 +214,23 @@ class OrchestratorTest(unittest.TestCase):
         self.assertTrue(len(trace) >= 2)
         self.assertIn("executed delivery-risk-analysis via team workflow", trace)
         self.assertIn("executed sales-response-draft via team workflow", trace)
+
+    def test_team_validation_failure_is_not_reported_as_success(self):
+        """Team workflows should not bypass validation."""
+        with tempfile.TemporaryDirectory() as bad_dir:
+            with open(os.path.join(bad_dir, "orders.csv"), "w") as f:
+                f.write("order_id\nORD-BAD\n")
+
+            result = route_query("ORD-BAD 全面分析", bad_dir)
+
+            self.assertEqual(result["status"], "error")
+            self.assertEqual(result["type"], "validation_failed")
+
+    def test_team_all_step_errors_return_team_error(self):
+        """If every team step fails, route_query should return team_error."""
+        mock_data_dir = os.path.join(os.path.dirname(__file__), "..", "mock_data")
+        result = route_query("ORD-9999 全面分析", mock_data_dir)
+
+        self.assertEqual(result["status"], "error")
+        self.assertEqual(result["type"], "team_error")
+        self.assertIn("risk: Order ORD-9999 not found", result["details"])

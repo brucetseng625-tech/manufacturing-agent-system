@@ -67,8 +67,39 @@ def route_query(query, data_dir):
                 "type": "missing_order_id",
                 "details": f"Order ID is required for {matched_team['name']} team workflow."
             }
+
+        # Validate data files required by all skills used in the team workflow.
+        team_data_files = []
+        registry = get_registry()
+        for step in matched_team.get("steps", []):
+            for skill in registry.skills:
+                if skill["name"] == step["skill"]:
+                    team_data_files.extend(skill.get("data_files", []))
+                    break
+        if team_data_files:
+            validation_errors = validate_data_dir(data_dir, sorted(set(team_data_files)))
+            if validation_errors:
+                return {
+                    **response_base,
+                    "status": "error",
+                    "type": "validation_failed",
+                    "details": validation_errors
+                }
+
         try:
             team_result = get_registry().execute_team(matched_team, order_ids, data_dir, query)
+            team_errors = [
+                f"{alias}: {step_result['error']}"
+                for alias, step_result in team_result.get("results", {}).items()
+                if isinstance(step_result, dict) and "error" in step_result
+            ]
+            if team_errors and len(team_errors) == len(team_result.get("results", {})):
+                return {
+                    **response_base,
+                    "status": "error",
+                    "type": "team_error",
+                    "details": team_errors
+                }
             return {
                 **response_base,
                 "status": "success",
