@@ -8,6 +8,7 @@ from skills.delivery_risk import analyze_delivery_risk
 from skills.schedule_conflict_check import check_schedule_conflict
 from skills.quote_comparison_summary import handle_quote_comparison
 from skills.sales_response_draft import handle_sales_response_draft
+from skills.internal_action_summary import handle_internal_action_summary
 
 class SkillRegistry:
     """
@@ -65,6 +66,18 @@ class SkillRegistry:
             "intent": "sales_response_draft",
             "keywords": ["回覆", "客戶", "sales", "reply", "draft", "email", "customer update"],
             "handler": handle_sales_response_draft,
+            "requires_order_id": True,
+            "triggers_on_multi_order": False,
+            "passes_query": True,
+            "data_files": ["orders.json", "work_orders.json", "materials.json", "machines.json", "operators.json", "schedule.json"]
+        })
+
+        # 5. Internal Action Summary
+        self.register({
+            "name": "internal-action-summary",
+            "intent": "internal_action_summary",
+            "keywords": ["行動", "action", "follow up", "internal", "summary", "PM", "production", "escalate"],
+            "handler": handle_internal_action_summary,
             "requires_order_id": True,
             "triggers_on_multi_order": False,
             "passes_query": True,

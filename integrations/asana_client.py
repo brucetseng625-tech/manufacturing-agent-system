@@ -104,6 +104,25 @@ def format_success_report(response):
             for risk in risk_summary[:3]:
                 lines.append(f"- {risk}")
         trace = data.get("trace", [])
+    elif intent == "internal_action_summary":
+        lines.extend([
+            f"Order: {data.get('order_id')}",
+            f"Customer: {data.get('customer')}",
+            f"Decision: `{data.get('current_decision')}`",
+            f"Owner: {data.get('owner_suggestion')}",
+        ])
+        blockers = data.get("top_blockers", [])
+        if blockers:
+            lines.append("Top Blockers:")
+            for b in blockers:
+                lines.append(f"- {b}")
+        actions = data.get("immediate_actions", [])
+        if actions:
+            lines.append("Immediate Actions:")
+            for a in actions:
+                lines.append(f"- {a}")
+        lines.append(f"Asana Note: {data.get('asana_note')}")
+        trace = data.get("trace", [])
 
     if trace:
         lines.extend(["", "Trace:"])

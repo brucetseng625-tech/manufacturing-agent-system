@@ -128,6 +128,35 @@ def print_sales_response_report(result):
         print(f"- {item}")
     print("=" * 44)
 
+def print_internal_action_report(result):
+    """View: Print internal action summary."""
+    print("\n" + "=" * 44)
+    print("INTERNAL ACTION SUMMARY")
+    print("=" * 44)
+    print(f"Order: {result['order_id']}")
+    print(f"Customer: {result['customer']}")
+    print(f"Decision: {result['current_decision']}")
+    print(f"Confidence: {result['confidence']}")
+    print()
+    print("Top Blockers")
+    for b in result.get("top_blockers", []):
+        print(f"- {b}")
+    print()
+    print("Immediate Actions")
+    for a in result.get("immediate_actions", []):
+        print(f"- {a}")
+    print()
+    print(f"Owner: {result['owner_suggestion']}")
+    print(f"Escalation: {result['escalation_suggestion']}")
+    print()
+    print("Asana Note (Copy/Paste)")
+    print(result['asana_note'])
+    print()
+    print("Trace")
+    for item in result["trace"]:
+        print(f"- {item}")
+    print("=" * 44)
+
 def main():
     parser = argparse.ArgumentParser(description="Manufacturing Agent CLI")
     parser.add_argument("--data-dir", default=None, help="Path to data directory (default: mock_data)")
@@ -183,6 +212,11 @@ def main():
         elif skill == "quote-comparison-summary":
             print("Routing to: quote-comparison-summary skill")
             print_quote_report(data)
+            print("\nRaw JSON")
+            print(json.dumps(data, indent=2, ensure_ascii=False))
+        elif skill == "internal-action-summary":
+            print("Routing to: internal-action-summary skill")
+            print_internal_action_report(data)
             print("\nRaw JSON")
             print(json.dumps(data, indent=2, ensure_ascii=False))
         elif skill == "sales-response-draft":

@@ -199,3 +199,11 @@ To add a new skill (e.g., `quote-comparison`, `sales-analysis`), follow these st
    ```
 
 No changes needed in `orchestrator.py`, `server.py`, or `run_agent.py` — the registry handles routing automatically.
+
+## Internal Action Summary
+
+Use this workflow to generate internal follow-up actions for PM / Ops / Production teams. It analyzes delivery risks and outputs immediate action items, owners, and escalation paths.
+
+```bash
+python3 run_agent.py "ORD-1001 行動計畫"
+```
