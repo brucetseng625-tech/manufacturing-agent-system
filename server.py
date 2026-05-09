@@ -25,7 +25,7 @@ from data_mapper import get_mapping_diagnostics, reset_mapping_stats
 from audit_chain import append_audit_entry, query_audit_log, get_audit_summary, _close_audit_log
 from incident_report import generate_incident_report
 from auto_remediation import evaluate_hooks, evaluate_all_hooks, get_remediation_status, reset_remediation_state
-from approval_queue import create_pending_item, list_pending, get_item, approve_item, reject_item, get_approval_stats, reset_queue
+from approval_queue import create_pending_item, list_pending, get_item, approve_item, reject_item, get_approval_stats, reset_queue, serialize_item_for_api
 from automation_policy import check_automation_allowed, get_automation_policy_status
 from rollback_eligibility import query_rollback_eligibility, get_rollback_summary
 from guardrails import check_guardrail, get_guardrails_status, get_guardrail
@@ -270,6 +270,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._send_json_response(200, get_automation_policy_status())
         elif path == "/approvals":
             self._handle_approvals_list(parsed_path)
+        elif path.startswith("/approvals/"):
+            self._handle_approval_detail(path)
         else:
             self._send_error_response(404, "not_found", "Endpoint not found")
 
@@ -841,10 +843,24 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._send_json_response(200, {
                 "total": len(items),
                 "stats": stats,
-                "items": items,
+                "items": [serialize_item_for_api(item) for item in items],
             })
         except Exception as e:
             self._send_error_response(500, "internal_error", "Failed to list approvals", str(e))
+
+    def _handle_approval_detail(self, path):
+        """Handle GET /approvals/{id} — return one approval item with replay preview."""
+        approval_id = path.split("/approvals/")[1].split("/")[0]
+        if not approval_id or approval_id == "reset":
+            self._send_error_response(404, "not_found", "Approval item not found")
+            return
+
+        item = get_item(approval_id)
+        if item is None:
+            self._send_error_response(404, "approval_not_found", "Approval item not found")
+            return
+
+        self._send_json_response(200, serialize_item_for_api(item))
 
     def _handle_approval_approve(self, approval_id):
         """Handle POST /approvals/{id}/approve — approve a pending item."""

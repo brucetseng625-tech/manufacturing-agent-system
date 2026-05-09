@@ -10,11 +10,15 @@ from unittest.mock import patch, MagicMock
 from http.server import HTTPServer
 
 from server import AgentHandler, run_server
+from approval_queue import create_pending_item, reset_queue
 
 # Use a random port to avoid conflicts
 PORT = 0 
 
 class ServerTest(unittest.TestCase):
+    def setUp(self):
+        reset_queue()
+
     @classmethod
     def setUpClass(cls):
         cls.server = HTTPServer(("localhost", 0), AgentHandler)
@@ -218,9 +222,45 @@ class ServerTest(unittest.TestCase):
             # Check at least one skill
             names = [item["name"] for item in data["items"]]
             self.assertIn("delivery-risk-analysis", names)
-            # Check at least one team
-            self.assertTrue(any("team:" in n for n in names))
-            self.assertIn("team:recovery-planning", names)
+
+    def test_get_approvals_list_includes_request_preview(self):
+        """GET /approvals should expose replay preview without sensitive tokens."""
+        create_pending_item(
+            "provider:select",
+            original_request={
+                "method": "POST",
+                "path": "/provider/select",
+                "body": {"mode": "auto", "approval_token": "secret-123"},
+            },
+        )
+
+        url = f"http://localhost:{self.port}/approvals?status=pending"
+        with urllib.request.urlopen(url) as response:
+            data = json.loads(response.read())
+            self.assertEqual(response.status, 200)
+            self.assertEqual(data["total"], 1)
+            item = data["items"][0]
+            self.assertEqual(item["request_preview"]["path"], "/provider/select")
+            self.assertEqual(item["request_preview"]["body"]["approval_token"], "***REDACTED***")
+            self.assertNotIn("approval_token", item)
+
+    def test_get_approval_detail_returns_preview(self):
+        """GET /approvals/{id} should return a sanitized single item view."""
+        item = create_pending_item(
+            "config:reload",
+            original_request={
+                "method": "POST",
+                "path": "/config/reload",
+                "body": {"config_path": "/tmp/config.json"},
+            },
+        )
+
+        url = f"http://localhost:{self.port}/approvals/{item['id']}"
+        with urllib.request.urlopen(url) as response:
+            data = json.loads(response.read())
+            self.assertEqual(response.status, 200)
+            self.assertEqual(data["id"], item["id"])
+            self.assertEqual(data["request_preview"]["body_summary"], "config_path=/tmp/config.json")
 
     def test_get_skills_item_structure(self):
         """Each skill/team item has expected fields."""

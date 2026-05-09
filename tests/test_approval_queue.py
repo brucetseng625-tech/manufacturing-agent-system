@@ -16,6 +16,7 @@ from approval_queue import (
     get_approval_stats,
     reset_queue,
     check_approved_token,
+    serialize_item_for_api,
     _items,
     _order,
     _counter,
@@ -253,6 +254,35 @@ class ApprovalQueueOriginalRequestTest(unittest.TestCase):
         """Item should have retry_result field initialized to None."""
         item = create_pending_item("test")
         self.assertIsNone(item["retry_result"])
+
+    def test_serialize_item_for_api_adds_request_preview(self):
+        """API serialization should include a replay preview summary."""
+        orig = {"method": "POST", "path": "/provider/select", "body": {"mode": "auto"}}
+        item = create_pending_item("provider:select", original_request=orig)
+        serialized = serialize_item_for_api(item)
+        self.assertEqual(serialized["request_preview"]["method"], "POST")
+        self.assertEqual(serialized["request_preview"]["path"], "/provider/select")
+        self.assertEqual(serialized["request_preview"]["body_summary"], "mode=auto")
+        self.assertEqual(serialized["risk_level"], "medium")
+
+    def test_serialize_item_for_api_redacts_sensitive_body_values(self):
+        """Preview body should redact token-like fields."""
+        orig = {
+            "method": "POST",
+            "path": "/config/reload",
+            "body": {"config_path": "/tmp/config.json", "approval_token": "secret-123"},
+        }
+        item = create_pending_item("config:reload", original_request=orig)
+        serialized = serialize_item_for_api(item)
+        self.assertEqual(serialized["request_preview"]["body"]["approval_token"], "***REDACTED***")
+        self.assertNotIn("secret-123", serialized["request_preview"]["body_summary"])
+
+    def test_serialize_item_for_api_hides_stored_approval_token(self):
+        """Serialized items should not leak stored approval tokens."""
+        item = create_pending_item("provider:select")
+        approved = approve_item(item["id"], approval_token="secret-123")
+        serialized = serialize_item_for_api(approved)
+        self.assertNotIn("approval_token", serialized)
 
 
 if __name__ == "__main__":

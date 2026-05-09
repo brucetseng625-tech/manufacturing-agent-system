@@ -58,6 +58,11 @@ class DashboardOperatorActionsHTMLTest(unittest.TestCase):
         """Dashboard must have showActionResult JavaScript function."""
         self.assertIn("function showActionResult(type, message)", self.html)
 
+    def test_contains_approval_request_preview_markup(self):
+        """Approval queue should render replay request preview details."""
+        self.assertIn("request_preview", self.html)
+        self.assertIn("RISK", self.html)
+
     def test_action_endpoints_mapping(self):
         """doAction must map actions to correct endpoints."""
         self.assertIn("'/alerts/reset'", self.html)

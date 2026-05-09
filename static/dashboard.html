@@ -1012,10 +1012,22 @@ async function renderApprovalQueueCard() {
       rows = items.map(item => {
         const ts = item.created_at ? new Date(item.created_at).toLocaleString() : 'N/A';
         const guardCondition = item.guardrail_config?.require_approval ? 'Requires approval token' : 'Denied by guardrail';
+        const preview = item.request_preview || {};
+        const bodySummary = preview.body_summary || 'no body';
+        const requestSummary = `${preview.method || 'POST'} ${preview.path || '(no path)'}`;
+        const riskLevel = (item.risk_level || 'low').toUpperCase();
+        const riskColor = item.risk_level === 'medium' ? 'var(--warning)' : 'var(--success)';
         return `<tr>
           <td style="font-family:monospace;font-size:0.8rem;">${item.id}</td>
           <td><code style="background:var(--bg-input);padding:0.1rem 0.4rem;border-radius:4px;font-size:0.8rem;">${item.operation}</code></td>
-          <td style="font-size:0.8rem;color:var(--text-secondary);">${guardCondition}</td>
+          <td style="font-size:0.8rem;color:var(--text-secondary);">
+            <div>${guardCondition}</div>
+            <div style="margin-top:0.25rem;color:var(--text-primary);font-family:monospace;">${requestSummary}</div>
+            <div style="margin-top:0.15rem;color:var(--text-muted);">${bodySummary}</div>
+            <div style="margin-top:0.35rem;">
+              <span class="badge" style="background:${riskColor};color:#fff;font-size:0.65rem;">${riskLevel} RISK</span>
+            </div>
+          </td>
           <td style="font-size:0.8rem;color:var(--text-muted);">${ts}</td>
           <td style="white-space:nowrap;">
             <button class="btn" style="padding:0.3rem 0.6rem;font-size:0.75rem;background:var(--success);" onclick="doApprove('${item.id}')">✓</button>

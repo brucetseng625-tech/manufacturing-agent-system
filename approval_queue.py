@@ -35,6 +35,7 @@ from audit_chain import append_audit_entry
 # ─── Constants ───────────────────────────────────────────────────────────────
 
 MAX_HISTORY = 100  # Max total items (pending + resolved) in memory
+_SENSITIVE_KEYWORDS = ("token", "secret", "password", "authorization", "auth")
 
 # ─── Module State ────────────────────────────────────────────────────────────
 
@@ -68,6 +69,87 @@ def _prune_if_needed():
             new_order.append(item_id)
 
     _order[:] = new_order
+
+
+def _truncate_preview(value, max_length=120):
+    """Keep preview strings compact for API and dashboard display."""
+    if not isinstance(value, str):
+        value = str(value)
+    if len(value) <= max_length:
+        return value
+    return value[: max_length - 3] + "..."
+
+
+def _sanitize_value(value, key_name=""):
+    """Recursively redact sensitive values from approval request previews."""
+    key_name = (key_name or "").lower()
+    if any(token in key_name for token in _SENSITIVE_KEYWORDS):
+        return "***REDACTED***"
+
+    if isinstance(value, dict):
+        return {
+            key: _sanitize_value(inner, key)
+            for key, inner in value.items()
+        }
+    if isinstance(value, list):
+        return [_sanitize_value(item) for item in value]
+    if isinstance(value, str):
+        return _truncate_preview(value)
+    return value
+
+
+def _summarize_body(body):
+    """Generate a short, human-readable summary for a request body."""
+    if body is None:
+        return "no body"
+    if isinstance(body, dict):
+        sanitized = _sanitize_value(body)
+        if not sanitized:
+            return "empty body"
+        parts = []
+        for key in sorted(sanitized.keys())[:3]:
+            parts.append("{}={}".format(key, sanitized[key]))
+        if len(sanitized) > 3:
+            parts.append("+{} more".format(len(sanitized) - 3))
+        return ", ".join(parts)
+    if isinstance(body, list):
+        return "list[{}]".format(len(body))
+    return _truncate_preview(_sanitize_value(body))
+
+
+def _get_risk_level(operation, original_request):
+    """Classify pending approval risk for operator-facing review."""
+    path = (original_request or {}).get("path", "")
+    medium_ops = {"provider:select", "config:reload", "policy:reload"}
+    if operation in medium_ops or path in ("/provider/select", "/config/reload", "/policy/reload"):
+        return "medium"
+    return "low"
+
+
+def serialize_item_for_api(item):
+    """Return an operator-safe view of an approval item."""
+    original_request = item.get("original_request") or {}
+    body = original_request.get("body")
+    request_preview = {
+        "method": original_request.get("method", "POST"),
+        "path": original_request.get("path", ""),
+        "body_summary": _summarize_body(body),
+        "body_keys": sorted(body.keys()) if isinstance(body, dict) else [],
+        "body": _sanitize_value(body) if body is not None else None,
+        "replay_ready": bool(original_request.get("method") and original_request.get("path")),
+    }
+
+    sanitized = dict(item)
+    sanitized.pop("approval_token", None)
+    sanitized["request_preview"] = request_preview
+    sanitized["risk_level"] = _get_risk_level(item.get("operation"), original_request)
+    sanitized["details"] = _sanitize_value(item.get("details", {}))
+    sanitized["original_request"] = {
+        "method": request_preview["method"],
+        "path": request_preview["path"],
+        "body": request_preview["body"],
+    } if original_request else None
+    return sanitized
 
 
 # ─── Queue Operations ───────────────────────────────────────────────────────
