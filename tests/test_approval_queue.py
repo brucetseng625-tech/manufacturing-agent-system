@@ -230,5 +230,30 @@ class ApprovalQueueTokenTest(unittest.TestCase):
         self.assertIsNone(token)
 
 
+class ApprovalQueueOriginalRequestTest(unittest.TestCase):
+    """Tests for original_request storage and retrieval."""
+
+    def setUp(self):
+        reset_queue()
+
+    def test_create_with_original_request(self):
+        """Should store original request details."""
+        orig = {"method": "POST", "path": "/policy/reload", "body": {"config_path": "/etc/p.json"}}
+        item = create_pending_item("policy:reload", original_request=orig)
+        self.assertEqual(item["original_request"], orig)
+
+    def test_original_request_in_approved_item(self):
+        """Original request should persist after approval."""
+        orig = {"method": "POST", "path": "/config/reload", "body": None}
+        item = create_pending_item("config:reload", original_request=orig)
+        approved = approve_item(item["id"])
+        self.assertEqual(approved["original_request"], orig)
+
+    def test_retry_result_field_exists(self):
+        """Item should have retry_result field initialized to None."""
+        item = create_pending_item("test")
+        self.assertIsNone(item["retry_result"])
+
+
 if __name__ == "__main__":
     unittest.main()

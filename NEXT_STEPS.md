@@ -348,6 +348,18 @@ Goal: Deepen approval/audit chain, incident reporting, and limited automation sa
 | ~~P11~~ | ~~Auto-remediation hooks~~ | ~~Config-driven safe auto-fix on alert triggers~~ | ~~auto_remediation.py, endpoints, cooldown, tests~~ | ~~P11-1~~ | ~~Codex~~ |
 | ~~P11~~ | ~~Approval workflow dashboard~~ | ~~Visual approval queue for guarded operations~~ | ~~approval_queue.py, dashboard panel, endpoints, tests~~ | ~~P11-1, P9-4~~ | ~~Codex~~ |
 
+## P12 Limited Automation Actions
+
+Goal: Bridge the gap between approval and execution, enabling safe limited automation with full audit traceability.
+
+### Roadmap
+
+| Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
+| --- | --- | --- | --- | --- | --- |
+| P12 | Approval-linked execution handoff | Re-execute blocked operations after approval | approve-and-retry endpoint, original request capture, dashboard retry button | P11-4 | Codex |
+| P12 | Automation policy controls | Config-driven severity tiers for auto-remediation | severity levels, risk-based cooldowns, tests | P11-3 | Codex |
+| P12 | Rollback & audit visibility | Track auto-actions with rollback capability | rollback log, audit trail enhancement, tests | P12-1, P11-1 | Codex |
+
 ## Start Here
 
 When a new Codex / AI session starts, do this first:

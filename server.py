@@ -29,7 +29,8 @@ from approval_queue import create_pending_item, list_pending, get_item, approve_
 from guardrails import check_guardrail, get_guardrails_status, get_guardrail
 
 
-def _check_guardrail_with_queue(operation, headers, source_ip, details=None):
+def _check_guardrail_with_queue(operation, headers, source_ip, details=None,
+                                original_request=None):
     """Check guardrail and create a pending approval item if approval is required but token is missing.
 
     Args:
@@ -37,6 +38,7 @@ def _check_guardrail_with_queue(operation, headers, source_ip, details=None):
         headers: Request headers dict
         source_ip: Client IP for audit
         details: Optional details to attach to pending item
+        original_request: Optional dict with the original blocked request for retry
 
     Returns:
         None if allowed, or dict with error details if denied.
@@ -54,6 +56,7 @@ def _check_guardrail_with_queue(operation, headers, source_ip, details=None):
             source_ip=source_ip,
             details=details or {},
             guardrail_config=guardrail_config,
+            original_request=original_request,
         )
 
     return guard
@@ -493,9 +496,11 @@ class AgentHandler(BaseHTTPRequestHandler):
         """Handle POST /alerts/reset — clear alert cooldown state and log."""
         # Guardrail check (creates pending approval item if needed)
         headers = dict(self.headers)
+        original_request = {"method": "POST", "path": "/alerts/reset", "body": None}
         guard = _check_guardrail_with_queue("alerts:reset", headers,
                                             self.client_address[0],
-                                            details={"endpoint": "/alerts/reset"})
+                                            details={"endpoint": "/alerts/reset"},
+                                            original_request=original_request)
         if guard:
             self._drain_request_body()
             self._send_json_response(403, guard)
@@ -520,31 +525,37 @@ class AgentHandler(BaseHTTPRequestHandler):
         Expects JSON body: {"mode": "local|live|auto"}
         Guarded by the "provider:select" guardrail (approval-required by default).
         """
+        # Read body first for guardrail queue
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = None
+            if content_length > 0:
+                raw = self.rfile.read(content_length).decode("utf-8")
+                body = json.loads(raw)
+        except (json.JSONDecodeError, ValueError):
+            body = None
+
         headers = dict(self.headers)
+        original_request = {"method": "POST", "path": "/provider/select", "body": body}
         guard = _check_guardrail_with_queue("provider:select", headers,
                                             self.client_address[0],
-                                            details={"endpoint": "/provider/select"})
+                                            details={"endpoint": "/provider/select", "body": body},
+                                            original_request=original_request)
         if guard:
-            self._drain_request_body()
             append_audit_entry("provider:select", operator="api",
                                source_ip=self.client_address[0],
-                               details={"guardrail": True, "mode": "unknown",
+                               details={"guardrail": True, "mode": body.get("mode") if body else "unknown",
                                         "error_type": guard.get("error_type")},
                                result="denied" if guard.get("error_type") == "guardrail_denied" else "pending_approval")
             self._send_json_response(403, guard)
             return
 
-        try:
-            content_length = int(self.headers.get("Content-Length", 0))
-            if content_length == 0:
-                self._send_error_response(400, "missing_body", "Request body is required")
-                return
-            body = self.rfile.read(content_length).decode("utf-8")
-            payload = json.loads(body)
-        except (json.JSONDecodeError, ValueError) as e:
-            self._send_error_response(400, "invalid_json", f"Request body is not valid JSON: {e}")
+        # Use already-read body
+        if body is None:
+            self._send_error_response(400, "missing_body", "Request body is required")
             return
 
+        payload = body
         mode = payload.get("mode")
         if mode not in VALID_DATA_SOURCES:
             append_audit_entry("provider:select", operator="api",
@@ -828,6 +839,101 @@ class AgentHandler(BaseHTTPRequestHandler):
                            result="success")
         self._send_json_response(200, result)
 
+    def _handle_approval_approve_and_retry(self, approval_id):
+        """Handle POST /approvals/{id}/approve-and-retry — approve and re-execute blocked request.
+
+        Approves the pending item, then replays the original blocked operation
+        with the approval token injected into headers.
+        """
+        # Drain any request body
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            if content_length > 0:
+                body = self.rfile.read(content_length).decode("utf-8")
+                payload = json.loads(body)
+            else:
+                payload = {}
+        except (json.JSONDecodeError, ValueError):
+            payload = {}
+
+        approved_by = payload.get("approved_by", "operator")
+        approval_token = payload.get("approval_token", "approved-via-queue-{}".format(approval_id))
+
+        # Step 1: Approve the item
+        result = approve_item(approval_id, approved_by=approved_by, approval_token=approval_token)
+        if "error" in result:
+            status = 404 if result["error"] == "approval_not_found" else 409
+            self._send_json_response(status, result)
+            return
+
+        append_audit_entry("approval:approved", operator=approved_by,
+                           source_ip=self.client_address[0],
+                           details={"approval_id": approval_id, "operation": result.get("operation"),
+                                    "retry": True},
+                           result="success")
+
+        # Step 2: Replay the original request if available
+        original = result.get("original_request")
+        retry_result = None
+        if original and original.get("method") and original.get("path"):
+            try:
+                retry_result = self._replay_request(original, approval_token)
+            except Exception as e:
+                retry_result = {"error": "retry_failed", "message": str(e)}
+
+        response = {
+            "approval": result,
+            "retry": retry_result,
+        }
+        self._send_json_response(200, response)
+
+    def _replay_request(self, original_request, approval_token):
+        """Re-execute a blocked request with approval token injected.
+
+        Args:
+            original_request: dict with "method", "path", "body"
+            approval_token: Token to inject into X-Approval-Token header
+
+        Returns:
+            dict with retry result (status_code, body).
+        """
+        import urllib.request
+        import urllib.error
+
+        method = original_request.get("method", "POST")
+        path = original_request.get("path", "")
+        body = original_request.get("body")
+
+        url = "http://127.0.0.1:{}{}".format(self.server.server_address[1], path)
+
+        headers = {
+            "Content-Type": "application/json",
+            "X-Approval-Token": approval_token,
+        }
+
+        data = json.dumps(body).encode("utf-8") if body else None
+
+        req = urllib.request.Request(url, data=data, headers=headers, method=method)
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                resp_body = json.loads(resp.read().decode("utf-8"))
+                return {
+                    "status_code": resp.status,
+                    "success": True,
+                    "body": resp_body,
+                }
+        except urllib.error.HTTPError as e:
+            resp_body = e.read().decode("utf-8")
+            try:
+                resp_body = json.loads(resp_body)
+            except Exception:
+                pass
+            return {
+                "status_code": e.code,
+                "success": False,
+                "body": resp_body,
+            }
+
     def _handle_approval_reject(self, approval_id):
         """Handle POST /approvals/{id}/reject — reject a pending item."""
         # Drain any request body
@@ -960,6 +1066,9 @@ class AgentHandler(BaseHTTPRequestHandler):
         elif path.startswith("/approvals/") and path.endswith("/approve"):
             approval_id = path.split("/approvals/")[1].split("/approve")[0]
             self._handle_approval_approve(approval_id)
+        elif path.startswith("/approvals/") and path.endswith("/approve-and-retry"):
+            approval_id = path.split("/approvals/")[1].split("/approve-and-retry")[0]
+            self._handle_approval_approve_and_retry(approval_id)
         elif path.startswith("/approvals/") and path.endswith("/reject"):
             approval_id = path.split("/approvals/")[1].split("/reject")[0]
             self._handle_approval_reject(approval_id)
@@ -972,13 +1081,26 @@ class AgentHandler(BaseHTTPRequestHandler):
 
     def _handle_config_reload(self):
         """Handle POST /config/reload — reload centralized config file."""
+        # Read body first for guardrail queue
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = None
+            if content_length > 0:
+                raw = self.rfile.read(content_length).decode("utf-8")
+                body = json.loads(raw)
+            config_path = body.get("config_path") if body else None
+        except (json.JSONDecodeError, ValueError) as e:
+            config_path = None
+            body = None
+
         # Guardrail check (creates pending approval item if needed)
         headers = dict(self.headers)
+        original_request = {"method": "POST", "path": "/config/reload", "body": body}
         guard = _check_guardrail_with_queue("config:reload", headers,
                                             self.client_address[0],
-                                            details={"endpoint": "/config/reload"})
+                                            details={"endpoint": "/config/reload", "config_path": config_path},
+                                            original_request=original_request)
         if guard:
-            self._drain_request_body()
             result_label = "denied" if guard.get("error_type") == "guardrail_denied" else "pending_approval"
             append_audit_entry("config:reload", operator="api",
                                source_ip=self.client_address[0],
@@ -988,13 +1110,6 @@ class AgentHandler(BaseHTTPRequestHandler):
             return
 
         try:
-            content_length = int(self.headers.get("Content-Length", 0))
-            config_path = None
-            if content_length > 0:
-                body = self.rfile.read(content_length).decode("utf-8")
-                payload = json.loads(body)
-                config_path = payload.get("config_path")
-
             result = reload_config(resolve_repo_path(config_path) if config_path else None)
             meta = get_config_metadata()
             append_audit_entry("config:reload", operator="api",
@@ -1021,13 +1136,26 @@ class AgentHandler(BaseHTTPRequestHandler):
 
     def _handle_policy_reload(self):
         """Handle POST /policy/reload — hot-reload policy from config file."""
+        # Read body first for guardrail queue
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = None
+            if content_length > 0:
+                raw = self.rfile.read(content_length).decode("utf-8")
+                body = json.loads(raw)
+            config_path = body.get("config_path") if body else None
+        except (json.JSONDecodeError, ValueError):
+            config_path = None
+            body = None
+
         # Guardrail check (creates pending approval item if needed)
         headers = dict(self.headers)
+        original_request = {"method": "POST", "path": "/policy/reload", "body": body}
         guard = _check_guardrail_with_queue("policy:reload", headers,
                                             self.client_address[0],
-                                            details={"endpoint": "/policy/reload"})
+                                            details={"endpoint": "/policy/reload", "config_path": config_path},
+                                            original_request=original_request)
         if guard:
-            self._drain_request_body()
             result_label = "denied" if guard.get("error_type") == "guardrail_denied" else "pending_approval"
             append_audit_entry("policy:reload", operator="api",
                                source_ip=self.client_address[0],
@@ -1037,14 +1165,6 @@ class AgentHandler(BaseHTTPRequestHandler):
             return
 
         try:
-            # Read optional body for custom config_path
-            content_length = int(self.headers.get("Content-Length", 0))
-            config_path = None
-            if content_length > 0:
-                body = self.rfile.read(content_length).decode("utf-8")
-                payload = json.loads(body)
-                config_path = payload.get("config_path")
-
             result = reload_policy(config_path)
             reload_meta = get_reload_metadata()
 

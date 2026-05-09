@@ -72,7 +72,8 @@ def _prune_if_needed():
 
 # ─── Queue Operations ───────────────────────────────────────────────────────
 
-def create_pending_item(operation, source_ip=None, details=None, guardrail_config=None):
+def create_pending_item(operation, source_ip=None, details=None, guardrail_config=None,
+                        original_request=None):
     """Create a new pending approval item.
 
     Called when a guardrail returns approval_required error (missing/invalid token).
@@ -82,6 +83,8 @@ def create_pending_item(operation, source_ip=None, details=None, guardrail_confi
         source_ip: Client IP address
         details: Optional dict with request details
         guardrail_config: The guardrail config that triggered the approval requirement
+        original_request: Optional dict with the original blocked request:
+            {"method": "POST", "path": "/policy/reload", "body": {...}}
 
     Returns:
         dict with the created item.
@@ -96,12 +99,14 @@ def create_pending_item(operation, source_ip=None, details=None, guardrail_confi
             "source_ip": source_ip or "unknown",
             "details": details or {},
             "guardrail_config": guardrail_config or {},
+            "original_request": original_request,
             "status": "pending",
             "created_at": now,
             "approved_at": None,
             "rejected_at": None,
             "approved_by": None,
             "rejection_reason": None,
+            "retry_result": None,
         }
 
         _items[item_id] = item

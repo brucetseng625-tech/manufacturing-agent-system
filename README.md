@@ -1391,6 +1391,11 @@ curl -X POST http://localhost:8000/approvals/approval-1/approve \
   -H "Content-Type: application/json" \
   -d '{"approved_by": "operator", "approval_token": "my-token"}'
 
+# Approve and re-execute the originally blocked operation
+curl -X POST http://localhost:8000/approvals/approval-1/approve-and-retry \
+  -H "Content-Type: application/json" \
+  -d '{"approved_by": "operator"}'
+
 # Reject an item
 curl -X POST http://localhost:8000/approvals/approval-1/reject \
   -H "Content-Type: application/json" \
@@ -1400,7 +1405,7 @@ curl -X POST http://localhost:8000/approvals/approval-1/reject \
 curl -X POST http://localhost:8000/approvals/reset
 ```
 
-**Dashboard:** The Ops view includes an Approval Queue panel showing pending items with approve (✓) and reject (✗) buttons. Items display operation type, reason, and timestamp.
+**Dashboard:** The Ops view includes an Approval Queue panel showing pending items with approve (✓), approve & retry (⟳), and reject (✗) buttons. Items display operation type, reason, and timestamp. The approve & retry button re-executes the originally blocked operation with the approval token automatically injected.
 
 ### Server Access Logging
 

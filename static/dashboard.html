@@ -1019,6 +1019,7 @@ async function renderApprovalQueueCard() {
           <td style="font-size:0.8rem;color:var(--text-muted);">${ts}</td>
           <td style="white-space:nowrap;">
             <button class="btn" style="padding:0.3rem 0.6rem;font-size:0.75rem;background:var(--success);" onclick="doApprove('${item.id}')">✓</button>
+            <button class="btn" style="padding:0.3rem 0.6rem;font-size:0.75rem;background:var(--accent-light);" onclick="doApproveRetry('${item.id}')" title="Approve & re-execute">⟳</button>
             <button class="btn" style="padding:0.3rem 0.6rem;font-size:0.75rem;background:var(--error);" onclick="doReject('${item.id}')">✗</button>
           </td>
         </tr>`;
@@ -1069,6 +1070,41 @@ async function doApprove(approvalId) {
     if (res.ok) {
       showApprovalResult('success', `${approvalId} approved`);
       // Refresh the ops view
+      setTimeout(() => loadOps(), 500);
+    } else {
+      showApprovalResult('error', data.error || `HTTP ${res.status}`);
+    }
+  } catch (e) {
+    showApprovalResult('error', `Failed: ${e.message}`);
+  }
+}
+
+async function doApproveRetry(approvalId) {
+  const result = document.getElementById('approval-result');
+  if (!result) return;
+  result.className = 'action-result show';
+  result.textContent = 'Approving & retrying...';
+  result.style.color = 'var(--text-muted)';
+
+  try {
+    const res = await fetch(`/approvals/${approvalId}/approve-and-retry`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ approved_by: 'dashboard' })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      let msg = `${approvalId} approved`;
+      if (data.retry) {
+        if (data.retry.success) {
+          msg += ` — retry OK (${data.retry.status_code})`;
+        } else {
+          msg += ` — retry failed (${data.retry.status_code || data.retry.error})`;
+        }
+      } else {
+        msg += ' — no original request to retry';
+      }
+      showApprovalResult('success', msg);
       setTimeout(() => loadOps(), 500);
     } else {
       showApprovalResult('error', data.error || `HTTP ${res.status}`);
