@@ -3,13 +3,13 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `ff09dd7` `feat(p8): add dry-run execution controls for /run and /batch`
+- `5568272` `feat(p8): add alert/notification hooks for system state changes`
 
 Latest verified feature commit on `main`:
-- `ff09dd7` `feat(p8): add dry-run execution controls for /run and /batch`
+- `5568272` `feat(p8): add alert/notification hooks for system state changes`
 
 Latest roadmap sync commit on `main`:
-- `ff09dd7` `feat(p8): add dry-run execution controls for /run and /batch`
+- `5568272` `feat(p8): add alert/notification hooks for system state changes`
 - Full unit test status at handoff: `515 / 515 passed`
 - Smoke test status at handoff: `67 / 67 passed`
 - Setup verification status at handoff: `75 / 75 passed`
@@ -134,17 +134,17 @@ Current completed scope:
 - safe fallback and degraded-mode visibility
 - aggregated system status endpoint
 - dashboard operations panels
-|- dry-run execution controls
-|- alert/notification hooks
-|- P8 Phase 4 implemented: Alert/Notification Hooks
-|- `alert.py` module with AlertManager for state change detection
-|- Webhook-based notifications for degraded/unhealthy/critical states
-|- Three alert types: system_unhealthy (critical), circuit_breaker_open (warning), degradation_detected (warning)
-|- Cooldown logic prevents alert spam (default 300s)
-|- New endpoints: `GET /alerts/log`, `POST /alerts/reset`
-|- Config-driven: `alerts.enabled`, `alerts.webhook_url`, `alerts.cooldown_seconds`
-|- Integrated with `/system/status` — alerts checked on each status evaluation
-|- Alerts disabled by default; no webhook calls when `alerts.enabled: false`
+- dry-run execution controls
+- alert/notification hooks
+- P8 Phase 4 implemented: Alert/Notification Hooks
+- `alert.py` module with AlertManager for state change detection
+- Webhook-based notifications for degraded/unhealthy/critical states
+- Three alert types: system_unhealthy (critical), circuit_breaker_open (warning), degradation_detected (warning)
+- Cooldown logic prevents alert spam (default 300s)
+- New endpoints: `GET /alerts/log`, `POST /alerts/reset`
+- Config-driven: `alerts.enabled`, `alerts.webhook_url`, `alerts.cooldown_seconds`
+- Integrated with `/system/status` — alerts checked on each status evaluation
+- Alerts disabled by default; no webhook calls when `alerts.enabled: false`
 - P8 Phase 3 implemented: Dry-Run Execution Controls
 - `POST /run` and `POST /batch` now support `dry_run: true` flag
 - Dry-run validates request, extracts orders, previews routing — no side effects
