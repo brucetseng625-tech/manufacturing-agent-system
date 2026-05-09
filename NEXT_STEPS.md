@@ -162,8 +162,17 @@ Current completed scope:
 - New endpoint: GET /guardrails for visibility
 - Approval via X-Approval-Token header
 - HTTP 403 with structured error on denial
-- By default disabled — zero breaking changes
-- P8 Phase 4 implemented: Alert/Notification Hooks
+|- By default disabled — zero breaking changes
+|- P10 Phase 1 implemented: HttpReadonlyProvider (First Real Readonly Provider)
+|- New class: HttpReadonlyProvider in data_source.py
+|- Fetches JSON from configurable HTTP endpoints (stdlib urllib only)
+|- Auto-detected by create_provider() when live_provider.http.base_url is set
+|- Health check: pings {base_url}{health_path} for connectivity diagnostics
+|- Read-only — no write capabilities, safe first step toward real data
+|- Falls back to skeleton LiveDataProvider when not configured
+|- Integrates with existing circuit breaker, auto-failover, degradation layers
+|- 19 new tests covering config, load, health, readiness, degradation
+|- P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
 - Three alert types: system_unhealthy (critical), circuit_breaker_open (warning), degradation_detected (warning)
@@ -243,6 +252,19 @@ Goal: Close the loop on alert lifecycle and provide operator-facing controls for
 | ~~P9~~ | ~~Incident timeline view~~ | ~~Unified event stream: runs, alerts, access log~~ | ~~timeline.py, /timeline endpoint, dashboard view, tests~~ | ~~P9-1~~ | ~~Codex~~ |
 | ~~P9~~ | ~~Execution guardrails~~ | ~~Config-driven allow/deny + approval for mutation ops~~ | ~~guardrails.py, /guardrails endpoint, tests~~ | ~~P9-1~~ | ~~Codex~~ |
 
+## P10 Real Readonly Provider Readiness
+
+Goal: Replace skeleton LiveDataProvider with concrete readonly integrations, enabling real data connectivity before moving to writable operations.
+
+### Roadmap
+
+| Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
+| --- | --- | --- | --- | --- | --- |
+| ~~P10~~ | ~~HttpReadonlyProvider~~ | ~~Fetch JSON from configurable HTTP endpoints~~ | ~~HttpReadonlyProvider class, health check, tests~~ | ~~P9 complete~~ | ~~Codex~~ |
+| P10 | ERP data mapping + validation | Map ERP response fields to internal schema | Field mapper, validation layer, tests | P10-1 | Codex |
+| P10 | Readonly provider diagnostics dashboard | Show HTTP provider health, latency, error rates | Dashboard panel, metrics, tests | P10-1 | Codex |
+| P10 | Provider selection operator UI | Let operator switch between local/http/auto from dashboard | Dashboard controls, tests | P10-1, P9-2 | Codex |
+
 ## Start Here
 
 When a new Codex / AI session starts, do this first:
@@ -288,7 +310,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P9 roadmap COMPLETE. All 4 items delivered (alert lifecycle, operator actions, timeline, guardrails). Ready for next phase planning.
+P10 roadmap defined. P10-1 (HttpReadonlyProvider) complete. Next: P10-2 (ERP data mapping + validation).
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them

@@ -1016,12 +1016,43 @@ Configure via `config.json`:
     "circuit_breaker": {
       "failure_threshold": 3,
       "recovery_seconds": 60
+    },
+    "http": {
+      "base_url": "https://api.example.com/data",
+      "timeout_seconds": 10,
+      "health_path": "/health"
     }
   }
 }
 ```
 
 Set `failure_threshold` to `0` (default) to disable the circuit breaker and use simple failover.
+
+### HTTP Readonly Provider (P10)
+
+The `HttpReadonlyProvider` is a concrete readonly integration that fetches JSON data from a configurable HTTP endpoint. It replaces the skeleton `LiveDataProvider` when `live_provider.http.base_url` is set.
+
+**How it works:**
+- Data loading: `{base_url}/{filename_without_ext}` (e.g., `orders.json` → `https://api.example.com/data/orders`)
+- Health check: `{base_url}{health_path}` or `{base_url}` if no health path
+- Strictly read-only — no write capabilities
+- Auto-detected by `create_provider()` when config is present
+- Integrates with existing circuit breaker, fallback, and degradation layers
+
+**Configuration:**
+```json
+{
+  "live_provider": {
+    "http": {
+      "base_url": "https://api.example.com/data",
+      "timeout_seconds": 10,
+      "health_path": "/health"
+    }
+  }
+}
+```
+
+When `base_url` is empty or not set, the system falls back to the skeleton `LiveDataProvider` (reports `not_configured`), preserving backward compatibility.
 
 ### Server Access Logging
 

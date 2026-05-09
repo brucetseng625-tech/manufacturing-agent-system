@@ -657,6 +657,204 @@ class AutoFailoverProvider(DataProvider):
 # Valid data source modes
 VALID_MODES = ("local", "live", "auto")
 
+
+class HttpReadonlyProvider(DataProvider):
+    """Read-only HTTP provider that fetches JSON from a configurable base URL.
+
+    Configuration via config.json:
+    ```json
+    {
+      "live_provider": {
+        "http": {
+          "base_url": "https://api.example.com/data",
+          "timeout_seconds": 10,
+          "health_path": "/health"
+        }
+      }
+    }
+    ```
+
+    Data loading: `{base_url}/{filename_without_ext}`
+    Health check: `{base_url}{health_path}` or `{base_url}` if no health_path.
+
+    This replaces the skeleton LiveDataProvider with a concrete readonly
+    integration that can fetch from real REST/JSON endpoints.
+    """
+
+    mode = "http_readonly"
+
+    def __init__(self, base_url=None, timeout=None, health_path=None):
+        self._base_url = base_url
+        self._timeout = timeout or 10
+        self._health_path = health_path or ""
+        self._last_health = None
+        self._last_health_time = None
+
+    @staticmethod
+    def _from_config():
+        """Create from config.json settings."""
+        base_url = get_config_value("live_provider.http.base_url", "")
+        timeout = get_config_value("live_provider.http.timeout_seconds", 10)
+        health_path = get_config_value("live_provider.http.health_path", "")
+        if not base_url:
+            return None
+        return HttpReadonlyProvider(base_url, timeout, health_path)
+
+    def name(self) -> str:
+        return "http_readonly"
+
+    def capabilities(self) -> list:
+        return [
+            ProviderCapability.READ.value,
+            ProviderCapability.HEALTH_CHECK.value,
+        ]
+
+    def _is_configured(self) -> bool:
+        return bool(self._base_url)
+
+    def readiness(self, data_dir: str = None) -> str:
+        if not get_config_value("rollout.live.enabled", True):
+            return ProviderReadiness.DISABLED.value
+        if not self._is_configured():
+            return ProviderReadiness.NOT_CONFIGURED.value
+        return ProviderReadiness.READY.value
+
+    def is_available(self, data_dir: str) -> bool:
+        if not get_config_value("rollout.live.enabled", True):
+            return False
+        if not self._is_configured():
+            return False
+        return True
+
+    def load(self, data_dir: str, filename: str) -> list:
+        """Fetch JSON from {base_url}/{filename_without_ext}."""
+        import urllib.request
+        import urllib.error
+
+        if not self._is_configured():
+            raise RuntimeError("HttpReadonlyProvider not configured — set live_provider.http.base_url")
+
+        base_name = os.path.splitext(filename)[0]
+        url = f"{self._base_url.rstrip('/')}/{base_name}"
+
+        try:
+            req = urllib.request.Request(url)
+            with urllib.request.urlopen(req, timeout=self._timeout) as resp:
+                body = resp.read().decode("utf-8")
+                data = json.loads(body)
+                if isinstance(data, list):
+                    return data
+                elif isinstance(data, dict):
+                    return [data]
+                else:
+                    return []
+        except urllib.error.HTTPError as e:
+            raise RuntimeError(
+                f"HTTP {e.code} from {url}: {e.reason}"
+            ) from e
+        except urllib.error.URLError as e:
+            raise RuntimeError(
+                f"Failed to reach {url}: {e.reason}"
+            ) from e
+        except json.JSONDecodeError as e:
+            raise RuntimeError(
+                f"Invalid JSON from {url}: {e}"
+            ) from e
+
+    def health_check(self, data_dir: str = None) -> dict:
+        """Ping health endpoint or base URL to check connectivity."""
+        import urllib.request
+        import urllib.error
+
+        if not get_config_value("rollout.live.enabled", True):
+            return {
+                "supported": True,
+                "status": "disabled",
+                "details": {"message": "Live provider disabled by rollout control"},
+            }
+        if not self._is_configured():
+            return {
+                "supported": True,
+                "status": "not_configured",
+                "details": {
+                    "message": "live_provider.http.base_url not set",
+                    "configured": False,
+                },
+            }
+
+        health_url = f"{self._base_url.rstrip('/')}{self._health_path}"
+        try:
+            req = urllib.request.Request(health_url)
+            with urllib.request.urlopen(req, timeout=self._timeout) as resp:
+                status_code = resp.status
+                body = resp.read().decode("utf-8")
+                is_healthy = 200 <= status_code < 300
+                self._last_health = "ok" if is_healthy else "unhealthy"
+                self._last_health_time = time.time()
+                return {
+                    "supported": True,
+                    "status": "ok" if is_healthy else "unhealthy",
+                    "details": {
+                        "url": health_url,
+                        "status_code": status_code,
+                        "configured": True,
+                        "response_preview": body[:200] if not is_healthy else "",
+                    },
+                }
+        except Exception as e:
+            self._last_health = "unreachable"
+            self._last_health_time = time.time()
+            return {
+                "supported": True,
+                "status": "unreachable",
+                "details": {
+                    "url": health_url,
+                    "configured": True,
+                    "error": str(e),
+                },
+            }
+
+    def degradation_status(self, data_dir: str = None) -> dict:
+        is_configured = self._is_configured()
+        rollout_enabled = get_config_value("rollout.live.enabled", True)
+
+        if not rollout_enabled:
+            return {
+                "is_degraded": True,
+                "mode": self.name(),
+                "active_path": "none",
+                "reason": "Live provider disabled by rollout control",
+                "live_readiness": "disabled",
+                "fallback_readiness": None,
+                "circuit_breaker": None,
+                "recommendations": ["Set rollout.live.enabled=true to re-enable"],
+            }
+
+        if not is_configured:
+            return {
+                "is_degraded": True,
+                "mode": self.name(),
+                "active_path": "none",
+                "reason": "HTTP base_url not configured",
+                "live_readiness": "not_configured",
+                "fallback_readiness": None,
+                "circuit_breaker": None,
+                "recommendations": ["Set live_provider.http.base_url in config.json"],
+            }
+
+        last_health = self._last_health or "unknown"
+        return {
+            "is_degraded": last_health != "ok",
+            "mode": self.name(),
+            "active_path": "http" if last_health == "ok" else "none",
+            "reason": f"Last health check: {last_health}",
+            "live_readiness": "ready" if last_health == "ok" else "degraded",
+            "fallback_readiness": None,
+            "circuit_breaker": None,
+            "recommendations": [f"Verify {self._base_url} is reachable"] if last_health != "ok" else [],
+        }
+
+
 # Default provider (local)
 _default_provider = LocalFileProvider()
 
@@ -682,7 +880,8 @@ def create_provider(mode: str, live_provider: DataProvider = None,
     Args:
         mode: 'local', 'live', or 'auto'
         live_provider: Optional custom LiveDataProvider instance.
-                      If not provided, uses the skeleton LiveDataProvider.
+                      If not provided, auto-detects HttpReadonlyProvider
+                      from config, or falls back to skeleton LiveDataProvider.
         cb_threshold: Circuit breaker failure threshold (0 = disabled).
         cb_recovery: Circuit breaker recovery seconds.
 
@@ -693,7 +892,13 @@ def create_provider(mode: str, live_provider: DataProvider = None,
         raise ValueError(f"Invalid data source mode: {mode}. Must be one of {VALID_MODES}")
 
     local = LocalFileProvider()
-    live = live_provider or LiveDataProvider()
+
+    # Auto-detect live provider: HttpReadonlyProvider if configured, else skeleton
+    if live_provider is None:
+        http_provider = HttpReadonlyProvider._from_config()
+        live = http_provider if http_provider else LiveDataProvider()
+    else:
+        live = live_provider
 
     if mode == "local":
         return local

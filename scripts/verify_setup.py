@@ -318,6 +318,17 @@ def main():
           "\"guardrails\"" in open(os.path.join(base, "config.example.json")).read(),
           "guardrails config section present")
 
+    # P10-1: HttpReadonlyProvider
+    check("P10: HttpReadonlyProvider class in data_source.py",
+          "class HttpReadonlyProvider" in open(os.path.join(base, "data_source.py")).read(),
+          "HttpReadonlyProvider class present")
+    check("P10: test_http_provider.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_http_provider.py")),
+          "http provider test file present")
+    check("P10: http config in config.example.json",
+          '"http"' in open(os.path.join(base, "config.example.json")).read(),
+          "http config section in live_provider")
+
     # Summary
     print()
     print("=" * 50)

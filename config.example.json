@@ -25,6 +25,11 @@
     "circuit_breaker": {
       "failure_threshold": 0,
       "recovery_seconds": 60
+    },
+    "http": {
+      "base_url": "",
+      "timeout_seconds": 10,
+      "health_path": "/health"
     }
   },
   "rollout": {

@@ -443,6 +443,16 @@ def main():
               "enabled" in gr,
               f"keys={list(gr.keys())}")
 
+        # P10-1: HttpReadonlyProvider
+        req = urllib.request.Request(
+            f"http://127.0.0.1:{port}/provider/status"
+        )
+        with urllib.request.urlopen(req) as resp:
+            ps = json.loads(resp.read())
+        check("P10: /provider/status responds 200",
+              resp.status == 200,
+              f"name={ps.get('name', 'unknown')}")
+
     finally:
         server.shutdown()
 
