@@ -2,15 +2,15 @@
 
 Last updated: 2026-05-09
 
-Current latest completed GitHub commit on `main`:
-- `d518eea` `feat(p12-3): add rollback and audit visibility for limited automation actions`
+Current latest completed feature commit on `main`:
+- `656d05a` `feat(p13-1): add approval replay preview visibility`
 
 Latest verified feature commit on `main`:
-- `d518eea` `feat(p12-3): add rollback and audit visibility for limited automation actions`
+- `656d05a` `feat(p13-1): add approval replay preview visibility`
 
-Latest roadmap sync commit on `main`:
-- `d518eea` `feat(p12-3): add rollback and audit visibility for limited automation actions`
-- Full unit test status at handoff: `785 / 785 passed`
+Important handoff note:
+- `main` may move to a docs-only sync commit after the latest verified feature commit above. Always confirm exact `HEAD` with `git rev-parse HEAD` before continuing.
+- Full unit test status at handoff: `791 / 791 passed`
 - Smoke test status at handoff: `98 / 98 passed`
 - Setup verification status at handoff: `161 / 161 passed`
 - Working tree at handoff: clean
@@ -122,6 +122,7 @@ Current completed scope:
 - approval-linked execution handoff
 - automation policy controls
 - rollback & audit visibility
+- approval replay preview visibility
 - expedite-options skill
 - material-shortage-recovery skill
 - capacity-rebalance skill
@@ -263,6 +264,13 @@ Current completed scope:
 - 28 unit tests covering rules, analyze_entry, query, summary
 - +2 smoke test checks + 6 verify setup checks
 - Updated README.md, NEXT_STEPS.md
+- P13 Phase 1 implemented: Approval Replay Preview Visibility
+- Approval queue API now returns sanitized `request_preview` metadata for pending/reviewed items
+- Sensitive request fields like `approval_token` are redacted from approval list/detail responses
+- New endpoint: `GET /approvals/{id}` for operator review of a single approval item
+- Dashboard Approval Queue now shows replay request method/path, body summary, and a low/medium risk badge
+- 6 new tests covering preview serialization, redaction, single-item endpoint, and dashboard markup
+- Updated README.md, NEXT_STEPS.md
 - P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
@@ -381,6 +389,19 @@ Goal: Bridge the gap between approval and execution, enabling safe limited autom
 | P12 | ~~Automation policy controls~~ | ~~Config-driven severity tiers for auto-remediation~~ | ~~severity levels, risk-based cooldowns, tests~~ | ~~P11-3~~ | ~~Codex~~ |
 | P12 | ~~Rollback & audit visibility~~ | ~~Track auto-actions with rollback capability~~ | ~~rollback log, audit trail enhancement, tests~~ | ~~P12-1, P11-1~~ | ~~Codex~~ |
 
+## P13 Operator Pilot Readiness
+
+Goal: Make limited automation understandable, reviewable, and operationally safe enough for an operator-facing pilot.
+
+### Roadmap
+
+| Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
+| --- | --- | --- | --- | --- | --- |
+| P13 | ~~Approval replay preview visibility~~ | ~~Show operators exactly what approve-and-retry will replay before they execute it~~ | ~~Sanitized request preview, approval detail endpoint, dashboard risk labels, tests~~ | ~~P12 complete~~ | ~~Codex~~ |
+| P13 | Automation execution receipts | Provide a single operator-facing record for approval retries and auto-remediation outcomes | Unified execution log/endpoint, dashboard card, tests | P13-1 | Codex |
+| P13 | Incident closure workflow | Make incident follow-up and resolution status explicitly operable | Resolution notes/status transitions, incident linkage, tests | P11-2, P13-2 | Codex |
+| P13 | Pilot readiness checklist | Codify human pilot prerequisites across safety, observability, and workflow completion | Runbook section, checklist endpoint/doc, tests if needed | P13-1 to P13-3 | Codex |
+
 ## Start Here
 
 When a new Codex / AI session starts, do this first:
@@ -388,7 +409,7 @@ When a new Codex / AI session starts, do this first:
 1. Pull latest `main`
 2. Read this file
 3. Check `skills/registry.py`, `run_agent.py`, `integrations/asana_client.py`
-4. Start with the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
+4. Start with the next unfinished roadmap item, currently `P13 Automation execution receipts`
 
 ## Roadmap Table
 
@@ -426,7 +447,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P12 phase complete (all 3 items: approval-linked handoff, automation policy, rollback visibility). Define next roadmap phase or prioritize new items.
+P13-1 complete. Continue with `P13 Automation execution receipts` unless a new blocking issue is found.
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them

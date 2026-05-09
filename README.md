@@ -1386,6 +1386,9 @@ Visual approval queue for guarded operations. When guardrails require an approva
 curl http://localhost:8000/approvals
 curl "http://localhost:8000/approvals?status=pending&limit=20"
 
+# Inspect one approval item with replay preview metadata
+curl http://localhost:8000/approvals/approval-1
+
 # Approve an item
 curl -X POST http://localhost:8000/approvals/approval-1/approve \
   -H "Content-Type: application/json" \
@@ -1405,7 +1408,7 @@ curl -X POST http://localhost:8000/approvals/approval-1/reject \
 curl -X POST http://localhost:8000/approvals/reset
 ```
 
-**Dashboard:** The Ops view includes an Approval Queue panel showing pending items with approve (✓), approve & retry (⟳), and reject (✗) buttons. Items display operation type, reason, and timestamp. The approve & retry button re-executes the originally blocked operation with the approval token automatically injected.
+**Dashboard:** The Ops view includes an Approval Queue panel showing pending items with approve (✓), approve & retry (⟳), and reject (✗) buttons. Items display operation type, request preview (`method + path + body summary`), timestamp, and a low/medium risk badge. The approve & retry button re-executes the originally blocked operation with the approval token automatically injected.
 
 ### Approval-Linked Execution Handoff (P12-1)
 
@@ -1419,6 +1422,34 @@ curl -X POST http://localhost:8000/approvals/approval-1/approve-and-retry \
   -d '{"approved_by": "operator"}'
 
 # Returns the retry result stored back on the approval item
+```
+
+### Approval Replay Preview Visibility (P13-1)
+
+Before an operator clicks approve or approve & retry, the approval APIs now expose a sanitized replay preview so the queued action is visible and reviewable.
+
+- **Sanitized by default** — token/secret/auth-like fields are redacted from preview payloads
+- **Operator-friendly** — each item includes `request_preview.method`, `request_preview.path`, `request_preview.body_summary`, and a `risk_level`
+- **Reviewable individually** — `GET /approvals/{id}` returns one item with the same replay preview metadata used by the dashboard
+
+**Example response:**
+```json
+{
+  "id": "approval-1",
+  "operation": "provider:select",
+  "status": "pending",
+  "risk_level": "medium",
+  "request_preview": {
+    "method": "POST",
+    "path": "/provider/select",
+    "body_summary": "mode=auto",
+    "body_keys": ["mode"],
+    "body": {
+      "mode": "auto"
+    },
+    "replay_ready": true
+  }
+}
 ```
 
 ### Automation Policy Controls (P12-2)
