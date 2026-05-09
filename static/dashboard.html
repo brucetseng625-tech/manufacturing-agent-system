@@ -630,9 +630,14 @@ async function loadOps() {
   grid.innerHTML = '<div class="loading">Loading ops data</div>';
 
   try {
-    const res = await fetch('/system/status');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const s = await res.json();
+    // Fetch system status and mapping diagnostics in parallel
+    const [sysRes, mapRes] = await Promise.all([
+      fetch('/system/status'),
+      fetch('/mapping/diagnostics').catch(() => null)
+    ]);
+    if (!sysRes.ok) throw new Error(`HTTP ${sysRes.status}`);
+    const s = await sysRes.json();
+    const mapping = mapRes && mapRes.ok ? await mapRes.json() : null;
 
     const statusColor = (st) => st === 'ok' ? 'var(--success)' : st === 'degraded' ? 'var(--warning)' : 'var(--error)';
     const readinessColor = (r) => {
@@ -712,6 +717,9 @@ async function loadOps() {
       </div>
     `;
 
+    // Readonly Provider Diagnostics Card
+    html += renderProviderDiagnosticsCard(s, mapping);
+
     // Operator Actions Card
     html += `
       <div class="card" style="grid-column: span 2;">
@@ -748,6 +756,98 @@ async function loadOps() {
   } catch (e) {
     grid.innerHTML = `<div class="error-state">Failed to load ops data: ${e.message}</div>`;
   }
+}
+
+// Readonly Provider Diagnostics Card — injected after Operator Actions
+function renderProviderDiagnosticsCard(s, mapping) {
+  const providerName = s.provider.name;
+  const readiness = s.provider.readiness;
+  const healthStatus = s.health.status;
+  const activePath = s.degradation.active_path;
+  const isDegraded = s.degradation.is_degraded;
+  const mappingEnabled = mapping && mapping.enabled;
+  const datasets = mapping ? mapping.datasets : {};
+  const runtimeStats = mapping ? mapping.runtime_stats : {};
+
+  const readinessColor = (r) => {
+    if (r === 'ready') return 'var(--success)';
+    if (r === 'degraded' || r === 'not_configured') return 'var(--warning)';
+    return 'var(--error)';
+  };
+  const statusColor = (st) => st === 'ok' ? 'var(--success)' : st === 'degraded' ? 'var(--warning)' : st === 'unreachable' || st === 'unhealthy' ? 'var(--error)' : 'var(--text-muted)';
+
+  // Determine provider-specific info
+  let providerInfo = '';
+  if (providerName === 'http_readonly') {
+    // HTTP provider: show base_url, health, mapping
+    const healthUrl = (s.health.details && s.health.details.url) || 'N/A';
+    providerInfo = `
+      <div style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border);">
+        <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.25rem;">HTTP Endpoint</div>
+        <code style="background:var(--bg-input);padding:0.2rem 0.5rem;border-radius:4px;font-size:0.75rem;word-break:break-all;display:block;">${healthUrl}</code>
+      </div>`;
+  } else if (providerName === 'auto') {
+    // Auto mode: show sub-provider details
+    const live = s.provider.live_provider || {};
+    const fallback = s.provider.fallback_provider || {};
+    providerInfo = `
+      <div style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border);">
+        <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.25rem;">Sub-providers</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-size:0.8rem;">
+          <div>Live: <strong style="color:${readinessColor(live.readiness)}">${live.readiness || 'N/A'}</strong></div>
+          <div>Fallback: <strong style="color:${readinessColor(fallback.readiness)}">${fallback.readiness || 'N/A'}</strong></div>
+        </div>
+      </div>`;
+  }
+
+  // Mapping section
+  let mappingSection = '';
+  if (mappingEnabled) {
+    const datasetList = Object.entries(datasets).map(([name, ds]) => {
+      const stats = runtimeStats[name] || {};
+      const total = stats.total || 0;
+      const mapped = stats.mapped || 0;
+      const errors = stats.errors || 0;
+      const statBadge = total > 0
+        ? `<span class="badge" style="background:${errors > 0 ? 'var(--error)' : 'var(--success)'};color:#fff;font-size:0.7rem;padding:0.1rem 0.4rem;">${mapped}/${total} mapped</span>`
+        : '<span style="color:var(--text-muted);font-size:0.75rem;">No data yet</span>';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:0.8rem;padding:0.25rem 0;">
+        <span>${name} <span style="color:var(--text-muted);">(${ds.field_mapping_count || 0} mappings)</span></span>
+        ${statBadge}
+      </div>`;
+    }).join('');
+
+    mappingSection = `
+      <div style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border);">
+        <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.25rem;">Data Mapping <span class="badge" style="background:var(--accent);color:#fff;font-size:0.7rem;padding:0.1rem 0.4rem;">ENABLED</span></div>
+        ${datasetList || '<div style="font-size:0.8rem;color:var(--text-muted);">No datasets configured</div>'}
+      </div>`;
+  } else {
+    mappingSection = `
+      <div style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border);">
+        <div style="font-size:0.8rem;color:var(--text-muted);">Data Mapping <span class="badge" style="background:var(--text-muted);color:#fff;font-size:0.7rem;padding:0.1rem 0.4rem;">DISABLED</span></div>
+      </div>`;
+  }
+
+  return `
+    <div class="card" style="grid-column: span 2;">
+      <div class="card-header">
+        <span class="card-title">Readonly Provider Diagnostics</span>
+        <div style="display:flex;gap:0.5rem;">
+          <span class="badge" style="background:${readinessColor(readiness)};color:#fff;">${readiness.toUpperCase()}</span>
+          <span class="badge" style="background:${statusColor(healthStatus)};color:#fff;">${healthStatus.toUpperCase()}</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-size:0.9rem;">
+        <div><span style="color:var(--text-muted)">Provider:</span> <strong>${providerName}</strong></div>
+        <div><span style="color:var(--text-muted)">Active Path:</span> <strong style="color:${isDegraded ? 'var(--warning)' : 'var(--success)'}">${activePath}</strong></div>
+        <div><span style="color:var(--text-muted)">Capabilities:</span> <strong>${(s.provider.capabilities || []).join(', ') || 'N/A'}</strong></div>
+        <div><span style="color:var(--text-muted)">Updated:</span> <strong>${s.timestamp || new Date().toISOString().split('T')[0]}</strong></div>
+      </div>
+      ${providerInfo}
+      ${mappingSection}
+    </div>
+  `;
 }
 
 // Operator Actions

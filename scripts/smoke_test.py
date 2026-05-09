@@ -453,7 +453,7 @@ def main():
               resp.status == 200,
               f"name={ps.get('name', 'unknown')}")
 
-        # P10-2: Data mapping diagnostics
+        # P10-2: /mapping/diagnostics responds 200
         req = urllib.request.Request(
             f"http://127.0.0.1:{port}/mapping/diagnostics"
         )
@@ -468,6 +468,18 @@ def main():
         check("P10-2: diagnostics has runtime_stats field",
               "runtime_stats" in mp,
               f"stats keys={list(mp.get('runtime_stats', {}).keys())}")
+
+        # P10-3: Readonly provider diagnostics dashboard
+        dashboard_html = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static", "dashboard.html")).read()
+        check("P10-3: Dashboard contains Provider Diagnostics card",
+              "Readonly Provider Diagnostics" in dashboard_html,
+              "Provider Diagnostics panel present")
+        check("P10-3: Dashboard has renderProviderDiagnosticsCard function",
+              "renderProviderDiagnosticsCard" in dashboard_html,
+              "renderProviderDiagnosticsCard JS function present")
+        check("P10-3: Dashboard fetches /mapping/diagnostics in loadOps",
+              "fetch('/mapping/diagnostics')" in dashboard_html,
+              "loadOps fetches mapping diagnostics")
 
     finally:
         server.shutdown()

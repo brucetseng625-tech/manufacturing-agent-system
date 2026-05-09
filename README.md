@@ -1140,6 +1140,23 @@ Returns mapping configuration status, per-dataset rule counts, and runtime stati
 - When mapping is enabled but a specific dataset is not configured, that dataset's data is returned as-is
 - If mapping fails for any record, it is excluded from the output — errors are logged but do not block data loading
 
+### Readonly Provider Diagnostics Dashboard (P10-3)
+
+The Ops view on the dashboard now includes a **Readonly Provider Diagnostics** card that provides a unified view of your live/HTTP provider status and data mapping health.
+
+**Displayed information:**
+- **Provider type & readiness** — local, http_readonly, auto, or live
+- **Health status** — ok, degraded, unreachable, not_configured
+- **Active path** — which provider is currently serving data
+- **HTTP endpoint URL** — when using HttpReadonlyProvider, shows the configured base_url
+- **Sub-provider details** — when in auto mode, shows live and fallback readiness
+- **Data mapping status** — enabled/disabled badge
+- **Dataset coverage** — per-dataset field mapping count and runtime stats (mapped/total, errors)
+
+The card fetches data from `/system/status` and `/mapping/diagnostics` in parallel on each Ops view load, so it's always up-to-date.
+
+![Provider Diagnostics] — visible in the Dashboard Ops view under the Data Directory card and above Operator Actions.
+
 ### Server Access Logging
 
 Enable structured HTTP access logging to track all requests to the server:

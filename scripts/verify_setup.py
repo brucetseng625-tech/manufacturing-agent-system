@@ -358,6 +358,21 @@ def main():
           "apply_mapping" in open(os.path.join(base, "data_source.py")).read(),
           "HttpReadonlyProvider integrates mapping")
 
+    # P10-3: Readonly provider diagnostics dashboard
+    dashboard_html = open(os.path.join(base, "static", "dashboard.html")).read()
+    check("P10-3: Dashboard contains Provider Diagnostics card",
+          "Readonly Provider Diagnostics" in dashboard_html,
+          "Provider Diagnostics panel present")
+    check("P10-3: Dashboard has renderProviderDiagnosticsCard function",
+          "renderProviderDiagnosticsCard" in dashboard_html,
+          "renderProviderDiagnosticsCard JS function present")
+    check("P10-3: loadOps fetches /mapping/diagnostics",
+          "fetch('/mapping/diagnostics')" in dashboard_html,
+          "loadOps fetches mapping diagnostics")
+    check("P10-3: smoke test includes P10-3 checks",
+          "Readonly Provider Diagnostics" in open(os.path.join(base, "scripts", "smoke_test.py")).read(),
+          "smoke test has P10-3 checks")
+
     # Summary
     print()
     print("=" * 50)
