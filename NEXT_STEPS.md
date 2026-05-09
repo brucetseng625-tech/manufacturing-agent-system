@@ -3,16 +3,16 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `be72a4e` `docs: sync handoff metadata after P10-3 diagnostics dashboard delivery`
+- `b2ef4c8` `feat(p10-4): add provider selection operator UI`
 
 Latest verified feature commit on `main`:
-- `d67e7e1` `feat(p10-3): add readonly provider diagnostics dashboard card`
+- `b2ef4c8` `feat(p10-4): add provider selection operator UI`
 
 Latest roadmap sync commit on `main`:
-- `be72a4e` `docs: sync handoff metadata after P10-3 diagnostics dashboard delivery`
-- Full unit test status at handoff: `647 / 647 passed`
-- Smoke test status at handoff: `83 / 83 passed`
-- Setup verification status at handoff: `108 / 108 passed`
+- `b2ef4c8` `feat(p10-4): add provider selection operator UI`
+- Full unit test status at handoff: `654 / 654 passed`
+- Smoke test status at handoff: `87 / 87 passed`
+- Setup verification status at handoff: `115 / 115 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
