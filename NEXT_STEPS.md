@@ -3,13 +3,13 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `dfaa908` `feat(p11-2): add incident report generation`
+- `5083920` `docs: sync handoff metadata after P11-2 incident report delivery`
 
 Latest verified feature commit on `main`:
 - `dfaa908` `feat(p11-2): add incident report generation`
 
 Latest roadmap sync commit on `main`:
-- `dfaa908` `feat(p11-2): add incident report generation`
+- `5083920` `docs: sync handoff metadata after P11-2 incident report delivery`
 - Full unit test status at handoff: `691 / 691 passed`
 - Smoke test status at handoff: `90 / 90 passed`
 - Setup verification status at handoff: `126 / 126 passed`
@@ -201,22 +201,22 @@ Current completed scope:
 - guardrails updated with provider:select (approval-required by default)
 - 7 new unit tests for provider selection API + 4 smoke + 7 verify checks
 - Updated README.md, NEXT_STEPS.md, config.example.json
-|- P11 Phase 1 implemented: Audit Chain for Critical Operations
-|- New module: audit_chain.py with append_audit_entry, query_audit_log, get_audit_summary
-|- Unified JSONL audit log for operator actions (logs/audit.jsonl)
-|- Integrated into config reload, policy reload, provider select, alerts reset, guardrails
-|- GET /audit endpoint with action/result filters and summary aggregation
-|- 15 unit tests covering append, query, filter, paginate, summary
-|- +1 smoke test + 7 verify setup checks
-|- Updated README.md, NEXT_STEPS.md
-|- P11 Phase 2 implemented: Incident Report Generation
-|- New module: incident_report.py with generate_incident_report
-|- Aggregates system status, alerts, audit entries, timeline into unified report
-|- GET /incident/report endpoint with configurable time window
-|- Includes incident summary, affected provider info, resolution status, recommendations
-|- 22 unit tests covering report structure, helpers, filtering
-|- +2 smoke test checks + 4 verify setup checks
-|- Updated README.md, NEXT_STEPS.md
+- P11 Phase 1 implemented: Audit Chain for Critical Operations
+- New module: audit_chain.py with append_audit_entry, query_audit_log, get_audit_summary
+- Unified JSONL audit log for operator actions (logs/audit.jsonl)
+- Integrated into config reload, policy reload, provider select, alerts reset, guardrails
+- GET /audit endpoint with action/result filters and summary aggregation
+- 15 unit tests covering append, query, filter, paginate, summary
+- +1 smoke test + 7 verify setup checks
+- Updated README.md, NEXT_STEPS.md
+- P11 Phase 2 implemented: Incident Report Generation
+- New module: incident_report.py with generate_incident_report
+- Aggregates system status, alerts, audit entries, timeline into unified report
+- GET /incident/report endpoint with configurable time window
+- Includes incident summary, affected provider info, resolution status, recommendations
+- 22 unit tests covering report structure, helpers, filtering
+- +2 smoke test checks + 4 verify setup checks
+- Updated README.md, NEXT_STEPS.md
 - P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
