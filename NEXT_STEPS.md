@@ -3,13 +3,13 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `16644f6` `feat(p12-2): add automation policy controls for limited automation actions`
+- `4ea32b3` `docs: add P12-1/P12-2 README sections, fix test isolation, sync NEXT_STEPS handoff`
 
 Latest verified feature commit on `main`:
 - `16644f6` `feat(p12-2): add automation policy controls for limited automation actions`
 
 Latest roadmap sync commit on `main`:
-- `16644f6` `feat(p12-2): add automation policy controls for limited automation actions`
+- `4ea32b3` `docs: add P12-1/P12-2 README sections, fix test isolation, sync NEXT_STEPS handoff`
 - Full unit test status at handoff: `757 / 757 passed`
 - Smoke test status at handoff: `96 / 96 passed`
 - Setup verification status at handoff: `155 / 155 passed`
