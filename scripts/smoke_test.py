@@ -501,6 +501,15 @@ def main():
               "entries" in audit_res and "summary" in audit_res,
               f"keys={list(audit_res.keys())}")
 
+        # P11-2: Incident report
+        ir = get("/incident/report", port)
+        check("P11-2: /incident/report responds 200",
+              "report_id" in ir and "incident_summary" in ir,
+              f"keys={list(ir.keys())}")
+        check("P11-2: report has resolution_status",
+              "resolution_status" in ir,
+              f"status={ir.get('resolution_status')}")
+
     finally:
         server.shutdown()
 

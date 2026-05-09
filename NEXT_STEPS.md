@@ -116,6 +116,7 @@ Current completed scope:
 - readonly provider diagnostics dashboard
 - provider selection operator UI
 - audit chain for critical operations
+- incident report generation
 - expedite-options skill
 - material-shortage-recovery skill
 - capacity-rebalance skill
@@ -200,14 +201,22 @@ Current completed scope:
 - guardrails updated with provider:select (approval-required by default)
 - 7 new unit tests for provider selection API + 4 smoke + 7 verify checks
 - Updated README.md, NEXT_STEPS.md, config.example.json
-- P11 Phase 1 implemented: Audit Chain for Critical Operations
-- New module: audit_chain.py with append_audit_entry, query_audit_log, get_audit_summary
-- Unified JSONL audit log for operator actions (logs/audit.jsonl)
-- Integrated into config reload, policy reload, provider select, alerts reset, guardrails
-- GET /audit endpoint with action/result filters and summary aggregation
-- 15 unit tests covering append, query, filter, paginate, summary
-- +1 smoke test + 7 verify setup checks
-- Updated README.md, NEXT_STEPS.md
+|- P11 Phase 1 implemented: Audit Chain for Critical Operations
+|- New module: audit_chain.py with append_audit_entry, query_audit_log, get_audit_summary
+|- Unified JSONL audit log for operator actions (logs/audit.jsonl)
+|- Integrated into config reload, policy reload, provider select, alerts reset, guardrails
+|- GET /audit endpoint with action/result filters and summary aggregation
+|- 15 unit tests covering append, query, filter, paginate, summary
+|- +1 smoke test + 7 verify setup checks
+|- Updated README.md, NEXT_STEPS.md
+|- P11 Phase 2 implemented: Incident Report Generation
+|- New module: incident_report.py with generate_incident_report
+|- Aggregates system status, alerts, audit entries, timeline into unified report
+|- GET /incident/report endpoint with configurable time window
+|- Includes incident summary, affected provider info, resolution status, recommendations
+|- 22 unit tests covering report structure, helpers, filtering
+|- +2 smoke test checks + 4 verify setup checks
+|- Updated README.md, NEXT_STEPS.md
 - P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
@@ -310,7 +319,7 @@ Goal: Deepen approval/audit chain, incident reporting, and limited automation sa
 | Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
 | --- | --- | --- | --- | --- | --- |
 | ~~P11~~ | ~~Audit chain for critical operations~~ | ~~Unified audit log for operator actions~~ | ~~audit_chain.py, /audit endpoint, integration, tests~~ | ~~P10 complete~~ | ~~Codex~~ |
-| P11 | Incident report generation | Auto-generate reports after incident resolution | Report builder, endpoint, tests | P11-1 | Codex |
+| ~~P11~~ | ~~Incident report generation~~ | ~~Auto-generate reports from timeline + audit + alerts~~ | ~~incident_report.py, /incident/report endpoint, tests~~ | ~~P11-1~~ | ~~Codex~~ |
 | P11 | Auto-remediation hooks | Trigger automatic fixes on specific alerts | Config-driven hooks, safety rails, tests | P11-1 | Codex |
 | P11 | Approval workflow dashboard | Visual approval queue for guarded operations | Dashboard panel, tests | P11-1, P9-4 | Codex |
 
@@ -359,7 +368,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P11 roadmap defined. P11-1 (Audit chain for critical operations) complete. Next: P11-2 (Incident report generation).
+P11 roadmap defined. P11-1 (Audit chain) and P11-2 (Incident report generation) complete. Next: P11-3 (Auto-remediation hooks).
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them

@@ -23,6 +23,7 @@ from timeline import build_timeline, timeline_summary
 from guardrails import check_guardrail, get_guardrails_status
 from data_mapper import get_mapping_diagnostics, reset_mapping_stats
 from audit_chain import append_audit_entry, query_audit_log, get_audit_summary
+from incident_report import generate_incident_report
 from config import (
     get_config,
     get_config_value,
@@ -202,6 +203,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._send_json_response(200, get_mapping_diagnostics())
         elif path == "/audit":
             self._handle_audit_query(parsed_path)
+        elif path == "/incident/report":
+            self._handle_incident_report(parsed_path)
         else:
             self._send_error_response(404, "not_found", "Endpoint not found")
 
@@ -645,6 +648,21 @@ class AgentHandler(BaseHTTPRequestHandler):
             })
         except Exception as e:
             self._send_error_response(500, "internal_error", "Failed to query audit log", str(e))
+
+    def _handle_incident_report(self, parsed_path):
+        """Handle GET /incident/report — generate an incident report.
+
+        Query params:
+            window_minutes: Time window for data aggregation (default 60)
+        """
+        try:
+            params = parse_qs(parsed_path.query)
+            window = int(params.get("window_minutes", ["60"])[0])
+
+            report = generate_incident_report(window_minutes=window)
+            self._send_json_response(200, report)
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to generate incident report", str(e))
 
     def _handle_history(self, parsed_path):
         """Handle GET /history with optional query parameters for filtering."""

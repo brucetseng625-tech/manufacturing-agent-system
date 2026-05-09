@@ -419,6 +419,20 @@ def main():
           "append_audit_entry" in open(os.path.join(base, "server.py")).read(),
           "audit logging integrated in server")
 
+    # P11-2: Incident report generation
+    check("P11-2: incident_report.py exists",
+          os.path.isfile(os.path.join(base, "incident_report.py")),
+          "incident_report module present")
+    check("P11-2: test_incident_report.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_incident_report.py")),
+          "incident report test file present")
+    check("P11-2: generate_incident_report in incident_report.py",
+          "def generate_incident_report" in open(os.path.join(base, "incident_report.py")).read(),
+          "generate_incident_report function present")
+    check("P11-2: /incident/report handler in server.py",
+          "_handle_incident_report" in open(os.path.join(base, "server.py")).read(),
+          "incident report handler present")
+
     # Summary
     print()
     print("=" * 50)

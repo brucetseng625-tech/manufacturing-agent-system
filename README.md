@@ -613,6 +613,12 @@ Unauthorized requests return `401` with:
   ```
   Query params: `action`, `result`, `last`, `offset`
 
+- **GET /incident/report**
+  Generates aggregated incident report from all data sources.
+  ```bash
+  curl http://localhost:8000/incident/report?window_minutes=60
+  ```
+
 - **POST /provider/select**
   Switch the default data source mode at runtime.
   Protect mutation-capable operations with config-driven allow/deny and approval rules.
@@ -1262,6 +1268,31 @@ curl http://localhost:8000/audit?last=10&offset=20
 ```
 
 Response includes `entries`, `total`, and `summary` (action/result counts, last entry).
+
+### Incident Report Generation (P11-2)
+
+The incident report generator aggregates data from all available sources (system status, alerts, audit chain, timeline) into a single structured report for operator review.
+
+**Report contents:**
+- **System status** — Current overall state, health, provider name, degradation status
+- **Incident summary** — Human-readable one-line summary of current situation
+- **Related alerts** — All active and recent alerts with lifecycle status
+- **Related audit** — Recent operator actions from the audit chain
+- **Timeline preview** — Most recent timeline events
+- **Affected provider** — Detailed provider info including readiness, capabilities, health, active path
+- **Resolution status** — `resolved`, `degraded`, or `unresolved`
+- **Recommendations** — Actionable suggestions based on current state
+
+**API:**
+```bash
+# Generate current incident report
+curl http://localhost:8000/incident/report
+
+# Custom time window (minutes)
+curl http://localhost:8000/incident/report?window_minutes=30
+```
+
+Reports are cached for 30 seconds to avoid redundant system status calls.
 
 ### Server Access Logging
 
