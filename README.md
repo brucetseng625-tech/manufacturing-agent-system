@@ -1407,6 +1407,73 @@ curl -X POST http://localhost:8000/approvals/reset
 
 **Dashboard:** The Ops view includes an Approval Queue panel showing pending items with approve (✓), approve & retry (⟳), and reject (✗) buttons. Items display operation type, reason, and timestamp. The approve & retry button re-executes the originally blocked operation with the approval token automatically injected.
 
+### Approval-Linked Execution Handoff (P12-1)
+
+When an operator approves a pending guardrail request, the `POST /approvals/{id}/approve-and-retry` endpoint automatically re-executes the originally blocked operation. The approval queue stores the full original HTTP request (method, path, body, query), and the `_replay_request()` helper replays it with the approval token injected — no need for the operator to manually reconstruct the request.
+
+**API:**
+```bash
+# Approve and re-execute the originally blocked operation
+curl -X POST http://localhost:8000/approvals/approval-1/approve-and-retry \
+  -H "Content-Type: application/json" \
+  -d '{"approved_by": "operator"}'
+
+# Returns the retry result stored back on the approval item
+```
+
+### Automation Policy Controls (P12-2)
+
+A config-driven policy layer that gates which automation actions are permitted. This provides operator-safe control over auto-remediation hooks, approval-linked retries, and provider mode operations — all defaulting to deny-all when enabled.
+
+**Design principles:**
+- **Config-driven** — policies defined in `automation_policy` config section
+- **Default-safe** — empty `allowed_actions` = deny-all when enabled
+- **Explicit deny takes precedence** — `denied_actions` always overrides `allowed_actions`
+- **Disabled by default** — zero breaking changes when not configured
+- **Full audit integration** — all policy denials are logged with consistent error shape
+
+**Configuration (`config.json`):**
+```json
+{
+  "automation_policy": {
+    "enabled": false,
+    "allowed_actions": [
+      "auto_remediation.circuit_breaker_open",
+      "auto_remediation.provider_degraded",
+      "approval_retry.config_reload"
+    ],
+    "denied_actions": [],
+    "provider_modes": {
+      "auto_remediation": ["http_readonly", "local"],
+      "approval_retry": ["http_readonly", "local", "auto"]
+    }
+  }
+}
+```
+
+**API:**
+```bash
+# Inspect current automation policy
+curl http://localhost:8000/automation/policy
+```
+
+Returns:
+```json
+{
+  "enabled": false,
+  "allowed_actions": [],
+  "denied_actions": [],
+  "provider_modes": {},
+  "policy_active": false
+}
+```
+
+**Integration points:**
+- **Auto-remediation** — `auto_remediation.py` calls `check_automation_allowed()` before executing any trigger action
+- **Approval retry** — `server.py` approves-and-retry handler checks policy before replaying requests
+- **Audit chain** — policy denials logged with `action="automation_policy_denied"` and consistent error metadata
+- **Guardrails** — policy layer operates above guardrails, adding a second approval gate for automation
+
 ### Server Access Logging
 
 - **GET /provider/status**

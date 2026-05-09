@@ -1,6 +1,7 @@
 """Tests for incident_report — incident report generation."""
 
 import unittest
+import unittest.mock
 import json
 import os
 import sys
@@ -170,8 +171,10 @@ class IncidentReportHelpersTest(unittest.TestCase):
         self.assertEqual(info["active_path"], "live")
         self.assertEqual(info["default_mode"], "auto")
 
-    def test_build_recommendations_healthy(self):
+    @unittest.mock.patch("incident_report.get_audit_summary")
+    def test_build_recommendations_healthy(self, mock_summary):
         """Healthy system should recommend no action."""
+        mock_summary.return_value = {"by_result": {}, "total_entries": 0, "by_action": {}, "last_entry": None}
         recs = _build_recommendations({}, False, True)
         self.assertIn("System is healthy", " ".join(recs))
 

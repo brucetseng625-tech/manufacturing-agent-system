@@ -3,16 +3,16 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `56cd4a5` `docs: update handoff metadata after P12-1 test coverage completion`
+- `16644f6` `feat(p12-2): add automation policy controls for limited automation actions`
 
 Latest verified feature commit on `main`:
-- `5edb62e` `feat(p12-1): add approval-linked execution handoff`
+- `16644f6` `feat(p12-2): add automation policy controls for limited automation actions`
 
 Latest roadmap sync commit on `main`:
-- `56cd4a5` `docs: update handoff metadata after P12-1 test coverage completion`
-- Full unit test status at handoff: `744 / 744 passed`
-- Smoke test status at handoff: `95 / 95 passed`
-- Setup verification status at handoff: `148 / 148 passed`
+- `16644f6` `feat(p12-2): add automation policy controls for limited automation actions`
+- Full unit test status at handoff: `757 / 757 passed`
+- Smoke test status at handoff: `96 / 96 passed`
+- Setup verification status at handoff: `155 / 155 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
@@ -120,6 +120,7 @@ Current completed scope:
 - auto-remediation hooks
 - approval workflow dashboard
 - approval-linked execution handoff
+- automation policy controls
 - expedite-options skill
 - material-shortage-recovery skill
 - capacity-rebalance skill
