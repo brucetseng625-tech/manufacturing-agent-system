@@ -146,9 +146,16 @@ Current completed scope:
 - Ops view includes "Operator Actions" card with one-click buttons
 - Actions: Reset Alerts, Reload Config, Reload Policy, Health Check
 - Inline success/failure feedback via `doAction()` JavaScript
-- Dashboard is pure frontend — calls existing API endpoints
-- Zero backend changes; additive to dashboard only
-- P8 Phase 4 implemented: Alert/Notification Hooks
+|- Dashboard is pure frontend — calls existing API endpoints
+|- Zero backend changes; additive to dashboard only
+|- P9 Phase 3 implemented: Incident Timeline View
+|- Unified timeline aggregating: runs.jsonl (audit), alerts (in-memory), access.log
+|- New module: timeline.py with build_timeline() and timeline_summary()
+|- New endpoint: GET /timeline (type filter, last param)
+|- Dashboard Timeline view with type/limit filters
+|- Events sorted newest-first with run_id and alert_id badges
+|- Read-only surface — no mutation of existing log layers
+|- P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
 - Three alert types: system_unhealthy (critical), circuit_breaker_open (warning), degradation_detected (warning)
@@ -225,7 +232,7 @@ Goal: Close the loop on alert lifecycle and provide operator-facing controls for
 | --- | --- | --- | --- | --- | --- |
 | ~~P9~~ | ~~Alert acknowledgement workflow~~ | ~~Track alert lifecycle: firing → acknowledged → resolved~~ | ~~Alert IDs, status tracking, lifecycle endpoints, tests~~ | ~~P8-4 alert hooks~~ | ~~Codex~~ |
 | ~~P9~~ | ~~Dashboard operator action panel~~ | ~~Buttons: reset alerts, reload config, reload policy, health check~~ | ~~Ops view action card, doAction JS, tests~~ | ~~P9-1~~ | ~~Codex~~ |
-| P9 | Incident timeline view | Searchable timeline stitching alerts, access logs, run history | Timeline endpoint, dashboard view, tests | P9-1 | Codex |
+| ~~P9~~ | ~~Incident timeline view~~ | ~~Unified event stream: runs, alerts, access log~~ | ~~timeline.py, /timeline endpoint, dashboard view, tests~~ | ~~P9-1~~ | ~~Codex~~ |
 | P9 | Execution guardrails | Rate limiting + approval gates for destructive actions | Rate limiter, approval config, tests | P8-3 dry-run | Codex |
 
 ## Start Here
@@ -273,7 +280,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P9 roadmap defined. P9-1 (Alert acknowledgement workflow) and P9-2 (Dashboard operator action panel) complete. Next: P9-3 (Incident timeline view).
+P9 roadmap defined. P9-1 (Alert acknowledgement), P9-2 (Dashboard operator panel), P9-3 (Incident timeline) complete. Next: P9-4 (Execution guardrails).
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them

@@ -550,6 +550,35 @@ Unauthorized requests return `401` with:
   - **Health Check** → GET `/provider/health`
   Each action shows inline success/failure feedback.
 
+- **GET /timeline**
+  Unified incident timeline aggregating runs, alerts, and access log events.
+  ```bash
+  curl http://localhost:8000/timeline
+  curl http://localhost:8000/timeline?last=20&type=alert
+  ```
+  Response:
+  ```json
+  {
+    "total": 15,
+    "events": [
+      {
+        "timestamp": "2026-05-08T12:00:00+00:00",
+        "event_type": "run",
+        "summary": "[SUCCESS] delivery-risk-analysis via cli — ORD-1001",
+        "run_id": "run-20260508-abc123",
+        "alert_id": null,
+        "detail": { ... }
+      }
+    ],
+    "summary": "Timeline (15 events): ..."
+  }
+  ```
+  Query parameters:
+  - `last` — max events to return (default 50)
+  - `type` — filter by `run`, `alert`, or `access`
+
+  The Dashboard includes a Timeline view with type/limit filters.
+
 - **GET /skills**
   ```bash
   curl http://localhost:8000/skills

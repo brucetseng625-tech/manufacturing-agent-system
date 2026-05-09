@@ -411,6 +411,25 @@ def main():
               "Operator Actions" in dashboard_html,
               "Operator Actions panel present")
 
+        # P9-3: Incident timeline
+        req = urllib.request.Request(
+            f"http://127.0.0.1:{port}/timeline"
+        )
+        with urllib.request.urlopen(req) as resp:
+            tl = json.loads(resp.read())
+        check("Timeline: /timeline responds 200",
+              resp.status == 200,
+              f"status={resp.status}")
+        check("Timeline: /timeline has events list",
+              "events" in tl and isinstance(tl["events"], list),
+              f"total={tl.get('total', 0)}")
+        check("Timeline: /timeline has summary",
+              "summary" in tl,
+              "summary text present")
+        check("Dashboard: contains Timeline nav item",
+              "data-view=\"timeline\"" in dashboard_html,
+              "Timeline navigation item present")
+
     finally:
         server.shutdown()
 

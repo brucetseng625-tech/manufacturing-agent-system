@@ -284,6 +284,23 @@ def main():
           "doAction" in dashboard_html,
           "doAction JavaScript function")
 
+    # P9-3: Incident timeline
+    check("Timeline: timeline.py exists",
+          os.path.isfile(os.path.join(base, "timeline.py")),
+          "timeline module present")
+    check("Timeline: test_timeline.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_timeline.py")),
+          "timeline test file present")
+    check("Timeline: build_timeline function in timeline.py",
+          "def build_timeline" in open(os.path.join(base, "timeline.py")).read(),
+          "build_timeline function present")
+    check("Timeline: /timeline endpoint in server.py",
+          "_handle_timeline" in open(os.path.join(base, "server.py")).read(),
+          "timeline handler present")
+    check("Dashboard: Timeline nav item present",
+          "data-view=\"timeline\"" in dashboard_html,
+          "Timeline navigation item")
+
     # Summary
     print()
     print("=" * 50)

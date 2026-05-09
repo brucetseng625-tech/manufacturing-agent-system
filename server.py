@@ -19,6 +19,7 @@ from metrics import compute_metrics
 from data_dir_monitor import scan_data_dir, get_data_dir_metadata
 from data_source import set_data_source, create_provider, get_provider_name, get_provider_status, get_provider_health, get_degradation_status, get_system_status
 from alert import check_alerts, get_alert_manager
+from timeline import build_timeline, timeline_summary
 from config import (
     get_config,
     get_config_value,
@@ -190,6 +191,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_alerts_list(parsed_path)
         elif path.startswith("/alerts/"):
             self._handle_alert_detail(path, parsed_path)
+        elif path == "/timeline":
+            self._handle_timeline(parsed_path)
         else:
             self._send_error_response(404, "not_found", "Endpoint not found")
 
@@ -509,6 +512,34 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._send_json_response(status, result)
             return
         self._send_json_response(200, result)
+
+    def _handle_timeline(self, parsed_path):
+        """Handle GET /timeline — unified incident timeline from all sources."""
+        try:
+            params = parse_qs(parsed_path.query)
+            last_n = 50
+            if "last" in params:
+                try:
+                    last_n = int(params["last"][0])
+                except (ValueError, IndexError):
+                    pass
+
+            event_type = None
+            if "type" in params:
+                et = params["type"][0]
+                if et in ("run", "alert", "access"):
+                    event_type = et
+
+            events = build_timeline(last_n=last_n, event_type=event_type)
+            summary = timeline_summary(events)
+
+            self._send_json_response(200, {
+                "total": len(events),
+                "events": events,
+                "summary": summary,
+            })
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to build timeline", str(e))
 
     def _handle_history(self, parsed_path):
         """Handle GET /history with optional query parameters for filtering."""

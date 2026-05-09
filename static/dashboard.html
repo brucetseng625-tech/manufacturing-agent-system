@@ -225,6 +225,9 @@ body {
     <div class="nav-item" data-view="ops">
       <span class="nav-icon">🔧</span><span class="nav-text">Ops</span>
     </div>
+    <div class="nav-item" data-view="timeline">
+      <span class="nav-icon">📅</span><span class="nav-text">Timeline</span>
+    </div>
   </nav>
 
   <main class="main">
@@ -296,6 +299,29 @@ body {
       </div>
       <div id="ops-grid" class="grid"><div class="loading">Loading ops data</div></div>
     </section>
+
+    <!-- Timeline View -->
+    <section id="view-timeline" class="view">
+      <div class="view-header">
+        <h2>Incident Timeline</h2>
+        <p>Unified event stream: runs, alerts, and HTTP access</p>
+      </div>
+      <div class="filters">
+        <select id="timeline-type" class="filter-select" onchange="loadTimeline()">
+          <option value="">All Events</option>
+          <option value="run">Runs Only</option>
+          <option value="alert">Alerts Only</option>
+          <option value="access">Access Only</option>
+        </select>
+        <select id="timeline-limit" class="filter-select" onchange="loadTimeline()">
+          <option value="20">Last 20</option>
+          <option value="50" selected>Last 50</option>
+          <option value="100">Last 100</option>
+        </select>
+      </div>
+      <div id="timeline-summary" class="card" style="display:none;"></div>
+      <div id="timeline-content"><div class="loading">Loading timeline</div></div>
+    </section>
   </main>
 </div>
 
@@ -312,6 +338,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
     if (view === 'history') loadHistory();
     if (view === 'stats') loadStats();
     if (view === 'ops') loadOps();
+    if (view === 'timeline') loadTimeline();
   });
 });
 
@@ -771,6 +798,75 @@ function showActionResult(type, message) {
   const result = document.getElementById('action-result');
   result.className = `action-result show ${type}`;
   result.textContent = message;
+}
+
+// Timeline View
+async function loadTimeline() {
+  const content = document.getElementById('timeline-content');
+  const summaryDiv = document.getElementById('timeline-summary');
+  const type = document.getElementById('timeline-type').value;
+  const limit = document.getElementById('timeline-limit').value;
+
+  content.innerHTML = '<div class="loading">Loading timeline</div>';
+  summaryDiv.style.display = 'none';
+
+  try {
+    let url = `/timeline?last=${limit}`;
+    if (type) url += `&type=${type}`;
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    if (data.total === 0) {
+      content.innerHTML = '<div class="empty-state">No events found</div>';
+      return;
+    }
+
+    // Summary
+    summaryDiv.style.display = 'block';
+    summaryDiv.innerHTML = `
+      <div class="card-title">Summary: ${data.total} events</div>
+      <pre style="margin-top:0.5rem;font-size:0.8rem;color:var(--text-secondary);white-space:pre-wrap;">${data.summary}</pre>
+    `;
+
+    const typeColor = (t) => {
+      if (t === 'run') return 'var(--info)';
+      if (t === 'alert') return 'var(--warning)';
+      return 'var(--text-muted)';
+    };
+    const typeIcon = (t) => {
+      if (t === 'run') return '▶';
+      if (t === 'alert') return '⚠';
+      return '🌐';
+    };
+
+    let html = '';
+    for (const e of data.events) {
+      const ts = e.timestamp ? new Date(e.timestamp).toLocaleString() : 'N/A';
+      const hasRunId = e.run_id;
+      const hasAlertId = e.alert_id;
+      const idBadge = hasAlertId
+        ? `<span class="badge badge-warning">${e.alert_id}</span>`
+        : hasRunId
+        ? `<span class="badge badge-skill">${e.run_id}</span>`
+        : '';
+
+      html += `<div class="step-result" style="border-left-color:${typeColor(e.event_type)};">
+        <div class="step-header">
+          <span class="step-title">${typeIcon(e.event_type)} ${e.event_type.toUpperCase()}</span>
+          <span style="font-size:0.8rem;color:var(--text-muted);">${ts}</span>
+        </div>
+        <div class="step-content">
+          <p>${e.summary}</p>
+          ${idBadge ? `<div style="margin-top:0.25rem;">${idBadge}</div>` : ''}
+        </div>
+      </div>`;
+    }
+    content.innerHTML = html;
+  } catch (e) {
+    content.innerHTML = `<div class="error-state">Failed to load timeline: ${e.message}</div>`;
+  }
 }
 
 // Initial load
