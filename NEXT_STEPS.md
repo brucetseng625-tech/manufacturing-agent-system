@@ -1,18 +1,18 @@
 # Manufacturing Agent System Next Steps
 
-Last updated: 2026-05-08
+Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `5568272` `feat(p8): add alert/notification hooks for system state changes`
+- `de2a0a0` `feat(p9): add alert acknowledgement and lifecycle workflow`
 
 Latest verified feature commit on `main`:
-- `5568272` `feat(p8): add alert/notification hooks for system state changes`
+- `de2a0a0` `feat(p9): add alert acknowledgement and lifecycle workflow`
 
 Latest roadmap sync commit on `main`:
-- `5568272` `feat(p8): add alert/notification hooks for system state changes`
-- Full unit test status at handoff: `515 / 515 passed`
-- Smoke test status at handoff: `67 / 67 passed`
-- Setup verification status at handoff: `75 / 75 passed`
+- `de2a0a0` `feat(p9): add alert acknowledgement and lifecycle workflow`
+- Full unit test status at handoff: `540 / 540 passed`
+- Smoke test status at handoff: `69 / 69 passed`
+- Setup verification status at handoff: `79 / 79 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
@@ -135,14 +135,14 @@ Current completed scope:
 - aggregated system status endpoint
 - dashboard operations panels
 - dry-run execution controls
-|- alert/notification hooks
-|- P9 Phase 1 implemented: Alert Acknowledgement Workflow
-|- Alert lifecycle: `firing` → `acknowledged` → `resolved`
-|- Unique alert IDs (e.g. `alert-1`, `alert-2`)
-|- New endpoints: `GET /alerts`, `GET /alerts/{id}`, `POST /alerts/{id}/acknowledge`, `POST /alerts/{id}/resolve`
-|- Alert status filtering via `GET /alerts?status=firing`
-|- Auto-resolve timeout config: `alerts.auto_resolve_seconds`
-|- P8 Phase 4 implemented: Alert/Notification Hooks
+- alert/notification hooks
+- P9 Phase 1 implemented: Alert Acknowledgement Workflow
+- Alert lifecycle: `firing` → `acknowledged` → `resolved`
+- Unique alert IDs (e.g. `alert-1`, `alert-2`)
+- New endpoints: `GET /alerts`, `GET /alerts/{id}`, `POST /alerts/{id}/acknowledge`, `POST /alerts/{id}/resolve`
+- Alert status filtering via `GET /alerts?status=firing`
+- Auto-resolve timeout config: `alerts.auto_resolve_seconds`
+- P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
 - Three alert types: system_unhealthy (critical), circuit_breaker_open (warning), degradation_detected (warning)
