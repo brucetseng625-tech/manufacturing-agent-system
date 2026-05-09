@@ -272,6 +272,18 @@ def main():
           "_handle_alerts_list" in open(os.path.join(base, "server.py")).read(),
           "alerts list handler present")
 
+    # P9-2: Dashboard operator actions
+    check("Dashboard actions: test_dashboard_actions.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_dashboard_actions.py")),
+          "dashboard actions test file present")
+    dashboard_html = open(os.path.join(base, "static", "dashboard.html")).read()
+    check("Dashboard actions: Operator Actions card present",
+          "Operator Actions" in dashboard_html,
+          "Operator Actions panel in dashboard")
+    check("Dashboard actions: doAction function present",
+          "doAction" in dashboard_html,
+          "doAction JavaScript function")
+
     # Summary
     print()
     print("=" * 50)

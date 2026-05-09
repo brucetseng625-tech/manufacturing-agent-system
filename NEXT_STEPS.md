@@ -135,14 +135,20 @@ Current completed scope:
 - aggregated system status endpoint
 - dashboard operations panels
 - dry-run execution controls
-- alert/notification hooks
-- P9 Phase 1 implemented: Alert Acknowledgement Workflow
-- Alert lifecycle: `firing` → `acknowledged` → `resolved`
-- Unique alert IDs (e.g. `alert-1`, `alert-2`)
-- New endpoints: `GET /alerts`, `GET /alerts/{id}`, `POST /alerts/{id}/acknowledge`, `POST /alerts/{id}/resolve`
-- Alert status filtering via `GET /alerts?status=firing`
-- Auto-resolve timeout config: `alerts.auto_resolve_seconds`
-- P8 Phase 4 implemented: Alert/Notification Hooks
+|- alert/notification hooks
+|- P9 Phase 1 implemented: Alert Acknowledgement Workflow
+|- Alert lifecycle: `firing` → `acknowledged` → `resolved`
+|- Unique alert IDs (e.g. `alert-1`, `alert-2`)
+|- New endpoints: `GET /alerts`, `GET /alerts/{id}`, `POST /alerts/{id}/acknowledge`, `POST /alerts/{id}/resolve`
+|- Alert status filtering via `GET /alerts?status=firing`
+|- Auto-resolve timeout config: `alerts.auto_resolve_seconds`
+|- P9 Phase 2 implemented: Dashboard Operator Action Panel
+|- Ops view includes "Operator Actions" card with one-click buttons
+|- Actions: Reset Alerts, Reload Config, Reload Policy, Health Check
+|- Inline success/failure feedback via `doAction()` JavaScript
+|- Dashboard is pure frontend — calls existing API endpoints
+|- Zero backend changes; additive to dashboard only
+|- P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
 - Three alert types: system_unhealthy (critical), circuit_breaker_open (warning), degradation_detected (warning)
@@ -218,7 +224,7 @@ Goal: Close the loop on alert lifecycle and provide operator-facing controls for
 | Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
 | --- | --- | --- | --- | --- | --- |
 | ~~P9~~ | ~~Alert acknowledgement workflow~~ | ~~Track alert lifecycle: firing → acknowledged → resolved~~ | ~~Alert IDs, status tracking, lifecycle endpoints, tests~~ | ~~P8-4 alert hooks~~ | ~~Codex~~ |
-| P9 | Dashboard operator action panel | Buttons: reload config, reset alerts, trigger health check, toggle rollout | Dashboard action buttons, POST handlers, tests | P9-1 | Codex |
+| ~~P9~~ | ~~Dashboard operator action panel~~ | ~~Buttons: reset alerts, reload config, reload policy, health check~~ | ~~Ops view action card, doAction JS, tests~~ | ~~P9-1~~ | ~~Codex~~ |
 | P9 | Incident timeline view | Searchable timeline stitching alerts, access logs, run history | Timeline endpoint, dashboard view, tests | P9-1 | Codex |
 | P9 | Execution guardrails | Rate limiting + approval gates for destructive actions | Rate limiter, approval config, tests | P8-3 dry-run | Codex |
 
@@ -267,7 +273,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P9 roadmap defined. P9-1 (Alert acknowledgement workflow) complete. Next: P9-2 (Dashboard operator action panel).
+P9 roadmap defined. P9-1 (Alert acknowledgement workflow) and P9-2 (Dashboard operator action panel) complete. Next: P9-3 (Incident timeline view).
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them

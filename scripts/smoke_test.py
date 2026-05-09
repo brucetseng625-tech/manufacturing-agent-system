@@ -405,6 +405,12 @@ def main():
               "by_status" in alert_list,
               f"keys={list(alert_list.keys())}")
 
+        # P9-2: Dashboard operator actions
+        dashboard_html = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static", "dashboard.html")).read()
+        check("Dashboard: contains Operator Actions card",
+              "Operator Actions" in dashboard_html,
+              "Operator Actions panel present")
+
     finally:
         server.shutdown()
 

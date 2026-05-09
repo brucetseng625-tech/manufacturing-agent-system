@@ -542,6 +542,14 @@ Unauthorized requests return `401` with:
   ```
   Returns recent alert log entries.
 
+- **Dashboard: Operator Actions Panel**
+  The Ops view includes an "Operator Actions" card with one-click buttons:
+  - **Reset Alerts** → POST `/alerts/reset`
+  - **Reload Config** → POST `/config/reload`
+  - **Reload Policy** → POST `/policy/reload`
+  - **Health Check** → GET `/provider/health`
+  Each action shows inline success/failure feedback.
+
 - **GET /skills**
   ```bash
   curl http://localhost:8000/skills
