@@ -94,5 +94,28 @@
       "policy:reload": { "denied": false, "require_approval": true },
       "provider:select": { "denied": false, "require_approval": true }
     }
+  },
+  "auto_remediation": {
+    "enabled": false,
+    "hooks": {
+      "circuit_breaker_recovery": {
+        "trigger": "circuit_breaker_open",
+        "action": "alerts:reset",
+        "cooldown_seconds": 120,
+        "dry_run": true
+      },
+      "unhealthy_alert_clear": {
+        "trigger": "system_unhealthy",
+        "action": "alerts:reset",
+        "cooldown_seconds": 300,
+        "dry_run": true
+      },
+      "degradation_policy_reload": {
+        "trigger": "degradation_detected",
+        "action": "policy:reload",
+        "cooldown_seconds": 600,
+        "dry_run": true
+      }
+    }
   }
 }

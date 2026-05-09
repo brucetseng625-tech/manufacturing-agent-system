@@ -80,6 +80,9 @@ class AlertManager:
         if auto_resolve > 0:
             self._schedule_auto_resolve(alert_id, auto_resolve)
 
+        # Trigger auto-remediation hooks for this alert type
+        self._trigger_auto_remediation(alert_info, degradation, health, provider_status)
+
         return {"sent": success, "alert_id": alert_id, "alert": payload}
 
     def _evaluate(self, system_status, degradation, health, provider_status):
@@ -244,6 +247,24 @@ class AlertManager:
             self._last_alert.clear()
             self._alert_log.clear()
             self._alert_counter = 0
+
+    def _trigger_auto_remediation(self, alert_info, degradation, health, provider_status):
+        """Evaluate auto-remediation hooks for this alert type.
+
+        Uses lazy import to avoid circular dependency with auto_remediation module.
+        """
+        try:
+            from auto_remediation import evaluate_hooks
+            context = {
+                "alert_type": alert_info["type"],
+                "severity": alert_info["severity"],
+                "provider": provider_status.get("name", "unknown"),
+                "readiness": provider_status.get("readiness", "unknown"),
+            }
+            evaluate_hooks(trigger=alert_info["type"], context=context)
+        except Exception:
+            # Auto-remediation should never break the alert flow
+            pass
 
 
 # Module-level singleton

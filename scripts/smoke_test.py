@@ -510,6 +510,15 @@ def main():
               "resolution_status" in ir,
               f"status={ir.get('resolution_status')}")
 
+        # P11-3: Auto-remediation
+        ar = get("/auto-remediation/status", port)
+        check("P11-3: /auto-remediation/status responds 200",
+              "enabled" in ar and "hooks" in ar,
+              f"keys={list(ar.keys())}")
+        check("P11-3: status has supported_triggers",
+              "supported_triggers" in ar and "supported_actions" in ar,
+              f"triggers={ar.get('supported_triggers', [])}")
+
     finally:
         server.shutdown()
 

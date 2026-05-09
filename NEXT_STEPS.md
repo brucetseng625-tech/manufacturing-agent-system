@@ -3,13 +3,13 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `5083920` `docs: sync handoff metadata after P11-2 incident report delivery`
+- `ddae7fc` `docs: align next steps after incident report phase`
 
 Latest verified feature commit on `main`:
 - `dfaa908` `feat(p11-2): add incident report generation`
 
 Latest roadmap sync commit on `main`:
-- `5083920` `docs: sync handoff metadata after P11-2 incident report delivery`
+- `ddae7fc` `docs: align next steps after incident report phase`
 - Full unit test status at handoff: `691 / 691 passed`
 - Smoke test status at handoff: `90 / 90 passed`
 - Setup verification status at handoff: `126 / 126 passed`
@@ -117,6 +117,7 @@ Current completed scope:
 - provider selection operator UI
 - audit chain for critical operations
 - incident report generation
+- auto-remediation hooks
 - expedite-options skill
 - material-shortage-recovery skill
 - capacity-rebalance skill
@@ -217,6 +218,18 @@ Current completed scope:
 - 22 unit tests covering report structure, helpers, filtering
 - +2 smoke test checks + 4 verify setup checks
 - Updated README.md, NEXT_STEPS.md
+- P11 Phase 3 implemented: Auto-Remediation Hooks
+- New module: auto_remediation.py with evaluate_hooks, get_remediation_status, reset_remediation_state
+- Config-driven, opt-in (disabled by default)
+- Supported triggers: circuit_breaker_open, system_unhealthy, degradation_detected, provider_degraded
+- Supported actions: alerts:reset, config:reload, policy:reload, provider:fallback (read-only)
+- Per-hook cooldown prevents action spam; dry-run mode for safe testing
+- All executions logged to audit chain
+- Integrated with alert.py — triggers when alerts fire
+- GET /auto-remediation/status, POST /auto-remediation/evaluate, POST /auto-remediation/reset
+- 25 unit tests covering config, evaluation, cooldown, status, reset, actions
+- +2 smoke test checks + 8 verify setup checks
+- Updated README.md, NEXT_STEPS.md, config.example.json
 - P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
@@ -320,7 +333,7 @@ Goal: Deepen approval/audit chain, incident reporting, and limited automation sa
 | --- | --- | --- | --- | --- | --- |
 | ~~P11~~ | ~~Audit chain for critical operations~~ | ~~Unified audit log for operator actions~~ | ~~audit_chain.py, /audit endpoint, integration, tests~~ | ~~P10 complete~~ | ~~Codex~~ |
 | ~~P11~~ | ~~Incident report generation~~ | ~~Auto-generate reports from timeline + audit + alerts~~ | ~~incident_report.py, /incident/report endpoint, tests~~ | ~~P11-1~~ | ~~Codex~~ |
-| P11 | Auto-remediation hooks | Trigger automatic fixes on specific alerts | Config-driven hooks, safety rails, tests | P11-1 | Codex |
+| ~~P11~~ | ~~Auto-remediation hooks~~ | ~~Config-driven safe auto-fix on alert triggers~~ | ~~auto_remediation.py, endpoints, cooldown, tests~~ | ~~P11-1~~ | ~~Codex~~ |
 | P11 | Approval workflow dashboard | Visual approval queue for guarded operations | Dashboard panel, tests | P11-1, P9-4 | Codex |
 
 ## Start Here
@@ -368,7 +381,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P11 roadmap defined. P11-1 (Audit chain) and P11-2 (Incident report generation) complete. Next: P11-3 (Auto-remediation hooks).
+P11 roadmap defined. P11-1 (Audit chain), P11-2 (Incident report generation), and P11-3 (Auto-remediation hooks) complete. Next: P11-4 (Approval workflow dashboard).
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them

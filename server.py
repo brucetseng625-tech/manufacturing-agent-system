@@ -24,6 +24,7 @@ from guardrails import check_guardrail, get_guardrails_status
 from data_mapper import get_mapping_diagnostics, reset_mapping_stats
 from audit_chain import append_audit_entry, query_audit_log, get_audit_summary
 from incident_report import generate_incident_report
+from auto_remediation import evaluate_hooks, evaluate_all_hooks, get_remediation_status, reset_remediation_state
 from config import (
     get_config,
     get_config_value,
@@ -205,6 +206,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_audit_query(parsed_path)
         elif path == "/incident/report":
             self._handle_incident_report(parsed_path)
+        elif path == "/auto-remediation/status":
+            self._send_json_response(200, get_remediation_status())
         else:
             self._send_error_response(404, "not_found", "Endpoint not found")
 
@@ -664,6 +667,56 @@ class AgentHandler(BaseHTTPRequestHandler):
         except Exception as e:
             self._send_error_response(500, "internal_error", "Failed to generate incident report", str(e))
 
+    def _handle_auto_remediation_evaluate(self):
+        """Handle POST /auto-remediation/evaluate — trigger auto-remediation.
+
+        Expects optional JSON body: {"trigger": "circuit_breaker_open", "context": {...}}
+        If no trigger specified, evaluates all hooks.
+        """
+        # Drain any request body
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            if content_length > 0:
+                body = self.rfile.read(content_length).decode("utf-8")
+                payload = json.loads(body)
+            else:
+                payload = {}
+        except (json.JSONDecodeError, ValueError):
+            payload = {}
+
+        trigger = payload.get("trigger")
+        context = payload.get("context", {})
+        context["source_ip"] = self.client_address[0]
+
+        if trigger:
+            results = evaluate_hooks(trigger=trigger, context=context)
+        else:
+            results = evaluate_all_hooks(context=context)
+
+        self._send_json_response(200, {
+            "evaluated": len(results),
+            "results": results,
+        })
+
+    def _handle_auto_remediation_reset(self):
+        """Handle POST /auto-remediation/reset — reset remediation state."""
+        # Drain any request body
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            if content_length > 0:
+                self.rfile.read(content_length)
+        except Exception:
+            pass
+
+        reset_remediation_state()
+        append_audit_entry("auto_remediation", operator="api",
+                           source_ip=self.client_address[0],
+                           details={"operation": "reset_state"}, result="success")
+        self._send_json_response(200, {
+            "success": True,
+            "message": "Auto-remediation state reset",
+        })
+
     def _handle_history(self, parsed_path):
         """Handle GET /history with optional query parameters for filtering."""
         try:
@@ -750,6 +803,10 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_alert_resolve(alert_id)
         elif path == "/provider/select":
             self._handle_provider_select()
+        elif path == "/auto-remediation/evaluate":
+            self._handle_auto_remediation_evaluate()
+        elif path == "/auto-remediation/reset":
+            self._handle_auto_remediation_reset()
         else:
             self._drain_request_body()
             self._send_error_response(404, "not_found", "Endpoint not found")

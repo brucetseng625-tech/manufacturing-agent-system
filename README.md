@@ -619,6 +619,18 @@ Unauthorized requests return `401` with:
   curl http://localhost:8000/incident/report?window_minutes=60
   ```
 
+- **GET /auto-remediation/status**
+  Shows auto-remediation config, cooldown state, and execution history.
+  ```bash
+  curl http://localhost:8000/auto-remediation/status
+  ```
+
+- **POST /auto-remediation/evaluate**
+  Manually trigger auto-remediation hooks (all or specific trigger).
+  ```bash
+  curl -X POST http://localhost:8000/auto-remediation/evaluate
+  ```
+
 - **POST /provider/select**
   Switch the default data source mode at runtime.
   Protect mutation-capable operations with config-driven allow/deny and approval rules.
@@ -1293,6 +1305,62 @@ curl http://localhost:8000/incident/report?window_minutes=30
 ```
 
 Reports are cached for 30 seconds to avoid redundant system status calls.
+
+### Auto-Remediation Hooks (P11-3)
+
+Config-driven, opt-in automation that triggers safe internal operations when specific alert conditions are detected. All actions are low-risk and designed to be reversible. Disabled by default — zero breaking changes.
+
+**Supported triggers:**
+- `circuit_breaker_open` — Circuit breaker has tripped
+- `system_unhealthy` — System is in unhealthy state
+- `degradation_detected` — System operating in degraded mode
+- `provider_degraded` — Provider capability degradation
+
+**Supported actions:**
+- `alerts:reset` — Clear alert cooldown state
+- `config:reload` — Reload configuration from disk
+- `policy:reload` — Reload policy from config
+- `provider:fallback` — Suggest fallback provider (read-only, never auto-switches)
+
+**Safety features:**
+- Per-hook cooldown prevents action spam
+- Dry-run mode logs what would happen without executing
+- All executions logged to audit chain
+- Lazy integration with alert system — never breaks alert flow on error
+
+**Configuration (config.json):**
+```json
+{
+  "auto_remediation": {
+    "enabled": false,
+    "hooks": {
+      "circuit_breaker_recovery": {
+        "trigger": "circuit_breaker_open",
+        "action": "alerts:reset",
+        "cooldown_seconds": 120,
+        "dry_run": true
+      }
+    }
+  }
+}
+```
+
+**API:**
+```bash
+# Get current auto-remediation status
+curl http://localhost:8000/auto-remediation/status
+
+# Manually evaluate all hooks
+curl -X POST http://localhost:8000/auto-remediation/evaluate
+
+# Evaluate specific trigger
+curl -X POST http://localhost:8000/auto-remediation/evaluate \
+  -H "Content-Type: application/json" \
+  -d '{"trigger": "circuit_breaker_open"}'
+
+# Reset cooldown state and history
+curl -X POST http://localhost:8000/auto-remediation/reset
+```
 
 ### Server Access Logging
 

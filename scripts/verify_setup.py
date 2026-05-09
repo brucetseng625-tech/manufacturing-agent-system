@@ -433,6 +433,32 @@ def main():
           "_handle_incident_report" in open(os.path.join(base, "server.py")).read(),
           "incident report handler present")
 
+    # P11-3: Auto-remediation hooks
+    check("P11-3: auto_remediation.py exists",
+          os.path.isfile(os.path.join(base, "auto_remediation.py")),
+          "auto_remediation module present")
+    check("P11-3: test_auto_remediation.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_auto_remediation.py")),
+          "auto remediation test file present")
+    check("P11-3: evaluate_hooks in auto_remediation.py",
+          "def evaluate_hooks" in open(os.path.join(base, "auto_remediation.py")).read(),
+          "evaluate_hooks function present")
+    check("P11-3: get_remediation_status in auto_remediation.py",
+          "def get_remediation_status" in open(os.path.join(base, "auto_remediation.py")).read(),
+          "get_remediation_status function present")
+    check("P11-3: /auto-remediation/status handler in server.py",
+          "/auto-remediation/status" in open(os.path.join(base, "server.py")).read(),
+          "auto-remediation status endpoint present")
+    check("P11-3: /auto-remediation/evaluate handler in server.py",
+          "/auto-remediation/evaluate" in open(os.path.join(base, "server.py")).read(),
+          "auto-remediation evaluate endpoint present")
+    check("P11-3: auto_remediation config section in config.example.json",
+          "auto_remediation" in open(os.path.join(base, "config.example.json")).read(),
+          "auto_remediation config section present")
+    check("P11-3: _trigger_auto_remediation in alert.py",
+          "_trigger_auto_remediation" in open(os.path.join(base, "alert.py")).read(),
+          "alert integration for auto-remediation present")
+
     # Summary
     print()
     print("=" * 50)
