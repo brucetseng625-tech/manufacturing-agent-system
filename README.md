@@ -631,6 +631,12 @@ Unauthorized requests return `401` with:
   curl -X POST http://localhost:8000/auto-remediation/evaluate
   ```
 
+- **GET /approvals**
+  View pending approval items from guarded operations.
+  ```bash
+  curl http://localhost:8000/approvals?status=pending
+  ```
+
 - **POST /provider/select**
   Switch the default data source mode at runtime.
   Protect mutation-capable operations with config-driven allow/deny and approval rules.
@@ -1361,6 +1367,40 @@ curl -X POST http://localhost:8000/auto-remediation/evaluate \
 # Reset cooldown state and history
 curl -X POST http://localhost:8000/auto-remediation/reset
 ```
+
+### Approval Workflow Dashboard (P11-4)
+
+Visual approval queue for guarded operations. When guardrails require an approval token but none is provided, the request is logged to the approval queue as "pending". Operators can review, approve, or reject these items from the dashboard.
+
+**Workflow:**
+1. Operator triggers a guarded operation (e.g., `POST /policy/reload`) without an approval token
+2. Guardrail denies the request with `guardrail_approval_required`
+3. A pending item is created in the approval queue
+4. Operator sees the pending item in the dashboard Approval Queue panel
+5. Operator approves or rejects the item
+6. Approval is logged to the audit chain
+
+**API:**
+```bash
+# List all approval items (with optional status filter)
+curl http://localhost:8000/approvals
+curl "http://localhost:8000/approvals?status=pending&limit=20"
+
+# Approve an item
+curl -X POST http://localhost:8000/approvals/approval-1/approve \
+  -H "Content-Type: application/json" \
+  -d '{"approved_by": "operator", "approval_token": "my-token"}'
+
+# Reject an item
+curl -X POST http://localhost:8000/approvals/approval-1/reject \
+  -H "Content-Type: application/json" \
+  -d '{"rejected_by": "operator", "reason": "Not needed right now"}'
+
+# Reset approval queue
+curl -X POST http://localhost:8000/approvals/reset
+```
+
+**Dashboard:** The Ops view includes an Approval Queue panel showing pending items with approve (✓) and reject (✗) buttons. Items display operation type, reason, and timestamp.
 
 ### Server Access Logging
 

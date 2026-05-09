@@ -25,6 +25,38 @@ from data_mapper import get_mapping_diagnostics, reset_mapping_stats
 from audit_chain import append_audit_entry, query_audit_log, get_audit_summary, _close_audit_log
 from incident_report import generate_incident_report
 from auto_remediation import evaluate_hooks, evaluate_all_hooks, get_remediation_status, reset_remediation_state
+from approval_queue import create_pending_item, list_pending, get_item, approve_item, reject_item, get_approval_stats, reset_queue
+from guardrails import check_guardrail, get_guardrails_status, get_guardrail
+
+
+def _check_guardrail_with_queue(operation, headers, source_ip, details=None):
+    """Check guardrail and create a pending approval item if approval is required but token is missing.
+
+    Args:
+        operation: Guard label string
+        headers: Request headers dict
+        source_ip: Client IP for audit
+        details: Optional details to attach to pending item
+
+    Returns:
+        None if allowed, or dict with error details if denied.
+        Also creates a pending approval item when error_type is guardrail_approval_required.
+    """
+    guard = check_guardrail(operation, headers)
+    if guard is None:
+        return None  # Allowed
+
+    # If approval was required (not explicitly denied), create a pending item
+    if guard.get("error_type") == "guardrail_approval_required":
+        guardrail_config = get_guardrail(operation) or {}
+        create_pending_item(
+            operation=operation,
+            source_ip=source_ip,
+            details=details or {},
+            guardrail_config=guardrail_config,
+        )
+
+    return guard
 from config import (
     get_config,
     get_config_value,
@@ -227,6 +259,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_incident_report(parsed_path)
         elif path == "/auto-remediation/status":
             self._send_json_response(200, get_remediation_status())
+        elif path == "/approvals":
+            self._handle_approvals_list(parsed_path)
         else:
             self._send_error_response(404, "not_found", "Endpoint not found")
 
@@ -457,10 +491,13 @@ class AgentHandler(BaseHTTPRequestHandler):
 
     def _handle_alerts_reset(self):
         """Handle POST /alerts/reset — clear alert cooldown state and log."""
-        # Guardrail check
+        # Guardrail check (creates pending approval item if needed)
         headers = dict(self.headers)
-        guard = check_guardrail("alerts:reset", headers)
+        guard = _check_guardrail_with_queue("alerts:reset", headers,
+                                            self.client_address[0],
+                                            details={"endpoint": "/alerts/reset"})
         if guard:
+            self._drain_request_body()
             self._send_json_response(403, guard)
             return
 
@@ -484,12 +521,16 @@ class AgentHandler(BaseHTTPRequestHandler):
         Guarded by the "provider:select" guardrail (approval-required by default).
         """
         headers = dict(self.headers)
-        guard = check_guardrail("provider:select", headers)
+        guard = _check_guardrail_with_queue("provider:select", headers,
+                                            self.client_address[0],
+                                            details={"endpoint": "/provider/select"})
         if guard:
             self._drain_request_body()
             append_audit_entry("provider:select", operator="api",
                                source_ip=self.client_address[0],
-                               details={"guardrail": True, "mode": "unknown"}, result="denied")
+                               details={"guardrail": True, "mode": "unknown",
+                                        "error_type": guard.get("error_type")},
+                               result="denied" if guard.get("error_type") == "guardrail_denied" else "pending_approval")
             self._send_json_response(403, guard)
             return
 
@@ -736,6 +777,96 @@ class AgentHandler(BaseHTTPRequestHandler):
             "message": "Auto-remediation state reset",
         })
 
+    def _handle_approvals_list(self, parsed_path):
+        """Handle GET /approvals — list approval queue items.
+
+        Query params:
+            status: Filter by status (pending, approved, rejected, expired)
+            limit: Max items to return (default 50)
+        """
+        try:
+            params = parse_qs(parsed_path.query)
+            status_filter = params.get("status", [None])[0]
+            limit = int(params.get("limit", ["50"])[0])
+
+            items = list_pending(status_filter=status_filter, limit=limit)
+            stats = get_approval_stats()
+
+            self._send_json_response(200, {
+                "total": len(items),
+                "stats": stats,
+                "items": items,
+            })
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to list approvals", str(e))
+
+    def _handle_approval_approve(self, approval_id):
+        """Handle POST /approvals/{id}/approve — approve a pending item."""
+        # Drain any request body
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            if content_length > 0:
+                body = self.rfile.read(content_length).decode("utf-8")
+                payload = json.loads(body)
+            else:
+                payload = {}
+        except (json.JSONDecodeError, ValueError):
+            payload = {}
+
+        approved_by = payload.get("approved_by", "operator")
+        approval_token = payload.get("approval_token")
+
+        result = approve_item(approval_id, approved_by=approved_by, approval_token=approval_token)
+        if "error" in result:
+            status = 404 if result["error"] == "approval_not_found" else 409
+            self._send_json_response(status, result)
+            return
+
+        append_audit_entry("approval:approved", operator=approved_by,
+                           source_ip=self.client_address[0],
+                           details={"approval_id": approval_id, "operation": result.get("operation")},
+                           result="success")
+        self._send_json_response(200, result)
+
+    def _handle_approval_reject(self, approval_id):
+        """Handle POST /approvals/{id}/reject — reject a pending item."""
+        # Drain any request body
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            if content_length > 0:
+                body = self.rfile.read(content_length).decode("utf-8")
+                payload = json.loads(body)
+            else:
+                payload = {}
+        except (json.JSONDecodeError, ValueError):
+            payload = {}
+
+        reason = payload.get("reason", "")
+        rejected_by = payload.get("rejected_by", "operator")
+
+        result = reject_item(approval_id, reason=reason, rejected_by=rejected_by)
+        if "error" in result:
+            status = 404 if result["error"] == "approval_not_found" else 409
+            self._send_json_response(status, result)
+            return
+
+        self._send_json_response(200, result)
+
+    def _handle_approvals_reset(self):
+        """Handle POST /approvals/reset — clear approval queue."""
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            if content_length > 0:
+                self.rfile.read(content_length)
+        except Exception:
+            pass
+
+        reset_queue()
+        self._send_json_response(200, {
+            "success": True,
+            "message": "Approval queue cleared",
+        })
+
     def _handle_history(self, parsed_path):
         """Handle GET /history with optional query parameters for filtering."""
         try:
@@ -826,6 +957,14 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_auto_remediation_evaluate()
         elif path == "/auto-remediation/reset":
             self._handle_auto_remediation_reset()
+        elif path.startswith("/approvals/") and path.endswith("/approve"):
+            approval_id = path.split("/approvals/")[1].split("/approve")[0]
+            self._handle_approval_approve(approval_id)
+        elif path.startswith("/approvals/") and path.endswith("/reject"):
+            approval_id = path.split("/approvals/")[1].split("/reject")[0]
+            self._handle_approval_reject(approval_id)
+        elif path == "/approvals/reset":
+            self._handle_approvals_reset()
         else:
             self._drain_request_body()
             self._send_error_response(404, "not_found", "Endpoint not found")
@@ -833,14 +972,18 @@ class AgentHandler(BaseHTTPRequestHandler):
 
     def _handle_config_reload(self):
         """Handle POST /config/reload — reload centralized config file."""
-        # Guardrail check
+        # Guardrail check (creates pending approval item if needed)
         headers = dict(self.headers)
-        guard = check_guardrail("config:reload", headers)
+        guard = _check_guardrail_with_queue("config:reload", headers,
+                                            self.client_address[0],
+                                            details={"endpoint": "/config/reload"})
         if guard:
             self._drain_request_body()
+            result_label = "denied" if guard.get("error_type") == "guardrail_denied" else "pending_approval"
             append_audit_entry("config:reload", operator="api",
                                source_ip=self.client_address[0],
-                               details={"guardrail": True}, result="denied")
+                               details={"guardrail": True, "error_type": guard.get("error_type")},
+                               result=result_label)
             self._send_json_response(403, guard)
             return
 
@@ -878,14 +1021,18 @@ class AgentHandler(BaseHTTPRequestHandler):
 
     def _handle_policy_reload(self):
         """Handle POST /policy/reload — hot-reload policy from config file."""
-        # Guardrail check
+        # Guardrail check (creates pending approval item if needed)
         headers = dict(self.headers)
-        guard = check_guardrail("policy:reload", headers)
+        guard = _check_guardrail_with_queue("policy:reload", headers,
+                                            self.client_address[0],
+                                            details={"endpoint": "/policy/reload"})
         if guard:
             self._drain_request_body()
+            result_label = "denied" if guard.get("error_type") == "guardrail_denied" else "pending_approval"
             append_audit_entry("policy:reload", operator="api",
                                source_ip=self.client_address[0],
-                               details={"guardrail": True}, result="denied")
+                               details={"guardrail": True, "error_type": guard.get("error_type")},
+                               result=result_label)
             self._send_json_response(403, guard)
             return
 

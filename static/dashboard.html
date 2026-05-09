@@ -755,6 +755,9 @@ async function loadOps() {
       </div>
     `;
 
+    // Approval Queue Card
+    html += renderApprovalQueueCard();
+
     grid.innerHTML = html;
   } catch (e) {
     grid.innerHTML = `<div class="error-state">Failed to load ops data: ${e.message}</div>`;
@@ -988,6 +991,121 @@ async function doAction(action) {
 
 function showActionResult(type, message) {
   const result = document.getElementById('action-result');
+  result.className = `action-result show ${type}`;
+  result.textContent = message;
+}
+
+// Approval Queue Card
+async function renderApprovalQueueCard() {
+  try {
+    const res = await fetch('/approvals?status=pending&limit=10');
+    if (!res.ok) return '';
+    const data = await res.json();
+
+    const pendingCount = data.stats?.pending_count || 0;
+    const items = data.items || [];
+
+    let rows = '';
+    if (items.length === 0) {
+      rows = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:1rem;">No pending approvals</td></tr>`;
+    } else {
+      rows = items.map(item => {
+        const ts = item.created_at ? new Date(item.created_at).toLocaleString() : 'N/A';
+        const guardCondition = item.guardrail_config?.require_approval ? 'Requires approval token' : 'Denied by guardrail';
+        return `<tr>
+          <td style="font-family:monospace;font-size:0.8rem;">${item.id}</td>
+          <td><code style="background:var(--bg-input);padding:0.1rem 0.4rem;border-radius:4px;font-size:0.8rem;">${item.operation}</code></td>
+          <td style="font-size:0.8rem;color:var(--text-secondary);">${guardCondition}</td>
+          <td style="font-size:0.8rem;color:var(--text-muted);">${ts}</td>
+          <td style="white-space:nowrap;">
+            <button class="btn" style="padding:0.3rem 0.6rem;font-size:0.75rem;background:var(--success);" onclick="doApprove('${item.id}')">✓</button>
+            <button class="btn" style="padding:0.3rem 0.6rem;font-size:0.75rem;background:var(--error);" onclick="doReject('${item.id}')">✗</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    return `
+      <div class="card" style="grid-column: span 2;">
+        <div class="card-header">
+          <span class="card-title">Approval Queue</span>
+          <span class="badge" style="background:${pendingCount > 0 ? 'var(--warning)' : 'var(--success)'};color:#fff;">${pendingCount} PENDING</span>
+        </div>
+        <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">
+          Operations requiring your approval before execution. Approve to allow, reject to cancel.
+        </div>
+        <table class="history-table">
+          <thead><tr>
+            <th style="width:120px;">ID</th>
+            <th style="width:140px;">Operation</th>
+            <th>Reason</th>
+            <th style="width:160px;">Requested</th>
+            <th style="width:80px;">Actions</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div id="approval-result" class="action-result"></div>
+      </div>
+    `;
+  } catch (e) {
+    return `<div class="card" style="grid-column: span 2;"><div class="error-state">Failed to load approvals: ${e.message}</div></div>`;
+  }
+}
+
+async function doApprove(approvalId) {
+  const result = document.getElementById('approval-result');
+  if (!result) return;
+  result.className = 'action-result show';
+  result.textContent = 'Approving...';
+  result.style.color = 'var(--text-muted)';
+
+  try {
+    const res = await fetch(`/approvals/${approvalId}/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ approved_by: 'dashboard' })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showApprovalResult('success', `${approvalId} approved`);
+      // Refresh the ops view
+      setTimeout(() => loadOps(), 500);
+    } else {
+      showApprovalResult('error', data.error || `HTTP ${res.status}`);
+    }
+  } catch (e) {
+    showApprovalResult('error', `Failed: ${e.message}`);
+  }
+}
+
+async function doReject(approvalId) {
+  const result = document.getElementById('approval-result');
+  if (!result) return;
+  result.className = 'action-result show';
+  result.textContent = 'Rejecting...';
+  result.style.color = 'var(--text-muted)';
+
+  try {
+    const res = await fetch(`/approvals/${approvalId}/reject`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rejected_by: 'dashboard', reason: 'Rejected by operator' })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showApprovalResult('success', `${approvalId} rejected`);
+      setTimeout(() => loadOps(), 500);
+    } else {
+      showApprovalResult('error', data.error || `HTTP ${res.status}`);
+    }
+  } catch (e) {
+    showApprovalResult('error', `Failed: ${e.message}`);
+  }
+}
+
+function showApprovalResult(type, message) {
+  const result = document.getElementById('approval-result');
+  if (!result) return;
   result.className = `action-result show ${type}`;
   result.textContent = message;
 }

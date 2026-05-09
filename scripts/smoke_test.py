@@ -519,6 +519,15 @@ def main():
               "supported_triggers" in ar and "supported_actions" in ar,
               f"triggers={ar.get('supported_triggers', [])}")
 
+        # P11-4: Approval workflow
+        ap = get("/approvals", port)
+        check("P11-4: /approvals responds 200",
+              "items" in ap and "stats" in ap,
+              f"keys={list(ap.keys())}")
+        check("P11-4: approvals has stats",
+              "pending_count" in ap.get("stats", {}),
+              f"stats={ap.get('stats', {})}")
+
     finally:
         server.shutdown()
 

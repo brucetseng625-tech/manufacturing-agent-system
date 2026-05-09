@@ -459,6 +459,38 @@ def main():
           "_trigger_auto_remediation" in open(os.path.join(base, "alert.py")).read(),
           "alert integration for auto-remediation present")
 
+    # P11-4: Approval workflow dashboard
+    check("P11-4: approval_queue.py exists",
+          os.path.isfile(os.path.join(base, "approval_queue.py")),
+          "approval_queue module present")
+    check("P11-4: test_approval_queue.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_approval_queue.py")),
+          "approval queue test file present")
+    check("P11-4: create_pending_item in approval_queue.py",
+          "def create_pending_item" in open(os.path.join(base, "approval_queue.py")).read(),
+          "create_pending_item function present")
+    check("P11-4: approve_item in approval_queue.py",
+          "def approve_item" in open(os.path.join(base, "approval_queue.py")).read(),
+          "approve_item function present")
+    check("P11-4: reject_item in approval_queue.py",
+          "def reject_item" in open(os.path.join(base, "approval_queue.py")).read(),
+          "reject_item function present")
+    check("P11-4: /approvals handler in server.py",
+          "\"/approvals\"" in open(os.path.join(base, "server.py")).read(),
+          "approvals endpoint present")
+    check("P11-4: _handle_approval_approve in server.py",
+          "_handle_approval_approve" in open(os.path.join(base, "server.py")).read(),
+          "approval approve handler present")
+    check("P11-4: _handle_approval_reject in server.py",
+          "_handle_approval_reject" in open(os.path.join(base, "server.py")).read(),
+          "approval reject handler present")
+    check("P11-4: _check_guardrail_with_queue in server.py",
+          "_check_guardrail_with_queue" in open(os.path.join(base, "server.py")).read(),
+          "guardrail with queue integration present")
+    check("P11-4: Approval Queue in dashboard",
+          "renderApprovalQueueCard" in open(os.path.join(base, "static", "dashboard.html")).read(),
+          "approval queue card in dashboard")
+
     # Summary
     print()
     print("=" * 50)
