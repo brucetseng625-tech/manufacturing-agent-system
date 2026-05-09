@@ -3,16 +3,16 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `9ddbc64` `docs: sync handoff metadata after P10-2 mapping delivery`
+- `d67e7e1` `feat(p10-3): add readonly provider diagnostics dashboard card`
 
 Latest verified feature commit on `main`:
-- `9b6e567` `feat(p10-2): add ERP data mapping and validation layer`
+- `d67e7e1` `feat(p10-3): add readonly provider diagnostics dashboard card`
 
 Latest roadmap sync commit on `main`:
-- `9ddbc64` `docs: sync handoff metadata after P10-2 mapping delivery`
+- `d67e7e1` `feat(p10-3): add readonly provider diagnostics dashboard card`
 - Full unit test status at handoff: `647 / 647 passed`
-- Smoke test status at handoff: `80 / 80 passed`
-- Setup verification status at handoff: `104 / 104 passed`
+- Smoke test status at handoff: `83 / 83 passed`
+- Setup verification status at handoff: `108 / 108 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
