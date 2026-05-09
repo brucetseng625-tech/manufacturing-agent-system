@@ -726,8 +726,16 @@ class HttpReadonlyProvider(DataProvider):
             return False
         return True
 
+    def _should_apply_mapping(self) -> bool:
+        """Check if auto-mapping is enabled in config."""
+        return get_config_value("live_provider.data_mapping.enabled", False)
+
     def load(self, data_dir: str, filename: str) -> list:
-        """Fetch JSON from {base_url}/{filename_without_ext}."""
+        """Fetch JSON from {base_url}/{filename_without_ext}.
+
+        Optionally applies data mapping and validation when
+        live_provider.data_mapping.enabled is true.
+        """
         import urllib.request
         import urllib.error
 
@@ -743,11 +751,11 @@ class HttpReadonlyProvider(DataProvider):
                 body = resp.read().decode("utf-8")
                 data = json.loads(body)
                 if isinstance(data, list):
-                    return data
+                    raw_data = data
                 elif isinstance(data, dict):
-                    return [data]
+                    raw_data = [data]
                 else:
-                    return []
+                    raw_data = []
         except urllib.error.HTTPError as e:
             raise RuntimeError(
                 f"HTTP {e.code} from {url}: {e.reason}"
@@ -760,6 +768,28 @@ class HttpReadonlyProvider(DataProvider):
             raise RuntimeError(
                 f"Invalid JSON from {url}: {e}"
             ) from e
+
+        # Apply mapping + validation if configured
+        if self._should_apply_mapping() and raw_data:
+            try:
+                from data_mapper import apply_mapping
+                mapped_data, report = apply_mapping(raw_data, base_name)
+                if report.get("errors", 0) > 0:
+                    import logging
+                    logger = logging.getLogger("data_mapper")
+                    logger.warning(
+                        f"Mapping errors for {base_name}: {report['errors']}/{report['total']} records failed. "
+                        f"Details: {json.dumps(report.get('error_details', [])[:3])}"
+                    )
+                return mapped_data
+            except Exception as e:
+                # If mapping fails, fall back to raw data to avoid breaking data loading
+                import logging
+                logger = logging.getLogger("data_mapper")
+                logger.warning(f"Mapping failed for {base_name}, returning raw data: {e}")
+                return raw_data
+
+        return raw_data
 
     def health_check(self, data_dir: str = None) -> dict:
         """Ping health endpoint or base URL to check connectivity."""

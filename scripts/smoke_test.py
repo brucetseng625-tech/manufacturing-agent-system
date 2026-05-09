@@ -453,6 +453,22 @@ def main():
               resp.status == 200,
               f"name={ps.get('name', 'unknown')}")
 
+        # P10-2: Data mapping diagnostics
+        req = urllib.request.Request(
+            f"http://127.0.0.1:{port}/mapping/diagnostics"
+        )
+        with urllib.request.urlopen(req) as resp:
+            mp = json.loads(resp.read())
+        check("P10-2: /mapping/diagnostics responds 200",
+              resp.status == 200,
+              f"enabled={mp.get('enabled')}")
+        check("P10-2: diagnostics has datasets field",
+              "datasets" in mp,
+              f"keys={list(mp.keys())}")
+        check("P10-2: diagnostics has runtime_stats field",
+              "runtime_stats" in mp,
+              f"stats keys={list(mp.get('runtime_stats', {}).keys())}")
+
     finally:
         server.shutdown()
 

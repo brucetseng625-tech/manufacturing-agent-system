@@ -329,6 +329,35 @@ def main():
           '"http"' in open(os.path.join(base, "config.example.json")).read(),
           "http config section in live_provider")
 
+    # P10-2: Data mapping + validation
+    check("P10-2: data_mapper.py exists",
+          os.path.isfile(os.path.join(base, "data_mapper.py")),
+          "data_mapper module present")
+    check("P10-2: test_data_mapper.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_data_mapper.py")),
+          "data mapper test file present")
+    check("P10-2: SchemaMapper class in data_mapper.py",
+          "class SchemaMapper" in open(os.path.join(base, "data_mapper.py")).read(),
+          "SchemaMapper class present")
+    check("P10-2: SchemaValidator class in data_mapper.py",
+          "class SchemaValidator" in open(os.path.join(base, "data_mapper.py")).read(),
+          "SchemaValidator class present")
+    check("P10-2: apply_mapping function in data_mapper.py",
+          "def apply_mapping" in open(os.path.join(base, "data_mapper.py")).read(),
+          "apply_mapping function present")
+    check("P10-2: get_mapping_diagnostics function in data_mapper.py",
+          "def get_mapping_diagnostics" in open(os.path.join(base, "data_mapper.py")).read(),
+          "get_mapping_diagnostics function present")
+    check("P10-2: mapping endpoint in server.py",
+          "get_mapping_diagnostics" in open(os.path.join(base, "server.py")).read(),
+          "mapping diagnostics handler present")
+    check("P10-2: data_mapping config in config.example.json",
+          '"data_mapping"' in open(os.path.join(base, "config.example.json")).read(),
+          "data_mapping config section present")
+    check("P10-2: HttpReadonlyProvider applies mapping",
+          "apply_mapping" in open(os.path.join(base, "data_source.py")).read(),
+          "HttpReadonlyProvider integrates mapping")
+
     # Summary
     print()
     print("=" * 50)

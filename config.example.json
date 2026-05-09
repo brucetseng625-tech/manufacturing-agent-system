@@ -30,6 +30,42 @@
       "base_url": "",
       "timeout_seconds": 10,
       "health_path": "/health"
+    },
+    "data_mapping": {
+      "enabled": false,
+      "datasets": {
+        "orders": {
+          "enabled": true,
+          "field_mapping": {},
+          "required_fields": ["order_id", "customer", "quantity"],
+          "type_rules": {
+            "quantity": "int",
+            "penalty_per_day": "float",
+            "expedite_cost": "float"
+          },
+          "default_values": {
+            "priority": "Normal",
+            "customer_tier": "Standard"
+          }
+        },
+        "materials": {
+          "enabled": true,
+          "field_mapping": {},
+          "required_fields": ["order_id", "material", "required_qty", "available_qty"],
+          "type_rules": {
+            "required_qty": "int",
+            "available_qty": "int",
+            "safety_stock": "int",
+            "supplier_lead_time_days": "int",
+            "unit_cost": "float",
+            "supplier_reliability": "float"
+          },
+          "default_values": {
+            "status": "Ready",
+            "safety_stock": 0
+          }
+        }
+      }
     }
   },
   "rollout": {

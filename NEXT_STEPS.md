@@ -112,6 +112,7 @@ Current completed scope:
 - parallel team execution
 - web dashboard mvp
 - MCP / ERP integration layer
+- erp data mapping + validation
 - expedite-options skill
 - material-shortage-recovery skill
 - capacity-rebalance skill
@@ -163,15 +164,22 @@ Current completed scope:
 - Approval via X-Approval-Token header
 - HTTP 403 with structured error on denial
 - By default disabled — zero breaking changes
-- P10 Phase 1 implemented: HttpReadonlyProvider (First Real Readonly Provider)
-- New class: HttpReadonlyProvider in data_source.py
-- Fetches JSON from configurable HTTP endpoints (stdlib urllib only)
-- Auto-detected by create_provider() when live_provider.http.base_url is set
-- Health check: pings {base_url}{health_path} for connectivity diagnostics
-- Read-only — no write capabilities, safe first step toward real data
-- Falls back to skeleton LiveDataProvider when not configured
-- Integrates with existing circuit breaker, auto-failover, degradation layers
-- 19 new tests covering config, load, health, readiness, degradation
+|- P10 Phase 1 implemented: HttpReadonlyProvider (First Real Readonly Provider)
+|- New class: HttpReadonlyProvider in data_source.py
+|- Fetches JSON from configurable HTTP endpoints (stdlib urllib only)
+|- Auto-detected by create_provider() when live_provider.http.base_url is set
+|- Health check: pings {base_url}{health_path} for connectivity diagnostics
+|- Read-only — no write capabilities, safe first step toward real data
+|- Falls back to skeleton LiveDataProvider when not configured
+|- Integrates with existing circuit breaker, auto-failover, degradation layers
+|- 19 new tests covering config, load, health, readiness, degradation
+|- P10 Phase 2 implemented: ERP Data Mapping + Validation
+|- New module: data_mapper.py with SchemaMapper, SchemaValidator, apply_mapping
+|- Configurable field mapping, type coercion, default values, and validation
+|- Auto-applied by HttpReadonlyProvider when data_mapping.enabled is true
+|- Supports orders and materials datasets with configurable rules
+|- GET /mapping/diagnostics endpoint for operator visibility
+|- 43 new tests covering coercion, mapping, validation, pipeline, diagnostics
 - P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
@@ -261,7 +269,7 @@ Goal: Replace skeleton LiveDataProvider with concrete readonly integrations, ena
 | Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
 | --- | --- | --- | --- | --- | --- |
 | ~~P10~~ | ~~HttpReadonlyProvider~~ | ~~Fetch JSON from configurable HTTP endpoints~~ | ~~HttpReadonlyProvider class, health check, tests~~ | ~~P9 complete~~ | ~~Codex~~ |
-| P10 | ERP data mapping + validation | Map ERP response fields to internal schema | Field mapper, validation layer, tests | P10-1 | Codex |
+| ~~P10~~ | ~~ERP data mapping + validation~~ | ~~Map ERP response fields to internal schema~~ | ~~data_mapper.py, field mapper, validation, tests~~ | ~~P10-1~~ | ~~Codex~~ |
 | P10 | Readonly provider diagnostics dashboard | Show HTTP provider health, latency, error rates | Dashboard panel, metrics, tests | P10-1 | Codex |
 | P10 | Provider selection operator UI | Let operator switch between local/http/auto from dashboard | Dashboard controls, tests | P10-1, P9-2 | Codex |
 
@@ -310,7 +318,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P10 roadmap defined. P10-1 (HttpReadonlyProvider) complete. Next: P10-2 (ERP data mapping + validation).
+P10 roadmap defined. P10-1 (HttpReadonlyProvider) and P10-2 (ERP data mapping + validation) complete. Next: P10-3 (Readonly provider diagnostics dashboard).
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them

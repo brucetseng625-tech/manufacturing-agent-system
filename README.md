@@ -592,6 +592,20 @@ Unauthorized requests return `401` with:
   }
   ```
 
+- **GET /mapping/diagnostics**
+  Returns data mapping configuration and runtime statistics.
+  ```bash
+  curl http://localhost:8000/mapping/diagnostics
+  ```
+  Response:
+  ```json
+  {
+    "enabled": false,
+    "datasets": {},
+    "runtime_stats": {}
+  }
+  ```
+
 - **Execution Guardrails (config-driven)**
   Protect mutation-capable operations with config-driven allow/deny and approval rules.
   Configure via `config.json`:
@@ -1053,6 +1067,78 @@ The `HttpReadonlyProvider` is a concrete readonly integration that fetches JSON 
 ```
 
 When `base_url` is empty or not set, the system falls back to the skeleton `LiveDataProvider` (reports `not_configured`), preserving backward compatibility.
+
+### ERP Data Mapping + Validation (P10-2)
+
+When fetching data from external HTTP sources, ERP systems often use different field names and formats than the internal schema. The `data_mapper` module provides a configurable mapping + validation layer that transforms external records into the internal schema.
+
+**How it works:**
+1. **Field Mapping** — Rename external fields to internal names (e.g., `id` → `order_id`, `client_name` → `customer`)
+2. **Type Coercion** — Convert string values to correct types (e.g., `"42"` → `42`)
+3. **Default Values** — Fill missing optional fields with sensible defaults
+4. **Validation** — Reject records missing required fields or with unfixable type mismatches
+5. **Auto-Apply** — `HttpReadonlyProvider` automatically applies mapping when `live_provider.data_mapping.enabled` is true
+
+**Mapping is applied per-dataset** using the filename (without extension) as the dataset identifier. For example, `orders.json` → dataset name `orders`.
+
+**Configuration:**
+```json
+{
+  "live_provider": {
+    "data_mapping": {
+      "enabled": false,
+      "datasets": {
+        "orders": {
+          "enabled": true,
+          "field_mapping": {
+            "id": "order_id",
+            "client_name": "customer",
+            "item_name": "product",
+            "qty": "quantity"
+          },
+          "required_fields": ["order_id", "customer", "quantity"],
+          "type_rules": {
+            "quantity": "int",
+            "penalty_per_day": "float",
+            "expedite_cost": "float"
+          },
+          "default_values": {
+            "priority": "Normal",
+            "customer_tier": "Standard"
+          }
+        },
+        "materials": {
+          "enabled": true,
+          "field_mapping": {
+            "part_name": "material",
+            "need_qty": "required_qty",
+            "stock_qty": "available_qty"
+          },
+          "required_fields": ["order_id", "material", "required_qty", "available_qty"],
+          "type_rules": {
+            "required_qty": "int",
+            "available_qty": "int",
+            "unit_cost": "float"
+          },
+          "default_values": {
+            "status": "Ready",
+            "safety_stock": 0
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**Diagnostics endpoint:** `GET /mapping/diagnostics`
+
+Returns mapping configuration status, per-dataset rule counts, and runtime statistics (total records processed, mapped, skipped, errors).
+
+**Behavior when disabled:**
+- When `live_provider.data_mapping.enabled` is `false` (default), data is returned as-is with no transformation
+- When mapping is enabled but a specific dataset is not configured, that dataset's data is returned as-is
+- If mapping fails for any record, it is excluded from the output — errors are logged but do not block data loading
 
 ### Server Access Logging
 

@@ -75,6 +75,11 @@ class HttpReadonlyProviderConfigTest(unittest.TestCase):
 class HttpReadonlyProviderLiveTest(unittest.TestCase):
     """Integration tests using a real HTTP server."""
 
+    def setUp(self):
+        """Reset config to avoid pollution from data_mapper tests."""
+        from config import set_config
+        set_config({})
+
     @classmethod
     def setUpClass(cls):
         cls.server = HTTPServer(("127.0.0.1", 0), _MockJSONHandler)

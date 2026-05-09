@@ -21,6 +21,7 @@ from data_source import set_data_source, create_provider, get_provider_name, get
 from alert import check_alerts, get_alert_manager
 from timeline import build_timeline, timeline_summary
 from guardrails import check_guardrail, get_guardrails_status
+from data_mapper import get_mapping_diagnostics, reset_mapping_stats
 from config import (
     get_config,
     get_config_value,
@@ -196,6 +197,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_timeline(parsed_path)
         elif path == "/guardrails":
             self._send_json_response(200, get_guardrails_status())
+        elif path == "/mapping/diagnostics":
+            self._send_json_response(200, get_mapping_diagnostics())
         else:
             self._send_error_response(404, "not_found", "Endpoint not found")
 
