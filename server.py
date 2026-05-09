@@ -186,6 +186,10 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_alerts_log(parsed_path)
         elif path == "/alerts/reset":
             self._handle_alerts_reset()
+        elif path == "/alerts":
+            self._handle_alerts_list(parsed_path)
+        elif path.startswith("/alerts/"):
+            self._handle_alert_detail(path, parsed_path)
         else:
             self._send_error_response(404, "not_found", "Endpoint not found")
 
@@ -426,6 +430,86 @@ class AgentHandler(BaseHTTPRequestHandler):
         get_alert_manager().reset()
         self._send_json_response(200, {"success": True, "message": "Alert state cleared"})
 
+    def _handle_alerts_list(self, parsed_path):
+        """Handle GET /alerts — list all alerts with lifecycle status."""
+        try:
+            params = parse_qs(parsed_path.query)
+            status_filter = params.get("status", [None])[0]
+
+            all_alerts = get_alert_manager().get_all_alerts()
+            if status_filter:
+                all_alerts = [a for a in all_alerts if a.get("status") == status_filter]
+
+            total = len(all_alerts)
+            by_status = {}
+            for a in all_alerts:
+                s = a.get("status", "unknown")
+                by_status[s] = by_status.get(s, 0) + 1
+
+            self._send_json_response(200, {
+                "total": total,
+                "by_status": by_status,
+                "alerts": all_alerts,
+            })
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to list alerts", str(e))
+
+    def _handle_alert_detail(self, path, parsed_path):
+        """Handle GET /alerts/{id} — get a specific alert by ID."""
+        try:
+            parts = path.strip("/").split("/")
+            if len(parts) != 2 or not parts[1].startswith("alert-"):
+                self._send_error_response(404, "not_found", "Alert endpoint not found")
+                return
+            alert_id = parts[1]
+            alert = get_alert_manager().find_alert(alert_id)
+            if alert is None:
+                self._send_error_response(404, "not_found", "Alert not found", {"alert_id": alert_id})
+                return
+            self._send_json_response(200, alert)
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to get alert", str(e))
+
+    def _handle_alert_acknowledge(self, alert_id):
+        """Handle POST /alerts/{id}/acknowledge — mark alert as acknowledged."""
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            if content_length > 0:
+                self.rfile.read(content_length)
+        except Exception:
+            pass
+
+        if not alert_id or not alert_id.startswith("alert-"):
+            self._send_error_response(400, "invalid_id", "Invalid alert ID format")
+            return
+
+        result = get_alert_manager().acknowledge(alert_id)
+        if "error" in result:
+            status = 404 if result["error"] == "alert_not_found" else 409
+            self._send_json_response(status, result)
+            return
+        self._send_json_response(200, result)
+
+    def _handle_alert_resolve(self, alert_id):
+        """Handle POST /alerts/{id}/resolve — mark alert as resolved."""
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            if content_length > 0:
+                self.rfile.read(content_length)
+        except Exception:
+            pass
+
+        if not alert_id or not alert_id.startswith("alert-"):
+            self._send_error_response(400, "invalid_id", "Invalid alert ID format")
+            return
+
+        result = get_alert_manager().resolve(alert_id)
+        if "error" in result:
+            status = 404 if result["error"] == "alert_not_found" else 409
+            self._send_json_response(status, result)
+            return
+        self._send_json_response(200, result)
+
     def _handle_history(self, parsed_path):
         """Handle GET /history with optional query parameters for filtering."""
         try:
@@ -504,6 +588,12 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_policy_reload()
         elif path == "/alerts/reset":
             self._handle_alerts_reset()
+        elif path.endswith("/acknowledge") and path.startswith("/alerts/"):
+            alert_id = path.split("/alerts/")[1].split("/acknowledge")[0]
+            self._handle_alert_acknowledge(alert_id)
+        elif path.endswith("/resolve") and path.startswith("/alerts/"):
+            alert_id = path.split("/alerts/")[1].split("/resolve")[0]
+            self._handle_alert_resolve(alert_id)
         else:
             self._drain_request_body()
             self._send_error_response(404, "not_found", "Endpoint not found")

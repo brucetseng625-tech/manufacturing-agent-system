@@ -2,6 +2,7 @@
 
 Sends webhook notifications when the system enters degraded, unhealthy,
 or critical states. Includes cooldown logic to prevent alert spam.
+Supports alert lifecycle: firing -> acknowledged -> resolved.
 """
 
 import json
@@ -11,12 +12,13 @@ from config import get_config_value
 
 
 class AlertManager:
-    """Manages alert cooldown and dispatch for system state changes."""
+    """Manages alert cooldown, dispatch, and lifecycle for system state changes."""
 
     def __init__(self):
         self._lock = threading.Lock()
         self._last_alert = {}  # alert_type -> last_sent_timestamp
         self._alert_log = []  # recent alerts for verification
+        self._alert_counter = 0  # monotonic counter for alert IDs
 
     def check_and_notify(self, system_status, degradation, health, provider_status):
         """Evaluate system state and send alert if threshold crossed.
@@ -55,19 +57,30 @@ class AlertManager:
         payload = self._build_payload(alert_info, degradation, health, provider_status)
         success = self._send_webhook(webhook_url, payload)
 
-        # Log alert
+        # Log alert with unique ID and lifecycle status
         with self._lock:
+            self._alert_counter += 1
+            alert_id = "alert-{0}".format(self._alert_counter)
             self._alert_log.append({
+                "id": alert_id,
                 "type": alert_type,
                 "severity": alert_info["severity"],
+                "status": "firing",
                 "sent": success,
                 "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                "acknowledged_at": None,
+                "resolved_at": None,
             })
             # Keep last 100 entries
             if len(self._alert_log) > 100:
                 self._alert_log = self._alert_log[-100:]
 
-        return {"sent": success, "alert": payload}
+        # Check auto-resolve timeout
+        auto_resolve = get_config_value("alerts.auto_resolve_seconds", 0)
+        if auto_resolve > 0:
+            self._schedule_auto_resolve(alert_id, auto_resolve)
+
+        return {"sent": success, "alert_id": alert_id, "alert": payload}
 
     def _evaluate(self, system_status, degradation, health, provider_status):
         """Determine if an alert should be triggered."""
@@ -146,11 +159,91 @@ class AlertManager:
         with self._lock:
             return list(self._alert_log[-last_n:])
 
+    def get_all_alerts(self):
+        """Return all alerts with their current lifecycle status."""
+        with self._lock:
+            return list(self._alert_log)
+
+    def find_alert(self, alert_id):
+        """Find an alert by ID. Returns the entry or None."""
+        with self._lock:
+            for entry in self._alert_log:
+                if entry["id"] == alert_id:
+                    return dict(entry)
+            return None
+
+    def acknowledge(self, alert_id):
+        """Mark an alert as acknowledged.
+
+        Args:
+            alert_id: The alert ID to acknowledge (e.g. 'alert-1')
+
+        Returns:
+            dict with updated alert entry, or error dict if not found
+        """
+        with self._lock:
+            for entry in self._alert_log:
+                if entry["id"] == alert_id:
+                    if entry["status"] == "resolved":
+                        return {"error": "alert_already_resolved", "id": alert_id}
+                    if entry["status"] == "acknowledged":
+                        return {"error": "alert_already_acknowledged", "id": alert_id}
+                    entry["status"] = "acknowledged"
+                    entry["acknowledged_at"] = time.strftime(
+                        "%Y-%m-%dT%H:%M:%SZ", time.gmtime()
+                    )
+                    return {"id": alert_id, "status": "acknowledged",
+                            "acknowledged_at": entry["acknowledged_at"]}
+            return {"error": "alert_not_found", "id": alert_id}
+
+    def resolve(self, alert_id):
+        """Mark an alert as resolved.
+
+        Args:
+            alert_id: The alert ID to resolve (e.g. 'alert-1')
+
+        Returns:
+            dict with updated alert entry, or error dict if not found
+        """
+        with self._lock:
+            for entry in self._alert_log:
+                if entry["id"] == alert_id:
+                    if entry["status"] == "resolved":
+                        return {"error": "alert_already_resolved", "id": alert_id}
+                    entry["status"] = "resolved"
+                    entry["resolved_at"] = time.strftime(
+                        "%Y-%m-%dT%H:%M:%SZ", time.gmtime()
+                    )
+                    return {"id": alert_id, "status": "resolved",
+                            "resolved_at": entry["resolved_at"]}
+            return {"error": "alert_not_found", "id": alert_id}
+
+    def _schedule_auto_resolve(self, alert_id, seconds):
+        """Schedule automatic resolution of an alert after N seconds.
+
+        Only auto-resolves if the alert is still in 'firing' state.
+        """
+        def _auto_resolve():
+            time.sleep(seconds)
+            with self._lock:
+                for entry in self._alert_log:
+                    if entry["id"] == alert_id and entry["status"] == "firing":
+                        entry["status"] = "resolved"
+                        entry["resolved_at"] = time.strftime(
+                            "%Y-%m-%dT%H:%M:%SZ", time.gmtime()
+                        )
+                        entry["auto_resolved"] = True
+                        break
+
+        t = threading.Thread(target=_auto_resolve, daemon=True)
+        t.start()
+
     def reset(self):
         """Clear cooldown state and alert log."""
         with self._lock:
             self._last_alert.clear()
             self._alert_log.clear()
+            self._alert_counter = 0
 
 
 # Module-level singleton

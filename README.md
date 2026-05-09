@@ -481,12 +481,66 @@ Unauthorized requests return `401` with:
     "alerts": {
       "enabled": true,
       "webhook_url": "https://hooks.example.com/alerts",
-      "cooldown_seconds": 300
+      "cooldown_seconds": 300,
+      "auto_resolve_seconds": 0
     }
   }
   ```
 
   When `alerts.enabled` is `false` (default), no alerts are triggered and no webhook calls are made.
+
+- **GET /alerts**
+  Lists all alerts with lifecycle status and summary by status.
+  ```bash
+  curl http://localhost:8000/alerts
+  curl http://localhost:8000/alerts?status=firing
+  ```
+  Response:
+  ```json
+  {
+    "total": 3,
+    "by_status": {"firing": 1, "acknowledged": 1, "resolved": 1},
+    "alerts": [
+      {
+        "id": "alert-1",
+        "type": "system_unhealthy",
+        "severity": "critical",
+        "status": "firing",
+        "sent": true,
+        "timestamp": "2026-05-08T12:00:00Z",
+        "acknowledged_at": null,
+        "resolved_at": null
+      }
+    ]
+  }
+  ```
+
+- **GET /alerts/{id}**
+  Returns a specific alert by ID.
+  ```bash
+  curl http://localhost:8000/alerts/alert-1
+  ```
+
+- **POST /alerts/{id}/acknowledge**
+  Mark an alert as acknowledged. Returns 409 if already acknowledged or resolved.
+  ```bash
+  curl -X POST http://localhost:8000/alerts/alert-1/acknowledge
+  ```
+
+- **POST /alerts/{id}/resolve**
+  Mark an alert as resolved. Returns 409 if already resolved.
+  ```bash
+  curl -X POST http://localhost:8000/alerts/alert-1/resolve
+  ```
+
+  Alert lifecycle: `firing` → `acknowledged` → `resolved`.
+  When `alerts.auto_resolve_seconds` > 0, alerts auto-resolve after the configured duration.
+
+- **GET /alerts/log**
+  ```bash
+  curl http://localhost:8000/alerts/log
+  ```
+  Returns recent alert log entries.
 
 - **GET /skills**
   ```bash

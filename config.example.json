@@ -41,6 +41,7 @@
   "alerts": {
     "enabled": false,
     "webhook_url": "",
-    "cooldown_seconds": 300
+    "cooldown_seconds": 300,
+    "auto_resolve_seconds": 0
   }
 }

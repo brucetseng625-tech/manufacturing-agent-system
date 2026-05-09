@@ -259,6 +259,18 @@ def main():
     check("Alerts: test_alerts.py exists",
           os.path.isfile(os.path.join(base, "tests", "test_alerts.py")),
           "alert test file present")
+    check("Alert lifecycle: test_alerts_lifecycle.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_alerts_lifecycle.py")),
+          "alert lifecycle test file present")
+    check("Alert lifecycle: acknowledge method in alert.py",
+          "def acknowledge" in open(os.path.join(base, "alert.py")).read(),
+          "acknowledge method present")
+    check("Alert lifecycle: resolve method in alert.py",
+          "def resolve" in open(os.path.join(base, "alert.py")).read(),
+          "resolve method present")
+    check("Alert lifecycle: /alerts endpoint in server.py",
+          "_handle_alerts_list" in open(os.path.join(base, "server.py")).read(),
+          "alerts list handler present")
 
     # Summary
     print()

@@ -392,6 +392,19 @@ def main():
               isinstance(alert_log.get("alerts"), list),
               f"alerts type={type(alert_log.get('alerts')).__name__}")
 
+        # P9-1: Alert lifecycle endpoints
+        req = urllib.request.Request(
+            f"http://127.0.0.1:{port}/alerts"
+        )
+        with urllib.request.urlopen(req) as resp:
+            alert_list = json.loads(resp.read())
+        check("Alert lifecycle: /alerts responds 200",
+              resp.status == 200,
+              f"status={resp.status}")
+        check("Alert lifecycle: /alerts has by_status",
+              "by_status" in alert_list,
+              f"keys={list(alert_list.keys())}")
+
     finally:
         server.shutdown()
 
