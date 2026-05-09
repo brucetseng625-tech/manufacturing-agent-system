@@ -3,13 +3,13 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `9d07d6c` `docs: align next steps after automation policy phase`
+- `d518eea` `feat(p12-3): add rollback and audit visibility for limited automation actions`
 
 Latest verified feature commit on `main`:
-- `9d07d6c` `docs: align next steps after automation policy phase`
+- `d518eea` `feat(p12-3): add rollback and audit visibility for limited automation actions`
 
 Latest roadmap sync commit on `main`:
-- `9d07d6c` `docs: align next steps after automation policy phase`
+- `d518eea` `feat(p12-3): add rollback and audit visibility for limited automation actions`
 - Full unit test status at handoff: `785 / 785 passed`
 - Smoke test status at handoff: `98 / 98 passed`
 - Setup verification status at handoff: `161 / 161 passed`
