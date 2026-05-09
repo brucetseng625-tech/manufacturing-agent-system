@@ -396,6 +396,29 @@ def main():
           '"provider:select"' in open(os.path.join(base, "config.example.json")).read(),
           "provider:select guardrail present")
 
+    # P11-1: Audit chain
+    check("P11-1: audit_chain.py exists",
+          os.path.isfile(os.path.join(base, "audit_chain.py")),
+          "audit_chain module present")
+    check("P11-1: test_audit_chain.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_audit_chain.py")),
+          "audit chain test file present")
+    check("P11-1: append_audit_entry in audit_chain.py",
+          "def append_audit_entry" in open(os.path.join(base, "audit_chain.py")).read(),
+          "append_audit_entry function present")
+    check("P11-1: query_audit_log in audit_chain.py",
+          "def query_audit_log" in open(os.path.join(base, "audit_chain.py")).read(),
+          "query_audit_log function present")
+    check("P11-1: get_audit_summary in audit_chain.py",
+          "def get_audit_summary" in open(os.path.join(base, "audit_chain.py")).read(),
+          "get_audit_summary function present")
+    check("P11-1: /audit handler in server.py",
+          "_handle_audit_query" in open(os.path.join(base, "server.py")).read(),
+          "audit query handler present")
+    check("P11-1: audit logging integrated in server.py",
+          "append_audit_entry" in open(os.path.join(base, "server.py")).read(),
+          "audit logging integrated in server")
+
     # Summary
     print()
     print("=" * 50)

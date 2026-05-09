@@ -495,6 +495,12 @@ def main():
               "_handle_provider_select" in open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "server.py")).read(),
               "provider select handler present in server.py")
 
+        # P11-1: Audit chain
+        audit_res = get("/audit", port)
+        check("P11-1: /audit responds 200",
+              "entries" in audit_res and "summary" in audit_res,
+              f"keys={list(audit_res.keys())}")
+
     finally:
         server.shutdown()
 

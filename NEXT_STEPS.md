@@ -115,6 +115,7 @@ Current completed scope:
 - erp data mapping + validation
 - readonly provider diagnostics dashboard
 - provider selection operator UI
+- audit chain for critical operations
 - expedite-options skill
 - material-shortage-recovery skill
 - capacity-rebalance skill
@@ -190,15 +191,23 @@ Current completed scope:
 - Fetches /system/status and /mapping/diagnostics in parallel for real-time data
 - Pure frontend change — no backend modifications required
 - 3 smoke test checks + 4 verify setup checks added
-- P10 Phase 4 implemented: Provider Selection Operator UI
-- Dashboard Ops view now includes Provider Selection card with radio buttons
-- Supports switching between local, http, and auto modes at runtime
-- POST /provider/select endpoint with guardrail integration
-- set_default_provider and get_default_provider_mode added to data_source.py
-- /system/status now includes default_mode in provider status
-- guardrails updated with provider:select (approval-required by default)
-- 7 new unit tests for provider selection API + 4 smoke + 7 verify checks
-- Updated README.md, NEXT_STEPS.md, config.example.json
+|- P10 Phase 4 implemented: Provider Selection Operator UI
+|- Dashboard Ops view now includes Provider Selection card with radio buttons
+|- Supports switching between local, http, and auto modes at runtime
+|- POST /provider/select endpoint with guardrail integration
+|- set_default_provider and get_default_provider_mode added to data_source.py
+|- /system/status now includes default_mode in provider status
+|- guardrails updated with provider:select (approval-required by default)
+|- 7 new unit tests for provider selection API + 4 smoke + 7 verify checks
+|- Updated README.md, NEXT_STEPS.md, config.example.json
+|- P11 Phase 1 implemented: Audit Chain for Critical Operations
+|- New module: audit_chain.py with append_audit_entry, query_audit_log, get_audit_summary
+|- Unified JSONL audit log for operator actions (logs/audit.jsonl)
+|- Integrated into config reload, policy reload, provider select, alerts reset, guardrails
+|- GET /audit endpoint with action/result filters and summary aggregation
+|- 15 unit tests covering append, query, filter, paginate, summary
+|- +1 smoke test + 7 verify setup checks
+|- Updated README.md, NEXT_STEPS.md
 - P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
@@ -292,6 +301,19 @@ Goal: Replace skeleton LiveDataProvider with concrete readonly integrations, ena
 | ~~P10~~ | ~~Readonly provider diagnostics dashboard~~ | ~~Show HTTP provider health, latency, error rates~~ | ~~Dashboard card, smoke/verify checks~~ | ~~P10-1~~ | ~~Codex~~ |
 | ~~P10~~ | ~~Provider selection operator UI~~ | ~~Let operator switch between local/http/auto from dashboard~~ | ~~Dashboard card, POST /provider/select, guardrails, tests~~ | ~~P10-1, P9-2~~ | ~~Codex~~ |
 
+## P11 Operator Governance & Audit
+
+Goal: Deepen approval/audit chain, incident reporting, and limited automation safety.
+
+### Roadmap
+
+| Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
+| --- | --- | --- | --- | --- | --- |
+| ~~P11~~ | ~~Audit chain for critical operations~~ | ~~Unified audit log for operator actions~~ | ~~audit_chain.py, /audit endpoint, integration, tests~~ | ~~P10 complete~~ | ~~Codex~~ |
+| P11 | Incident report generation | Auto-generate reports after incident resolution | Report builder, endpoint, tests | P11-1 | Codex |
+| P11 | Auto-remediation hooks | Trigger automatic fixes on specific alerts | Config-driven hooks, safety rails, tests | P11-1 | Codex |
+| P11 | Approval workflow dashboard | Visual approval queue for guarded operations | Dashboard panel, tests | P11-1, P9-4 | Codex |
+
 ## Start Here
 
 When a new Codex / AI session starts, do this first:
@@ -337,7 +359,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P10 roadmap COMPLETE (4/4). All phases P4-P10 delivered. Next roadmap phase to be defined by user.
+P11 roadmap defined. P11-1 (Audit chain for critical operations) complete. Next: P11-2 (Incident report generation).
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them

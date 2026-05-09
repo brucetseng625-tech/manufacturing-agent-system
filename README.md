@@ -606,7 +606,15 @@ Unauthorized requests return `401` with:
   }
   ```
 
-- **Execution Guardrails (config-driven)**
+- **GET /audit**
+  Returns operator audit chain entries with summary.
+  ```bash
+  curl http://localhost:8000/audit?last=10&action=config:reload
+  ```
+  Query params: `action`, `result`, `last`, `offset`
+
+- **POST /provider/select**
+  Switch the default data source mode at runtime.
   Protect mutation-capable operations with config-driven allow/deny and approval rules.
   Configure via `config.json`:
   ```json
@@ -1214,7 +1222,48 @@ Access logs are written as JSONLines to `logs/access.log`:
 {"timestamp": "2026-05-08T14:30:01Z", "method": "POST", "path": "/run", "status_code": 200, "duration_ms": 45.2, "client": "127.0.0.1", "run_id": "run-20260508-abc123"}
 ```
 
-  Use this to detect when data files have been added, modified, or removed without restarting the server.
+### Audit Chain for Critical Operations (P11-1)
+
+The audit chain tracks all critical operator actions in a persistent JSONL log (`logs/audit.jsonl`). Unlike access logs (which track every HTTP request) and runs.jsonl (which tracks skill executions), the audit chain focuses specifically on **administrative operations** that change system state.
+
+**Tracked actions:**
+- `config:reload` — Config file reload
+- `policy:reload` — Policy rules reload
+- `provider:select` — Default provider mode switch
+- `alerts:reset` — Alert state reset
+- `guardrail:denied` — Guardrail denial
+
+**Each entry contains:**
+```json
+{
+  "timestamp": "2026-05-09T12:00:00Z",
+  "action": "provider:select",
+  "operator": "api",
+  "source_ip": "127.0.0.1",
+  "details": {"mode": "auto", "provider_name": "auto", "readiness": "ready"},
+  "result": "success",
+  "run_id": null
+}
+```
+
+**API:**
+```bash
+# Query recent audit entries
+curl http://localhost:8000/audit
+
+# Filter by action
+curl http://localhost:8000/audit?action=config:reload
+
+# Filter by result
+curl http://localhost:8000/audit?result=denied
+
+# Pagination
+curl http://localhost:8000/audit?last=10&offset=20
+```
+
+Response includes `entries`, `total`, and `summary` (action/result counts, last entry).
+
+### Server Access Logging
 
 - **GET /provider/status**
   ```bash

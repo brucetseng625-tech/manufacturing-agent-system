@@ -22,6 +22,7 @@ from alert import check_alerts, get_alert_manager
 from timeline import build_timeline, timeline_summary
 from guardrails import check_guardrail, get_guardrails_status
 from data_mapper import get_mapping_diagnostics, reset_mapping_stats
+from audit_chain import append_audit_entry, query_audit_log, get_audit_summary
 from config import (
     get_config,
     get_config_value,
@@ -199,6 +200,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._send_json_response(200, get_guardrails_status())
         elif path == "/mapping/diagnostics":
             self._send_json_response(200, get_mapping_diagnostics())
+        elif path == "/audit":
+            self._handle_audit_query(parsed_path)
         else:
             self._send_error_response(404, "not_found", "Endpoint not found")
 
@@ -444,6 +447,9 @@ class AgentHandler(BaseHTTPRequestHandler):
         except Exception:
             pass
         get_alert_manager().reset()
+        append_audit_entry("alerts:reset", operator="api",
+                           source_ip=self.client_address[0],
+                           details={}, result="success")
         self._send_json_response(200, {"success": True, "message": "Alert state cleared"})
 
     def _handle_provider_select(self):
@@ -456,6 +462,9 @@ class AgentHandler(BaseHTTPRequestHandler):
         guard = check_guardrail("provider:select", headers)
         if guard:
             self._drain_request_body()
+            append_audit_entry("provider:select", operator="api",
+                               source_ip=self.client_address[0],
+                               details={"guardrail": True, "mode": "unknown"}, result="denied")
             self._send_json_response(403, guard)
             return
 
@@ -472,12 +481,20 @@ class AgentHandler(BaseHTTPRequestHandler):
 
         mode = payload.get("mode")
         if mode not in VALID_DATA_SOURCES:
+            append_audit_entry("provider:select", operator="api",
+                               source_ip=self.client_address[0],
+                               details={"mode": mode, "error": "invalid_mode"}, result="failed")
             self._send_error_response(400, "invalid_mode",
                 f"Invalid mode: {mode}. Must be one of: {list(VALID_DATA_SOURCES)}")
             return
 
         try:
             provider = set_default_provider(mode)
+            append_audit_entry("provider:select", operator="api",
+                               source_ip=self.client_address[0],
+                               details={"mode": mode, "provider_name": provider.name(),
+                                        "readiness": provider.readiness()},
+                               result="success")
             self._send_json_response(200, {
                 "success": True,
                 "mode": mode,
@@ -486,6 +503,9 @@ class AgentHandler(BaseHTTPRequestHandler):
                 "message": f"Default provider switched to {mode}",
             })
         except ValueError as e:
+            append_audit_entry("provider:select", operator="api",
+                               source_ip=self.client_address[0],
+                               details={"mode": mode, "error": str(e)}, result="failed")
             self._send_error_response(400, "provider_error", str(e))
         except Exception as e:
             self._send_error_response(500, "internal_error", f"Failed to switch provider: {e}")
@@ -598,6 +618,34 @@ class AgentHandler(BaseHTTPRequestHandler):
         except Exception as e:
             self._send_error_response(500, "internal_error", "Failed to build timeline", str(e))
 
+    def _handle_audit_query(self, parsed_path):
+        """Handle GET /audit — query the operator audit chain.
+
+        Query params:
+            action: Filter by action type (e.g., "config:reload")
+            result: Filter by result ("success", "denied", "failed")
+            last: Max entries to return (default 50)
+            offset: Skip first N entries (default 0)
+        """
+        try:
+            params = parse_qs(parsed_path.query)
+            action_filter = params.get("action", [None])[0]
+            result_filter = params.get("result", [None])[0]
+            last = int(params.get("last", ["50"])[0])
+            offset = int(params.get("offset", ["0"])[0])
+
+            result = query_audit_log(limit=last, action_filter=action_filter,
+                                     result_filter=result_filter, offset=offset)
+            summary = get_audit_summary()
+
+            self._send_json_response(200, {
+                "entries": result["entries"],
+                "total": result["total"],
+                "summary": summary,
+            })
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to query audit log", str(e))
+
     def _handle_history(self, parsed_path):
         """Handle GET /history with optional query parameters for filtering."""
         try:
@@ -696,6 +744,9 @@ class AgentHandler(BaseHTTPRequestHandler):
         guard = check_guardrail("config:reload", headers)
         if guard:
             self._drain_request_body()
+            append_audit_entry("config:reload", operator="api",
+                               source_ip=self.client_address[0],
+                               details={"guardrail": True}, result="denied")
             self._send_json_response(403, guard)
             return
 
@@ -709,6 +760,10 @@ class AgentHandler(BaseHTTPRequestHandler):
 
             result = reload_config(resolve_repo_path(config_path) if config_path else None)
             meta = get_config_metadata()
+            append_audit_entry("config:reload", operator="api",
+                               source_ip=self.client_address[0],
+                               details={"config_path": config_path, "source": result.get("source")},
+                               result="success" if result.get("success") else "failed")
             self._send_json_response(200, {
                 "success": result["success"],
                 "source": result["source"],
@@ -717,8 +772,14 @@ class AgentHandler(BaseHTTPRequestHandler):
                 "reload_count": meta["reload_count"],
             })
         except (json.JSONDecodeError, ValueError) as e:
+            append_audit_entry("config:reload", operator="api",
+                               source_ip=self.client_address[0],
+                               details={"error": str(e)}, result="failed")
             self._send_error_response(400, "invalid_json", f"Request body is not valid JSON: {e}")
         except Exception as e:
+            append_audit_entry("config:reload", operator="api",
+                               source_ip=self.client_address[0],
+                               details={"error": str(e)}, result="failed")
             self._send_error_response(500, "internal_error", f"Failed to reload config: {e}")
 
     def _handle_policy_reload(self):
@@ -728,6 +789,9 @@ class AgentHandler(BaseHTTPRequestHandler):
         guard = check_guardrail("policy:reload", headers)
         if guard:
             self._drain_request_body()
+            append_audit_entry("policy:reload", operator="api",
+                               source_ip=self.client_address[0],
+                               details={"guardrail": True}, result="denied")
             self._send_json_response(403, guard)
             return
 
@@ -743,6 +807,11 @@ class AgentHandler(BaseHTTPRequestHandler):
             result = reload_policy(config_path)
             reload_meta = get_reload_metadata()
 
+            append_audit_entry("policy:reload", operator="api",
+                               source_ip=self.client_address[0],
+                               details={"config_path": config_path, "source": result.get("source")},
+                               result="success" if result.get("success") else "failed")
+
             self._send_json_response(200, {
                 "success": result["success"],
                 "source": result["source"],
@@ -751,8 +820,14 @@ class AgentHandler(BaseHTTPRequestHandler):
                 "reload_count": reload_meta["reload_count"],
             })
         except (json.JSONDecodeError, ValueError) as e:
+            append_audit_entry("policy:reload", operator="api",
+                               source_ip=self.client_address[0],
+                               details={"error": str(e)}, result="failed")
             self._send_error_response(400, "invalid_json", f"Request body is not valid JSON: {e}")
         except Exception as e:
+            append_audit_entry("policy:reload", operator="api",
+                               source_ip=self.client_address[0],
+                               details={"error": str(e)}, result="failed")
             self._send_error_response(500, "internal_error", f"Failed to reload policy: {e}")
 
     def _handle_run(self):
