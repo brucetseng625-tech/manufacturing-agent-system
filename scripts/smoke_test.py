@@ -528,6 +528,12 @@ def main():
               "pending_count" in ap.get("stats", {}),
               f"stats={ap.get('stats', {})}")
 
+        # P12-1: Approve-and-retry
+        ap2 = post("/approvals/reset", port, {})
+        check("P12-1: /approvals/reset responds 200",
+              ap2.get("success") is True,
+              f"reset response={ap2}")
+
     finally:
         server.shutdown()
 

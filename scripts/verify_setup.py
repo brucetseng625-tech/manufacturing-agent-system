@@ -491,6 +491,20 @@ def main():
           "renderApprovalQueueCard" in open(os.path.join(base, "static", "dashboard.html")).read(),
           "approval queue card in dashboard")
 
+    # P12-1: Approval-linked execution handoff
+    check("P12-1: approve_and_retry endpoint in server.py",
+          "approve-and-retry" in open(os.path.join(base, "server.py")).read(),
+          "approve-and-retry endpoint present")
+    check("P12-1: _replay_request in server.py",
+          "_replay_request" in open(os.path.join(base, "server.py")).read(),
+          "replay request helper present")
+    check("P12-1: original_request in approval_queue.py",
+          "original_request" in open(os.path.join(base, "approval_queue.py")).read(),
+          "original_request storage present")
+    check("P12-1: approve-and-retry in dashboard",
+          "doApproveRetry" in open(os.path.join(base, "static", "dashboard.html")).read(),
+          "approve-and-retry button in dashboard")
+
     # Summary
     print()
     print("=" * 50)
