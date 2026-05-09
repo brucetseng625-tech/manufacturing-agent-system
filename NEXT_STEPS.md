@@ -3,13 +3,13 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `5edb62e` `feat(p12-1): add approval-linked execution handoff`
+- `56cd4a5` `docs: update handoff metadata after P12-1 test coverage completion`
 
 Latest verified feature commit on `main`:
 - `5edb62e` `feat(p12-1): add approval-linked execution handoff`
 
 Latest roadmap sync commit on `main`:
-- `0d42b1f` `test(p12-1): add smoke and verify checks for approve-and-retry`
+- `56cd4a5` `docs: update handoff metadata after P12-1 test coverage completion`
 - Full unit test status at handoff: `744 / 744 passed`
 - Smoke test status at handoff: `95 / 95 passed`
 - Setup verification status at handoff: `148 / 148 passed`
