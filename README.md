@@ -1452,6 +1452,72 @@ Before an operator clicks approve or approve & retry, the approval APIs now expo
 }
 ```
 
+### Automation Execution Receipts (P13-2)
+
+A unified, operator-facing record for all automated execution outcomes — covering both approval-linked retries and auto-remediation runs. Every execution leaves a traceable receipt that can be queried, filtered, and audited.
+
+**Design principles:**
+- **Unified source tracking** — `approval-retry` and `auto-remediation` receipts in one log
+- **Immutable history** — receipts are append-only, never modified after creation
+- **In-memory capped** — oldest entries pruned when limit reached (default 200)
+- **Full audit integration** — every receipt also logged to `audit_chain` for traceability
+- **Filterable** — query by source, status, or operation name
+
+**Endpoints:**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/automation/receipts` | Query execution receipts with filters |
+| `POST` | `/automation/receipts/reset` | Clear all receipts (operator-initiated) |
+
+**Query parameters (`GET /automation/receipts`):**
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `source` | string | Filter: `approval-retry` or `auto-remediation` |
+| `status` | string | Filter by status (e.g. `success`, `failed`, `executed`, `cooldown`) |
+| `operation` | string | Filter by operation name (e.g. `policy:reload`, `alerts:reset`) |
+| `limit` | int | Max receipts to return (default 20) |
+| `offset` | int | Skip first N entries (default 0) |
+
+**Example response:**
+```json
+{
+  "receipts": [
+    {
+      "receipt_id": "rcpt-a1b2c3d4",
+      "source": "approval-retry",
+      "operation": "policy:reload",
+      "status": "success",
+      "approval_id": "approval-3",
+      "recorded_at": "2026-05-09T12:34:56Z",
+      "details": {"status_code": 200}
+    },
+    {
+      "receipt_id": "rcpt-e5f6g7h8",
+      "source": "auto-remediation",
+      "operation": "alerts:reset",
+      "status": "executed",
+      "trigger": "circuit_breaker_open",
+      "hook": "reset_on_cb_open",
+      "recorded_at": "2026-05-09T12:30:00Z",
+      "details": {"dry_run": false}
+    }
+  ],
+  "total": 2,
+  "summary": {
+    "total": 42,
+    "by_source": {"approval-retry": 15, "auto-remediation": 27},
+    "by_status": {"success": 10, "executed": 20, "failed": 5, "cooldown": 7},
+    "by_operation": {"policy:reload": 8, "alerts:reset": 12, "config:reload": 22}
+  }
+}
+```
+
+**Integration points:**
+- **approve-and-retry** — records `success`/`failed`/`error`/`skipped`/`policy_denied` receipts
+- **auto-remediation** — records `executed`/`dry_run`/`cooldown`/`policy_denied`/`skipped`/`error` receipts
+
 ### Automation Policy Controls (P12-2)
 
 A config-driven policy layer that gates which automation actions are permitted. This provides operator-safe control over auto-remediation hooks, approval-linked retries, and provider mode operations — all defaulting to deny-all when enabled.
