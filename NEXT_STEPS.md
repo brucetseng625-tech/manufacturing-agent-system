@@ -3,16 +3,16 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `ff1e38f` `docs: sync handoff metadata after P11-1 audit chain delivery`
+- `dfaa908` `feat(p11-2): add incident report generation`
 
 Latest verified feature commit on `main`:
-- `129ce9a` `feat(p11-1): add audit chain for critical operator operations`
+- `dfaa908` `feat(p11-2): add incident report generation`
 
 Latest roadmap sync commit on `main`:
-- `ff1e38f` `docs: sync handoff metadata after P11-1 audit chain delivery`
-- Full unit test status at handoff: `669 / 669 passed`
-- Smoke test status at handoff: `88 / 88 passed`
-- Setup verification status at handoff: `122 / 122 passed`
+- `dfaa908` `feat(p11-2): add incident report generation`
+- Full unit test status at handoff: `691 / 691 passed`
+- Smoke test status at handoff: `90 / 90 passed`
+- Setup verification status at handoff: `126 / 126 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
