@@ -376,6 +376,22 @@ def main():
               dr_batch.get("total", 0) >= 1,
               f"total={dr_batch.get('total')}")
 
+        # 30. Alerts: log endpoint
+        req = urllib.request.Request(
+            f"http://127.0.0.1:{port}/alerts/log"
+        )
+        with urllib.request.urlopen(req) as resp:
+            alert_log = json.loads(resp.read())
+        check("Alerts: /alerts/log responds 200",
+              resp.status == 200,
+              f"status={resp.status}")
+        check("Alerts: /alerts/log has total field",
+              "total" in alert_log,
+              f"keys={list(alert_log.keys())}")
+        check("Alerts: /alerts/log has alerts list",
+              isinstance(alert_log.get("alerts"), list),
+              f"alerts type={type(alert_log.get('alerts')).__name__}")
+
     finally:
         server.shutdown()
 

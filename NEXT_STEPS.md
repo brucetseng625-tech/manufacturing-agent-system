@@ -3,16 +3,16 @@
 Last updated: 2026-05-08
 
 Current latest completed GitHub commit on `main`:
-- `679b8e9` `docs: update NEXT_STEPS.md handoff metadata for P8-3`
+- `ff09dd7` `feat(p8): add dry-run execution controls for /run and /batch`
 
 Latest verified feature commit on `main`:
 - `ff09dd7` `feat(p8): add dry-run execution controls for /run and /batch`
 
 Latest roadmap sync commit on `main`:
-- `679b8e9` `docs: update NEXT_STEPS.md handoff metadata for P8-3`
-- Full unit test status at handoff: `498 / 498 passed`
-- Smoke test status at handoff: `64 / 64 passed`
-- Setup verification status at handoff: `71 / 71 passed`
+- `ff09dd7` `feat(p8): add dry-run execution controls for /run and /batch`
+- Full unit test status at handoff: `515 / 515 passed`
+- Smoke test status at handoff: `67 / 67 passed`
+- Setup verification status at handoff: `75 / 75 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
@@ -134,7 +134,17 @@ Current completed scope:
 - safe fallback and degraded-mode visibility
 - aggregated system status endpoint
 - dashboard operations panels
-- dry-run execution controls
+|- dry-run execution controls
+|- alert/notification hooks
+|- P8 Phase 4 implemented: Alert/Notification Hooks
+|- `alert.py` module with AlertManager for state change detection
+|- Webhook-based notifications for degraded/unhealthy/critical states
+|- Three alert types: system_unhealthy (critical), circuit_breaker_open (warning), degradation_detected (warning)
+|- Cooldown logic prevents alert spam (default 300s)
+|- New endpoints: `GET /alerts/log`, `POST /alerts/reset`
+|- Config-driven: `alerts.enabled`, `alerts.webhook_url`, `alerts.cooldown_seconds`
+|- Integrated with `/system/status` — alerts checked on each status evaluation
+|- Alerts disabled by default; no webhook calls when `alerts.enabled: false`
 - P8 Phase 3 implemented: Dry-Run Execution Controls
 - `POST /run` and `POST /batch` now support `dry_run: true` flag
 - Dry-run validates request, extracts orders, previews routing — no side effects
@@ -191,7 +201,7 @@ Goal: Provide aggregated operator-facing visibility and safe execution controls 
 | ~~P8~~ | ~~System status endpoint~~ | ~~Single operator-facing aggregated system view~~ | ~~`/system/status`, tests~~ | ~~P7 complete~~ | ~~Codex~~ |
 | ~~P8~~ | ~~Dashboard ops panels~~ | ~~Show health, degradation, provider status on dashboard~~ | ~~Dashboard panels, tests~~ | ~~System status endpoint~~ | ~~Codex~~ |
 | ~~P8~~ | ~~Query execution controls~~ | ~~Safe dry-run mode for /run and /batch~~ | ~~`dry_run` flag, tests~~ | ~~Stable /run contract~~ | ~~Codex~~ |
-| P8 | Alert/notification hooks | Automated alerts on degradation events | Webhook config, tests | Degradation visibility | Codex |
+| ~~P8~~ | ~~Alert/notification hooks~~ | ~~Automated alerts on degradation events~~ | ~~Webhook config, tests~~ | ~~Degradation visibility~~ | ~~Codex~~ |
 
 ## Start Here
 
@@ -238,7 +248,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P8-3 (Dry-run execution controls) is complete. Continue with P8-4 (Alert/notification hooks) or define P9.
+P8 is complete (all 4 items done). Define next roadmap phase (P9) or stop.
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them

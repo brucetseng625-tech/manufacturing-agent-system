@@ -441,6 +441,53 @@ Unauthorized requests return `401` with:
 
   Dry-run also works with `POST /batch` — set `"dry_run": true` to preview routing for all queries without executing any of them.
 
+- **GET /alerts/log**
+  ```bash
+  curl http://localhost:8000/alerts/log
+  curl "http://localhost:8000/alerts/log?last=5"
+  ```
+  Returns recent alert log entries:
+  ```json
+  {
+    "total": 1,
+    "alerts": [
+      {
+        "type": "degradation_detected",
+        "severity": "warning",
+        "sent": true,
+        "timestamp": "2026-05-08T14:30:00Z"
+      }
+    ]
+  }
+  ```
+
+- **POST /alerts/reset**
+  ```bash
+  curl -X POST http://localhost:8000/alerts/reset
+  ```
+  Clears alert cooldown state and log. Returns:
+  ```json
+  {"success": true, "message": "Alert state cleared"}
+  ```
+
+  **Alert system**: When enabled via config (`alerts.enabled: true`), the system monitors `/system/status` calls and triggers webhook notifications for:
+  - **`system_unhealthy`** (critical): System status is unhealthy or provider is disabled
+  - **`circuit_breaker_open`** (warning): Circuit breaker tripped, fallback serving
+  - **`degradation_detected`** (warning): System operating in degraded mode
+
+  Alerts include cooldown (default 300s) to prevent spam. Configure via `config.json`:
+  ```json
+  {
+    "alerts": {
+      "enabled": true,
+      "webhook_url": "https://hooks.example.com/alerts",
+      "cooldown_seconds": 300
+    }
+  }
+  ```
+
+  When `alerts.enabled` is `false` (default), no alerts are triggered and no webhook calls are made.
+
 - **GET /skills**
   ```bash
   curl http://localhost:8000/skills

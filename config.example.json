@@ -37,5 +37,10 @@
     "auto": {
       "enabled": true
     }
+  },
+  "alerts": {
+    "enabled": false,
+    "webhook_url": "",
+    "cooldown_seconds": 300
   }
 }

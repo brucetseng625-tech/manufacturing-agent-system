@@ -246,6 +246,20 @@ def main():
           os.path.isfile(os.path.join(base, "tests", "test_dry_run.py")),
           "dry_run test file present")
 
+    # Alerts/notification hooks
+    check("Alerts: alert.py module exists",
+          os.path.isfile(os.path.join(base, "alert.py")),
+          "alert.py module present")
+    check("Alerts: AlertManager class exists",
+          "class AlertManager" in open(os.path.join(base, "alert.py")).read(),
+          "AlertManager class present in alert.py")
+    check("Alerts: alerts config section in example",
+          '"alerts"' in open(os.path.join(base, "config.example.json")).read(),
+          "alerts config section in config.example.json")
+    check("Alerts: test_alerts.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_alerts.py")),
+          "alert test file present")
+
     # Summary
     print()
     print("=" * 50)

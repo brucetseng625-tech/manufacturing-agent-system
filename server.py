@@ -18,6 +18,7 @@ from skills.observability import log_request, log_asana_post
 from metrics import compute_metrics
 from data_dir_monitor import scan_data_dir, get_data_dir_metadata
 from data_source import set_data_source, create_provider, get_provider_name, get_provider_status, get_provider_health, get_degradation_status, get_system_status
+from alert import check_alerts, get_alert_manager
 from config import (
     get_config,
     get_config_value,
@@ -181,6 +182,10 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_degradation_status(parsed_path)
         elif path == "/system/status":
             self._handle_system_status(parsed_path)
+        elif path == "/alerts/log":
+            self._handle_alerts_log(parsed_path)
+        elif path == "/alerts/reset":
+            self._handle_alerts_reset()
         else:
             self._send_error_response(404, "not_found", "Endpoint not found")
 
@@ -377,9 +382,49 @@ class AgentHandler(BaseHTTPRequestHandler):
             params = parse_qs(parsed_path.query)
             data_dir = params.get("data_dir", [None])[0]
             status = get_system_status(data_dir)
+
+            # Check if we should trigger an alert based on current state
+            alert_result = check_alerts(
+                system_status=status["system"],
+                degradation=status["degradation"],
+                health=status["health"],
+                provider_status=status["provider"],
+            )
+            if alert_result:
+                status["alert_triggered"] = alert_result
+
             self._send_json_response(200, status)
         except Exception as e:
             self._send_error_response(500, "internal_error", "Failed to get system status", str(e))
+
+    def _handle_alerts_log(self, parsed_path):
+        """Handle GET /alerts/log — return recent alert log entries."""
+        try:
+            params = parse_qs(parsed_path.query)
+            last_n = 10
+            if "last" in params:
+                try:
+                    last_n = int(params["last"][0])
+                    if last_n <= 0:
+                        last_n = 10
+                except (ValueError, IndexError):
+                    last_n = 10
+            log = get_alert_manager().get_alert_log(last_n)
+            self._send_json_response(200, {"total": len(log), "alerts": log})
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to get alert log", str(e))
+
+    def _handle_alerts_reset(self):
+        """Handle POST /alerts/reset — clear alert cooldown state and log."""
+        # Drain any request body
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            if content_length > 0:
+                self.rfile.read(content_length)
+        except Exception:
+            pass
+        get_alert_manager().reset()
+        self._send_json_response(200, {"success": True, "message": "Alert state cleared"})
 
     def _handle_history(self, parsed_path):
         """Handle GET /history with optional query parameters for filtering."""
@@ -457,6 +502,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_config_reload()
         elif path == "/policy/reload":
             self._handle_policy_reload()
+        elif path == "/alerts/reset":
+            self._handle_alerts_reset()
         else:
             self._drain_request_body()
             self._send_error_response(404, "not_found", "Endpoint not found")
