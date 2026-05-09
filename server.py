@@ -27,6 +27,7 @@ from incident_report import generate_incident_report
 from auto_remediation import evaluate_hooks, evaluate_all_hooks, get_remediation_status, reset_remediation_state
 from approval_queue import create_pending_item, list_pending, get_item, approve_item, reject_item, get_approval_stats, reset_queue
 from automation_policy import check_automation_allowed, get_automation_policy_status
+from rollback_eligibility import query_rollback_eligibility, get_rollback_summary
 from guardrails import check_guardrail, get_guardrails_status, get_guardrail
 
 
@@ -257,6 +258,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._send_json_response(200, get_guardrails_status())
         elif path == "/mapping/diagnostics":
             self._send_json_response(200, get_mapping_diagnostics())
+        elif path == "/audit/rollback":
+            self._handle_rollback_eligibility(parsed_path)
         elif path == "/audit":
             self._handle_audit_query(parsed_path)
         elif path == "/incident/report":
@@ -725,6 +728,35 @@ class AgentHandler(BaseHTTPRequestHandler):
             })
         except Exception as e:
             self._send_error_response(500, "internal_error", "Failed to query audit log", str(e))
+
+    def _handle_rollback_eligibility(self, parsed_path):
+        """Handle GET /audit/rollback — rollback eligibility analysis.
+
+        Query params:
+            category: Filter by category (e.g., "guarded_operation")
+            eligible: Filter by eligibility (true/false)
+            last: Max entries to return (default 50)
+            offset: Skip first N entries (default 0)
+        """
+        try:
+            params = parse_qs(parsed_path.query)
+            category_filter = params.get("category", [None])[0]
+            eligible_raw = params.get("eligible", [None])[0]
+            eligible_filter = None
+            if eligible_raw == "true":
+                eligible_filter = True
+            elif eligible_raw == "false":
+                eligible_filter = False
+            last = int(params.get("last", ["50"])[0])
+            offset = int(params.get("offset", ["0"])[0])
+
+            result = query_rollback_eligibility(
+                limit=last, category_filter=category_filter,
+                eligible_filter=eligible_filter, offset=offset)
+
+            self._send_json_response(200, result)
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to analyze rollback eligibility", str(e))
 
     def _handle_incident_report(self, parsed_path):
         """Handle GET /incident/report — generate an incident report.

@@ -540,6 +540,15 @@ def main():
               "enabled" in pol and "allowed_actions" in pol,
               f"keys={list(pol.keys())}")
 
+        # P12-3: Rollback eligibility
+        rb = get("/audit/rollback", port)
+        check("P12-3: /audit/rollback responds 200",
+              "entries" in rb and "summary" in rb,
+              f"keys={list(rb.keys())}")
+        check("P12-3: rollback has summary counts",
+              "total_analyzed" in rb.get("summary", {}),
+              f"summary keys={list(rb.get('summary', {}).keys())}")
+
     finally:
         server.shutdown()
 

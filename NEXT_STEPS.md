@@ -3,16 +3,16 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `6eee434` `docs: update NEXT_STEPS handoff refs to latest HEAD 4ea32b3`
+- `9d07d6c` `docs: align next steps after automation policy phase`
 
 Latest verified feature commit on `main`:
-- `16644f6` `feat(p12-2): add automation policy controls for limited automation actions`
+- `9d07d6c` `docs: align next steps after automation policy phase`
 
 Latest roadmap sync commit on `main`:
-- `6eee434` `docs: update NEXT_STEPS handoff refs to latest HEAD 4ea32b3`
-- Full unit test status at handoff: `757 / 757 passed`
-- Smoke test status at handoff: `96 / 96 passed`
-- Setup verification status at handoff: `155 / 155 passed`
+- `9d07d6c` `docs: align next steps after automation policy phase`
+- Full unit test status at handoff: `785 / 785 passed`
+- Smoke test status at handoff: `98 / 98 passed`
+- Setup verification status at handoff: `161 / 161 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
@@ -121,6 +121,7 @@ Current completed scope:
 - approval workflow dashboard
 - approval-linked execution handoff
 - automation policy controls
+- rollback & audit visibility
 - expedite-options skill
 - material-shortage-recovery skill
 - capacity-rebalance skill
@@ -252,6 +253,16 @@ Current completed scope:
 - _replay_request() helper auto-injects approval token for re-execution
 - 3 new unit tests for original_request storage
 - Updated README.md, NEXT_STEPS.md (P12 roadmap section added)
+- P12 Phase 3 implemented: Rollback & Audit Visibility
+- New module: `rollback_eligibility.py` — read-only analysis of audit entry reversibility
+- `analyze_entry()` determines rollback eligibility per action type
+- `query_rollback_eligibility()` with category/eligible filters + pagination
+- `get_rollback_summary()` for high-level statistics
+- 10 action-type rules covering guarded_operation, approval_lifecycle, automation categories
+- `GET /audit/rollback` endpoint with filtering (category, eligible, last, offset)
+- 28 unit tests covering rules, analyze_entry, query, summary
+- +2 smoke test checks + 6 verify setup checks
+- Updated README.md, NEXT_STEPS.md
 - P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
@@ -367,8 +378,8 @@ Goal: Bridge the gap between approval and execution, enabling safe limited autom
 | Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
 | --- | --- | --- | --- | --- | --- |
 | P12 | ~~Approval-linked execution handoff~~ | ~~Re-execute blocked operations after approval~~ | ~~approve-and-retry endpoint, original request capture, dashboard retry button~~ | ~~P11-4~~ | ~~Codex~~ |
-| P12 | Automation policy controls | Config-driven severity tiers for auto-remediation | severity levels, risk-based cooldowns, tests | P11-3 | Codex |
-| P12 | Rollback & audit visibility | Track auto-actions with rollback capability | rollback log, audit trail enhancement, tests | P12-1, P11-1 | Codex |
+| P12 | ~~Automation policy controls~~ | ~~Config-driven severity tiers for auto-remediation~~ | ~~severity levels, risk-based cooldowns, tests~~ | ~~P11-3~~ | ~~Codex~~ |
+| P12 | ~~Rollback & audit visibility~~ | ~~Track auto-actions with rollback capability~~ | ~~rollback log, audit trail enhancement, tests~~ | ~~P12-1, P11-1~~ | ~~Codex~~ |
 
 ## Start Here
 
@@ -415,7 +426,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P12 roadmap defined. P12-1 (Approval-linked execution handoff) complete. Next: P12-2 (Automation policy controls).
+P12 phase complete (all 3 items: approval-linked handoff, automation policy, rollback visibility). Define next roadmap phase or prioritize new items.
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them

@@ -528,6 +528,26 @@ def main():
           "automation_policy" in open(os.path.join(base, "config.example.json")).read(),
           "automation_policy config section present")
 
+    # P12-3: Rollback & Audit Visibility
+    check("P12-3: rollback_eligibility.py exists",
+          os.path.isfile(os.path.join(base, "rollback_eligibility.py")),
+          "rollback_eligibility module present")
+    check("P12-3: test_rollback_eligibility.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_rollback_eligibility.py")),
+          "rollback eligibility test file present")
+    check("P12-3: query_rollback_eligibility in rollback_eligibility.py",
+          "def query_rollback_eligibility" in open(os.path.join(base, "rollback_eligibility.py")).read(),
+          "query_rollback_eligibility function present")
+    check("P12-3: get_rollback_summary in rollback_eligibility.py",
+          "def get_rollback_summary" in open(os.path.join(base, "rollback_eligibility.py")).read(),
+          "get_rollback_summary function present")
+    check("P12-3: /audit/rollback handler in server.py",
+          "\"/audit/rollback\"" in open(os.path.join(base, "server.py")).read(),
+          "audit rollback endpoint present")
+    check("P12-3: rollback_eligibility import in server.py",
+          "from rollback_eligibility import" in open(os.path.join(base, "server.py")).read(),
+          "server imports rollback_eligibility")
+
     # Summary
     print()
     print("=" * 50)

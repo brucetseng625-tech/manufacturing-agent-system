@@ -1474,6 +1474,71 @@ Returns:
 - **Audit chain** — policy denials logged with `action="automation_policy_denied"` and consistent error metadata
 - **Guardrails** — policy layer operates above guardrails, adding a second approval gate for automation
 
+### Rollback & Audit Visibility (P12-3)
+
+A read-only analysis layer that determines which audited operations can potentially be rolled back, which cannot, and why. This provides operators with visibility into the reversibility of past actions — essential for safe limited automation.
+
+**Design principles:**
+- **Read-only** — analysis only, no mutation or execution
+- **Deterministic** — same audit entry always produces the same eligibility result
+- **Context-aware** — considers the underlying operation type (e.g., approval:approved for provider:select → eligible)
+- **Categorized** — groups actions into guarded_operation, approval_lifecycle, automation, and unknown
+
+**API:**
+```bash
+# List all entries with rollback eligibility analysis
+curl http://localhost:8000/audit/rollback
+
+# Filter to only eligible entries
+curl "http://localhost:8000/audit/rollback?eligible=true"
+
+# Filter by category
+curl "http://localhost:8000/audit/rollback?category=guarded_operation"
+
+# Pagination
+curl "http://localhost:8000/audit/rollback?last=20&offset=40"
+```
+
+Returns:
+```json
+{
+  "entries": [
+    {
+      "action": "approval:approved",
+      "timestamp": "2026-05-09T12:00:00Z",
+      "result": "success",
+      "operator": "operator",
+      "eligible": true,
+      "reason": "Approved operation 'provider:select': Provider selection can be reversed by selecting the previous provider",
+      "category": "approval_lifecycle",
+      "details_summary": {"operation": "provider:select", "approval_id": "approval-1"},
+      "rollback_action": "provider:select"
+    }
+  ],
+  "total": 200,
+  "summary": {
+    "total_analyzed": 200,
+    "eligible_count": 5,
+    "ineligible_count": 195,
+    "by_category": {"guarded_operation": 13, "automation": 96, "approval_lifecycle": 91},
+    "by_action": {"config:reload": 4, "policy:reload": 6, ...}
+  }
+}
+```
+
+**Rollback eligibility rules:**
+
+| Action | Eligible | Reason |
+|--------|----------|--------|
+| `provider:select` | Yes | Can select previous provider |
+| `approval:approved` (provider:select) | Yes | Underlying operation is rollbackable |
+| `config:reload` | No | In-memory state replaced, no snapshot |
+| `policy:reload` | No | Rules replaced, no previous version |
+| `alerts:reset` | No | State cleared, will re-fire if conditions persist |
+| `auto_remediation` | No | Read-only or state resets |
+| `approval:created/rejected/reset` | No | No execution occurred |
+| `automation:policy_denied` | No | Operation was blocked |
+
 ### Server Access Logging
 
 - **GET /provider/status**
