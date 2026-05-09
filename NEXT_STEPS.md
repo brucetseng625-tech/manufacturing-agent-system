@@ -3,16 +3,16 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `6a0a41e` `feat(p10): add HttpReadonlyProvider for real readonly HTTP integration`
+- `9b6e567` `feat(p10-2): add ERP data mapping and validation layer`
 
 Latest verified feature commit on `main`:
-- `6a0a41e` `feat(p10): add HttpReadonlyProvider for real readonly HTTP integration`
+- `9b6e567` `feat(p10-2): add ERP data mapping and validation layer`
 
 Latest roadmap sync commit on `main`:
-- `6a0a41e` `feat(p10): add HttpReadonlyProvider for real readonly HTTP integration`
-- Full unit test status at handoff: `604 / 604 passed`
-- Smoke test status at handoff: `77 / 77 passed`
-- Setup verification status at handoff: `95 / 95 passed`
+- `9b6e567` `feat(p10-2): add ERP data mapping and validation layer`
+- Full unit test status at handoff: `647 / 647 passed`
+- Smoke test status at handoff: `80 / 80 passed`
+- Setup verification status at handoff: `104 / 104 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
