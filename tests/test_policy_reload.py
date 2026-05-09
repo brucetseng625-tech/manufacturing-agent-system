@@ -99,16 +99,12 @@ class PolicyReloadEndpointTest(unittest.TestCase):
 
     def test_reload_endpoint_without_body(self):
         """POST /policy/reload with no body should reload default path."""
-        from server import run_server
+        from server import create_server
         import urllib.request
 
         port = self._find_free_port()
-
-        def run_in_thread():
-            os.environ["AGENT_LOG_DIR"] = tempfile.mkdtemp()
-            run_server(port=port)
-
-        server_thread = threading.Thread(target=run_in_thread, daemon=True)
+        server = create_server(port=port, log_dir=tempfile.mkdtemp())
+        server_thread = threading.Thread(target=server.serve_forever, daemon=True)
         server_thread.start()
         time.sleep(0.3)
 
@@ -121,11 +117,13 @@ class PolicyReloadEndpointTest(unittest.TestCase):
                 self.assertIn("source", data)
                 self.assertIn("reload_count", data)
         finally:
-            pass
+            server.shutdown()
+            server.server_close()
+            server_thread.join(timeout=1)
 
     def test_reload_endpoint_with_custom_path(self):
         """POST /policy/reload with config_path in body."""
-        from server import run_server
+        from server import create_server
         import urllib.request
 
         port = self._find_free_port()
@@ -133,12 +131,8 @@ class PolicyReloadEndpointTest(unittest.TestCase):
         config_path = os.path.join(tmpdir, "custom.json")
         with open(config_path, "w") as f:
             json.dump({"routing": {"exact_keyword_weight": 77}}, f)
-
-        def run_in_thread():
-            os.environ["AGENT_LOG_DIR"] = tempfile.mkdtemp()
-            run_server(port=port)
-
-        server_thread = threading.Thread(target=run_in_thread, daemon=True)
+        server = create_server(port=port, log_dir=tempfile.mkdtemp())
+        server_thread = threading.Thread(target=server.serve_forever, daemon=True)
         server_thread.start()
         time.sleep(0.3)
 
@@ -151,4 +145,6 @@ class PolicyReloadEndpointTest(unittest.TestCase):
                 self.assertTrue(data["success"])
                 self.assertIn("custom.json", data["source"])
         finally:
-            pass
+            server.shutdown()
+            server.server_close()
+            server_thread.join(timeout=1)

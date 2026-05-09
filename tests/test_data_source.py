@@ -302,6 +302,8 @@ class ServerDataSourceTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.server.shutdown()
+        cls.server.server_close()
+        cls.thread.join(timeout=1)
 
     def test_invalid_data_source_rejected(self):
         payload = json.dumps({
@@ -314,7 +316,8 @@ class ServerDataSourceTest(unittest.TestCase):
             headers={"Content-Type": "application/json"}
         )
         try:
-            urllib.request.urlopen(req)
+            with urllib.request.urlopen(req):
+                pass
         except urllib.error.HTTPError as e:
             self.assertEqual(e.code, 400)
             body = json.loads(e.read())

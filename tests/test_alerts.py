@@ -254,6 +254,8 @@ class ServerAlertsLogTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.server.shutdown()
+        cls.server.server_close()
+        cls.thread.join(timeout=1)
 
     def test_alerts_log_endpoint(self):
         """Endpoint should return alert log."""
@@ -294,6 +296,8 @@ class ServerAlertsResetTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.server.shutdown()
+        cls.server.server_close()
+        cls.thread.join(timeout=1)
 
     def test_alerts_reset_endpoint(self):
         """Endpoint should clear alert state."""

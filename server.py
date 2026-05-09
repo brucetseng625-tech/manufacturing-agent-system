@@ -22,7 +22,7 @@ from alert import check_alerts, get_alert_manager
 from timeline import build_timeline, timeline_summary
 from guardrails import check_guardrail, get_guardrails_status
 from data_mapper import get_mapping_diagnostics, reset_mapping_stats
-from audit_chain import append_audit_entry, query_audit_log, get_audit_summary
+from audit_chain import append_audit_entry, query_audit_log, get_audit_summary, _close_audit_log
 from incident_report import generate_incident_report
 from auto_remediation import evaluate_hooks, evaluate_all_hooks, get_remediation_status, reset_remediation_state
 from config import (
@@ -56,6 +56,25 @@ def _write_access_log(entry):
             _access_log_file.flush()
         except Exception:
             pass
+
+
+def _close_access_log():
+    global _access_log_file
+    if _access_log_file is not None:
+        try:
+            _access_log_file.close()
+        except Exception:
+            pass
+        _access_log_file = None
+
+
+class ManagedHTTPServer(HTTPServer):
+    """HTTP server that cleans up shared log handles when closing."""
+
+    def server_close(self):
+        super().server_close()
+        _close_access_log()
+        _close_audit_log()
 
 DEFAULT_PORT = 8000
 VALID_DATA_SOURCES = ("local", "live", "auto")
@@ -1133,7 +1152,7 @@ class AgentHandler(BaseHTTPRequestHandler):
 
         self._send_json_response(status_code, response_body)
 
-def run_server(port=DEFAULT_PORT, enable_access_log=None, log_dir=None):
+def create_server(port=DEFAULT_PORT, enable_access_log=None, log_dir=None):
     global _access_log_enabled, _access_log_file
     if enable_access_log is None:
         enable_access_log = get_config_value("logging.access_log", False, raw=True)
@@ -1148,7 +1167,11 @@ def run_server(port=DEFAULT_PORT, enable_access_log=None, log_dir=None):
     get_system_status._uptime_start = time.monotonic()
     
     server_address = ("", port)
-    httpd = HTTPServer(server_address, AgentHandler)
+    return ManagedHTTPServer(server_address, AgentHandler)
+
+
+def run_server(port=DEFAULT_PORT, enable_access_log=None, log_dir=None):
+    httpd = create_server(port=port, enable_access_log=enable_access_log, log_dir=log_dir)
     print(f"Agent Server running on port {port}")
     httpd.serve_forever()
 

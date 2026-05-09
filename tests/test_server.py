@@ -27,7 +27,8 @@ class ServerTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.server.shutdown()
-        cls.thread.join()
+        cls.server.server_close()
+        cls.thread.join(timeout=1)
 
     def test_health_check(self):
         url = f"http://localhost:{self.port}/health"

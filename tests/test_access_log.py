@@ -78,12 +78,14 @@ class AccessLogIntegrationTest(unittest.TestCase):
         server._access_log_file = None
         server._access_log_enabled = False
         cls.server.shutdown()
-        cls.thread.join()
+        cls.server.server_close()
+        cls.thread.join(timeout=1)
 
     def test_health_request_logged(self):
         """GET /health should produce an access log entry."""
         url = f"http://localhost:{self.port}/health"
-        urllib.request.urlopen(url)
+        with urllib.request.urlopen(url):
+            pass
         time.sleep(0.1)  # Allow async write to flush
         # Flush file manually for test
         import server

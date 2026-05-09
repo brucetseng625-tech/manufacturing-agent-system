@@ -93,6 +93,8 @@ class HttpReadonlyProviderLiveTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.server.shutdown()
+        cls.server.server_close()
+        cls.thread.join(timeout=1)
 
     def test_load_list_data(self):
         """Loading from endpoint returning JSON list should work."""

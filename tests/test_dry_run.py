@@ -24,6 +24,8 @@ class DryRunSingleQueryTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.server.shutdown()
+        cls.server.server_close()
+        cls.thread.join(timeout=1)
 
     def _post(self, payload):
         data = json.dumps(payload).encode()
@@ -126,6 +128,8 @@ class DryRunBatchTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.server.shutdown()
+        cls.server.server_close()
+        cls.thread.join(timeout=1)
 
     def _post_batch(self, payload):
         data = json.dumps(payload).encode()

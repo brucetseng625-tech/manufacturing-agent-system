@@ -250,6 +250,8 @@ class MaterialShortageServerTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.server.shutdown()
+        cls.server.server_close()
+        cls.thread.join(timeout=1)
 
     def _post(self, payload):
         import json
@@ -260,8 +262,8 @@ class MaterialShortageServerTest(unittest.TestCase):
             data=data,
             headers={"Content-Type": "application/json"}
         )
-        resp = urllib.request.urlopen(req)
-        return json.loads(resp.read())
+        with urllib.request.urlopen(req) as resp:
+            return json.loads(resp.read())
 
     def test_run_material_shortage_recovery(self):
         result = self._post({

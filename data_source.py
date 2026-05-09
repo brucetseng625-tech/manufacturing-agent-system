@@ -757,9 +757,15 @@ class HttpReadonlyProvider(DataProvider):
                 else:
                     raw_data = []
         except urllib.error.HTTPError as e:
-            raise RuntimeError(
-                f"HTTP {e.code} from {url}: {e.reason}"
-            ) from e
+            try:
+                raise RuntimeError(
+                    f"HTTP {e.code} from {url}: {e.reason}"
+                ) from e
+            finally:
+                try:
+                    e.close()
+                except Exception:
+                    pass
         except urllib.error.URLError as e:
             raise RuntimeError(
                 f"Failed to reach {url}: {e.reason}"

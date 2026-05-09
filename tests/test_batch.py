@@ -75,16 +75,12 @@ class BatchEndpointTest(unittest.TestCase):
 
     def test_batch_endpoint_returns_summary(self):
         """POST /batch should return batch summary and results."""
-        from server import run_server
+        from server import create_server
         import urllib.request
 
         port = self._find_free_port()
-
-        def run_in_thread():
-            os.environ["AGENT_LOG_DIR"] = tempfile.mkdtemp()
-            run_server(port=port)
-
-        server_thread = threading.Thread(target=run_in_thread, daemon=True)
+        server = create_server(port=port, log_dir=tempfile.mkdtemp())
+        server_thread = threading.Thread(target=server.serve_forever, daemon=True)
         server_thread.start()
         time.sleep(0.3)
 
@@ -104,21 +100,19 @@ class BatchEndpointTest(unittest.TestCase):
                 self.assertIn("results", data)
                 self.assertEqual(len(data["results"]), 2)
         finally:
-            pass
+            server.shutdown()
+            server.server_close()
+            server_thread.join(timeout=1)
 
     def test_batch_endpoint_missing_queries_returns_400(self):
         """POST /batch without queries list should return 400."""
-        from server import run_server
+        from server import create_server
         import urllib.request
         import urllib.error
 
         port = self._find_free_port()
-
-        def run_in_thread():
-            os.environ["AGENT_LOG_DIR"] = tempfile.mkdtemp()
-            run_server(port=port)
-
-        server_thread = threading.Thread(target=run_in_thread, daemon=True)
+        server = create_server(port=port, log_dir=tempfile.mkdtemp())
+        server_thread = threading.Thread(target=server.serve_forever, daemon=True)
         server_thread.start()
         time.sleep(0.3)
 
@@ -132,4 +126,6 @@ class BatchEndpointTest(unittest.TestCase):
             except urllib.error.HTTPError as e:
                 self.assertEqual(e.code, 400)
         finally:
-            pass
+            server.shutdown()
+            server.server_close()
+            server_thread.join(timeout=1)

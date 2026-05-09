@@ -226,6 +226,8 @@ class ServerAlertsEndpointsTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.server.shutdown()
+        cls.server.server_close()
+        cls.thread.join(timeout=1)
 
     def _get(self, path):
         req = urllib.request.Request(f"http://127.0.0.1:{self.port}{path}")

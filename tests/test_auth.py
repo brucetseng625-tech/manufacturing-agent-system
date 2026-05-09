@@ -151,7 +151,8 @@ class AuthIntegrationTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.server.shutdown()
-        cls.thread.join()
+        cls.server.server_close()
+        cls.thread.join(timeout=1)
         DEFAULT_CONFIG["security"]["api_token"] = cls.original_token
 
     def test_get_health_without_token(self):
@@ -274,7 +275,8 @@ class DevModeNoTokenTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.server.shutdown()
-        cls.thread.join()
+        cls.server.server_close()
+        cls.thread.join(timeout=1)
         DEFAULT_CONFIG["security"]["api_token"] = cls.original_token
 
     def test_post_run_without_configured_token(self):

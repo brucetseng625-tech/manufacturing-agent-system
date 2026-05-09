@@ -238,13 +238,15 @@ class PolicyServerTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.server.shutdown()
+        cls.server.server_close()
+        cls.thread.join(timeout=1)
 
     def test_get_policy_endpoint(self):
         import json
         import urllib.request
         req = urllib.request.Request(f"http://127.0.0.1:{self.port}/policy")
-        resp = urllib.request.urlopen(req)
-        data = json.loads(resp.read())
+        with urllib.request.urlopen(req) as resp:
+            data = json.loads(resp.read())
         self.assertIn("source", data)
         self.assertIn("policy", data)
         self.assertIn("routing", data["policy"])

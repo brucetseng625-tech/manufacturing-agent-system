@@ -161,17 +161,15 @@ class MetricsEndpointTest(unittest.TestCase):
 
     def test_metrics_endpoint_returns_200(self):
         """GET /metrics should return 200 with stats."""
-        from server import run_server
+        from server import create_server
         import urllib.request
         import json as _json
 
         port = self._find_free_port()
-
-        def run_in_thread():
-            os.environ["AGENT_LOG_DIR"] = self.tmpdir
-            run_server(port=port)
-
-        server_thread = threading.Thread(target=run_in_thread, daemon=True)
+        old_log_dir = os.environ.get("AGENT_LOG_DIR")
+        os.environ["AGENT_LOG_DIR"] = self.tmpdir
+        server = create_server(port=port, log_dir=self.tmpdir)
+        server_thread = threading.Thread(target=server.serve_forever, daemon=True)
         server_thread.start()
         time.sleep(0.3)
 
@@ -184,22 +182,26 @@ class MetricsEndpointTest(unittest.TestCase):
                 self.assertEqual(data["total_runs"], 1)
                 self.assertIn("success_rate", data)
         finally:
-            pass  # daemon thread will exit
+            server.shutdown()
+            server.server_close()
+            server_thread.join(timeout=1)
+            if old_log_dir is None:
+                os.environ.pop("AGENT_LOG_DIR", None)
+            else:
+                os.environ["AGENT_LOG_DIR"] = old_log_dir
 
     def test_metrics_endpoint_empty_log(self):
         """GET /metrics with no log should return zero stats."""
-        from server import run_server
+        from server import create_server
         import urllib.request
         import json as _json
 
         port = self._find_free_port()
         empty_dir = tempfile.mkdtemp()
-
-        def run_in_thread():
-            os.environ["AGENT_LOG_DIR"] = empty_dir
-            run_server(port=port)
-
-        server_thread = threading.Thread(target=run_in_thread, daemon=True)
+        old_log_dir = os.environ.get("AGENT_LOG_DIR")
+        os.environ["AGENT_LOG_DIR"] = empty_dir
+        server = create_server(port=port, log_dir=empty_dir)
+        server_thread = threading.Thread(target=server.serve_forever, daemon=True)
         server_thread.start()
         time.sleep(0.3)
 
@@ -209,4 +211,10 @@ class MetricsEndpointTest(unittest.TestCase):
                 data = _json.loads(resp.read().decode("utf-8"))
                 self.assertEqual(data["total_runs"], 0)
         finally:
-            pass
+            server.shutdown()
+            server.server_close()
+            server_thread.join(timeout=1)
+            if old_log_dir is None:
+                os.environ.pop("AGENT_LOG_DIR", None)
+            else:
+                os.environ["AGENT_LOG_DIR"] = old_log_dir

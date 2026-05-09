@@ -133,6 +133,8 @@ class ServerSystemStatusTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.server.shutdown()
+        cls.server.server_close()
+        cls.thread.join(timeout=1)
 
     def test_system_status_endpoint(self):
         """Endpoint should return aggregated status with required keys."""

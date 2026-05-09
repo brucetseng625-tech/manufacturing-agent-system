@@ -174,16 +174,12 @@ class DataDirStatusEndpointTest(unittest.TestCase):
 
     def test_data_status_returns_file_list(self):
         """GET /data/status should return data directory metadata."""
-        from server import run_server
+        from server import create_server
         import urllib.request
 
         port = self._find_free_port()
-
-        def run_in_thread():
-            os.environ["AGENT_LOG_DIR"] = tempfile.mkdtemp()
-            run_server(port=port)
-
-        server_thread = threading.Thread(target=run_in_thread, daemon=True)
+        server = create_server(port=port, log_dir=tempfile.mkdtemp())
+        server_thread = threading.Thread(target=server.serve_forever, daemon=True)
         server_thread.start()
         import time
         time.sleep(0.3)
@@ -195,4 +191,6 @@ class DataDirStatusEndpointTest(unittest.TestCase):
                 self.assertIn("file_count", data)
                 self.assertIn("files", data)
         finally:
-            pass
+            server.shutdown()
+            server.server_close()
+            server_thread.join(timeout=1)

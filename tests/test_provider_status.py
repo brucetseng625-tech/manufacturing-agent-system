@@ -230,6 +230,8 @@ class ServerProviderStatusTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.server.shutdown()
+        cls.server.server_close()
+        cls.thread.join(timeout=1)
 
     def test_provider_status_endpoint(self):
         import urllib.request

@@ -24,6 +24,7 @@ import json
 import os
 import threading
 import time
+import atexit
 
 _AUDIT_LOCK = threading.Lock()
 _AUDIT_FILE = None
@@ -62,6 +63,9 @@ def _close_audit_log():
         except Exception:
             pass
         _AUDIT_FILE = None
+
+
+atexit.register(_close_audit_log)
 
 
 def append_audit_entry(action, operator="api", source_ip=None, details=None,
