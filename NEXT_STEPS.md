@@ -3,13 +3,13 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `b2ef4c8` `feat(p10-4): add provider selection operator UI`
+- `a162eef` `docs: sync handoff metadata after P10-4 provider selection delivery`
 
 Latest verified feature commit on `main`:
 - `b2ef4c8` `feat(p10-4): add provider selection operator UI`
 
 Latest roadmap sync commit on `main`:
-- `b2ef4c8` `feat(p10-4): add provider selection operator UI`
+- `a162eef` `docs: sync handoff metadata after P10-4 provider selection delivery`
 - Full unit test status at handoff: `654 / 654 passed`
 - Smoke test status at handoff: `87 / 87 passed`
 - Setup verification status at handoff: `115 / 115 passed`
@@ -182,23 +182,23 @@ Current completed scope:
 - Supports orders and materials datasets with configurable rules
 - GET /mapping/diagnostics endpoint for operator visibility
 - 43 new tests covering coercion, mapping, validation, pipeline, diagnostics
-|- P10 Phase 3 implemented: Readonly Provider Diagnostics Dashboard
-|- Dashboard Ops view now includes Readonly Provider Diagnostics card
-|- Displays provider type, readiness, health, active path, HTTP endpoint URL
-|- Shows sub-provider details in auto mode (live + fallback readiness)
-|- Data mapping status badge with per-dataset coverage and runtime stats
-|- Fetches /system/status and /mapping/diagnostics in parallel for real-time data
-|- Pure frontend change — no backend modifications required
-|- 3 smoke test checks + 4 verify setup checks added
-|- P10 Phase 4 implemented: Provider Selection Operator UI
-|- Dashboard Ops view now includes Provider Selection card with radio buttons
-|- Supports switching between local, http, and auto modes at runtime
-|- POST /provider/select endpoint with guardrail integration
-|- set_default_provider and get_default_provider_mode added to data_source.py
-|- /system/status now includes default_mode in provider status
-|- guardrails updated with provider:select (approval-required by default)
-|- 7 new unit tests for provider selection API + 4 smoke + 7 verify checks
-|- Updated README.md, NEXT_STEPS.md, config.example.json
+- P10 Phase 3 implemented: Readonly Provider Diagnostics Dashboard
+- Dashboard Ops view now includes Readonly Provider Diagnostics card
+- Displays provider type, readiness, health, active path, HTTP endpoint URL
+- Shows sub-provider details in auto mode (live + fallback readiness)
+- Data mapping status badge with per-dataset coverage and runtime stats
+- Fetches /system/status and /mapping/diagnostics in parallel for real-time data
+- Pure frontend change — no backend modifications required
+- 3 smoke test checks + 4 verify setup checks added
+- P10 Phase 4 implemented: Provider Selection Operator UI
+- Dashboard Ops view now includes Provider Selection card with radio buttons
+- Supports switching between local, http, and auto modes at runtime
+- POST /provider/select endpoint with guardrail integration
+- set_default_provider and get_default_provider_mode added to data_source.py
+- /system/status now includes default_mode in provider status
+- guardrails updated with provider:select (approval-required by default)
+- 7 new unit tests for provider selection API + 4 smoke + 7 verify checks
+- Updated README.md, NEXT_STEPS.md, config.example.json
 - P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
