@@ -548,6 +548,35 @@ def main():
           "from rollback_eligibility import" in open(os.path.join(base, "server.py")).read(),
           "server imports rollback_eligibility")
 
+    # P13-2: Automation execution receipts
+    check("P13-2: execution_receipts.py exists",
+          os.path.isfile(os.path.join(base, "execution_receipts.py")),
+          "execution receipts module present")
+    check("P13-2: test_execution_receipts.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_execution_receipts.py")),
+          "execution receipts test file present")
+    check("P13-2: record_receipt in execution_receipts.py",
+          "def record_receipt(" in open(os.path.join(base, "execution_receipts.py")).read(),
+          "record_receipt function present")
+    check("P13-2: query_receipts in execution_receipts.py",
+          "def query_receipts(" in open(os.path.join(base, "execution_receipts.py")).read(),
+          "query_receipts function present")
+    check("P13-2: get_receipts_summary in execution_receipts.py",
+          "def get_receipts_summary(" in open(os.path.join(base, "execution_receipts.py")).read(),
+          "get_receipts_summary function present")
+    check("P13-2: /automation/receipts handler in server.py",
+          "\"/automation/receipts\"" in open(os.path.join(base, "server.py")).read(),
+          "automation receipts endpoint present")
+    check("P13-2: /automation/receipts/reset handler in server.py",
+          "\"/automation/receipts/reset\"" in open(os.path.join(base, "server.py")).read(),
+          "automation receipts reset endpoint present")
+    check("P13-2: execution_receipts import in server.py",
+          "from execution_receipts import" in open(os.path.join(base, "server.py")).read(),
+          "server imports execution_receipts")
+    check("P13-2: record_receipt in auto_remediation.py",
+          "from execution_receipts import" in open(os.path.join(base, "auto_remediation.py")).read(),
+          "auto-remediation integrates execution receipts")
+
     # Summary
     print()
     print("=" * 50)

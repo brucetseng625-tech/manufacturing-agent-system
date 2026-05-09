@@ -46,6 +46,7 @@ import urllib.error
 from config import get_config_value
 from audit_chain import append_audit_entry
 from automation_policy import check_automation_allowed, is_automation_enabled
+from execution_receipts import record_receipt
 
 # ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -281,6 +282,14 @@ def _execute_hook(hook_name, hook_config, trigger, context=None):
 
     # Validate action
     if action not in SUPPORTED_ACTIONS:
+        record_receipt(
+            source="auto-remediation",
+            operation=action,
+            status="skipped",
+            trigger=trigger,
+            hook=hook_name,
+            details={"reason": "unsupported_action"},
+        )
         return {
             "hook": hook_name,
             "trigger": trigger,
@@ -292,6 +301,14 @@ def _execute_hook(hook_name, hook_config, trigger, context=None):
 
     # Check cooldown
     if not _check_cooldown(hook_name, cooldown):
+        record_receipt(
+            source="auto-remediation",
+            operation=action,
+            status="cooldown",
+            trigger=trigger,
+            hook=hook_name,
+            details={"reason": "in_cooldown"},
+        )
         return {
             "hook": hook_name,
             "trigger": trigger,
@@ -307,6 +324,14 @@ def _execute_hook(hook_name, hook_config, trigger, context=None):
             action, source_ip="127.0.0.1",
             context={"hook": hook_name, "trigger": trigger})
         if not allowed:
+            record_receipt(
+                source="auto-remediation",
+                operation=action,
+                status="policy_denied",
+                trigger=trigger,
+                hook=hook_name,
+                details={"policy_reason": policy_reason},
+            )
             return {
                 "hook": hook_name,
                 "trigger": trigger,
@@ -319,6 +344,14 @@ def _execute_hook(hook_name, hook_config, trigger, context=None):
     # Execute the action
     handler = _ACTION_HANDLERS.get(action)
     if handler is None:
+        record_receipt(
+            source="auto-remediation",
+            operation=action,
+            status="error",
+            trigger=trigger,
+            hook=hook_name,
+            details={"reason": "no_handler"},
+        )
         return {
             "hook": hook_name,
             "trigger": trigger,
@@ -367,6 +400,16 @@ def _execute_hook(hook_name, hook_config, trigger, context=None):
         }
         _add_to_history(record)
 
+        # Record execution receipt
+        record_receipt(
+            source="auto-remediation",
+            operation=action,
+            status=status,
+            trigger=trigger,
+            hook=hook_name,
+            details={"dry_run": dry_run, "result": result.get("message", "")},
+        )
+
         return {
             "hook": hook_name,
             "trigger": trigger,
@@ -394,6 +437,16 @@ def _execute_hook(hook_name, hook_config, trigger, context=None):
             source_ip="127.0.0.1",
             details={"hook": hook_name, "trigger": trigger, "action": action, "error": str(e)},
             result="failed",
+        )
+
+        # Record error receipt
+        record_receipt(
+            source="auto-remediation",
+            operation=action,
+            status="error",
+            trigger=trigger,
+            hook=hook_name,
+            details={"error": str(e)},
         )
 
         _add_to_history(error_result)

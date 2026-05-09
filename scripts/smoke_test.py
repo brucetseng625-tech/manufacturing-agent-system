@@ -549,6 +549,18 @@ def main():
               "total_analyzed" in rb.get("summary", {}),
               f"summary keys={list(rb.get('summary', {}).keys())}")
 
+        # P13-2: Automation execution receipts
+        rc = get("/automation/receipts", port)
+        check("P13-2: /automation/receipts responds 200",
+              "receipts" in rc and "summary" in rc,
+              f"keys={list(rc.keys())}")
+        check("P13-2: receipts has summary counts",
+              "total" in rc.get("summary", {}),
+              f"summary keys={list(rc.get('summary', {}).keys())}")
+        check("P13-2: /automation/receipts/reset responds 200",
+              post("/automation/receipts/reset", port, {}).get("success"),
+              f"reset response={post('/automation/receipts/reset', port, {})}")
+
     finally:
         server.shutdown()
 

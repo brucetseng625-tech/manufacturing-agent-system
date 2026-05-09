@@ -29,6 +29,7 @@ from approval_queue import create_pending_item, list_pending, get_item, approve_
 from automation_policy import check_automation_allowed, get_automation_policy_status
 from rollback_eligibility import query_rollback_eligibility, get_rollback_summary
 from guardrails import check_guardrail, get_guardrails_status, get_guardrail
+from execution_receipts import record_receipt, query_receipts, get_receipts_summary, reset_receipts
 
 
 def _check_guardrail_with_queue(operation, headers, source_ip, details=None,
@@ -268,6 +269,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._send_json_response(200, get_remediation_status())
         elif path == "/automation/policy":
             self._send_json_response(200, get_automation_policy_status())
+        elif path == "/automation/receipts":
+            self._handle_automation_receipts(parsed_path)
         elif path == "/approvals":
             self._handle_approvals_list(parsed_path)
         elif path.startswith("/approvals/"):
@@ -760,6 +763,33 @@ class AgentHandler(BaseHTTPRequestHandler):
         except Exception as e:
             self._send_error_response(500, "internal_error", "Failed to analyze rollback eligibility", str(e))
 
+    def _handle_automation_receipts(self, parsed_path):
+        """Handle GET /automation/receipts — query execution receipts.
+
+        Query params:
+            source: Filter by source ("approval-retry" or "auto-remediation")
+            status: Filter by status string
+            operation: Filter by operation name
+            limit: Max receipts to return (default 20)
+            offset: Skip first N receipts (default 0)
+        """
+        try:
+            params = parse_qs(parsed_path.query)
+            source = params.get("source", [None])[0]
+            status = params.get("status", [None])[0]
+            operation = params.get("operation", [None])[0]
+            limit = int(params.get("limit", ["20"])[0])
+            offset = int(params.get("offset", ["0"])[0])
+
+            result = query_receipts(
+                source=source, status=status, operation=operation,
+                limit=limit, offset=offset)
+            result["summary"] = get_receipts_summary()
+
+            self._send_json_response(200, result)
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to query execution receipts", str(e))
+
     def _handle_incident_report(self, parsed_path):
         """Handle GET /incident/report — generate an incident report.
 
@@ -823,6 +853,21 @@ class AgentHandler(BaseHTTPRequestHandler):
         self._send_json_response(200, {
             "success": True,
             "message": "Auto-remediation state reset",
+        })
+
+    def _handle_automation_receipts_reset(self):
+        """Handle POST /automation/receipts/reset — clear execution receipts."""
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            if content_length > 0:
+                self.rfile.read(content_length)
+        except Exception:
+            pass
+
+        reset_receipts()
+        self._send_json_response(200, {
+            "success": True,
+            "message": "Execution receipts cleared",
         })
 
     def _handle_approvals_list(self, parsed_path):
@@ -928,6 +973,13 @@ class AgentHandler(BaseHTTPRequestHandler):
             "approval:retry", source_ip=self.client_address[0],
             context={"approval_id": approval_id, "operation": result.get("operation")})
         if not allowed:
+            record_receipt(
+                source="approval-retry",
+                operation=result.get("operation", "unknown"),
+                status="policy_denied",
+                approval_id=approval_id,
+                details={"policy_reason": policy_reason},
+            )
             response = {
                 "approval": result,
                 "retry": {"success": False, "error": "policy_denied", "reason": policy_reason},
@@ -938,11 +990,26 @@ class AgentHandler(BaseHTTPRequestHandler):
         # Step 3: Replay the original request if available
         original = result.get("original_request")
         retry_result = None
+        receipt_status = "success"
         if original and original.get("method") and original.get("path"):
             try:
                 retry_result = self._replay_request(original, approval_token)
+                if retry_result.get("status_code", 200) >= 400:
+                    receipt_status = "failed"
             except Exception as e:
                 retry_result = {"error": "retry_failed", "message": str(e)}
+                receipt_status = "error"
+        else:
+            receipt_status = "skipped"
+
+        # Record execution receipt
+        record_receipt(
+            source="approval-retry",
+            operation=result.get("operation", "unknown"),
+            status=receipt_status,
+            approval_id=approval_id,
+            details={"retry_result": retry_result} if retry_result else None,
+        )
 
         response = {
             "approval": result,
@@ -1126,6 +1193,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_auto_remediation_evaluate()
         elif path == "/auto-remediation/reset":
             self._handle_auto_remediation_reset()
+        elif path == "/automation/receipts/reset":
+            self._handle_automation_receipts_reset()
         elif path.startswith("/approvals/") and path.endswith("/approve"):
             approval_id = path.split("/approvals/")[1].split("/approve")[0]
             self._handle_approval_approve(approval_id)
