@@ -720,6 +720,9 @@ async function loadOps() {
     // Readonly Provider Diagnostics Card
     html += renderProviderDiagnosticsCard(s, mapping);
 
+    // Provider Selection Card
+    html += renderProviderSelectionCard(s);
+
     // Operator Actions Card
     html += `
       <div class="card" style="grid-column: span 2;">
@@ -764,6 +767,7 @@ function renderProviderDiagnosticsCard(s, mapping) {
   const readiness = s.provider.readiness;
   const healthStatus = s.health.status;
   const activePath = s.degradation.active_path;
+  const defaultMode = s.provider.default_mode || 'local';
   const isDegraded = s.degradation.is_degraded;
   const mappingEnabled = mapping && mapping.enabled;
   const datasets = mapping ? mapping.datasets : {};
@@ -848,6 +852,94 @@ function renderProviderDiagnosticsCard(s, mapping) {
       ${mappingSection}
     </div>
   `;
+}
+
+// Provider Selection Card
+function renderProviderSelectionCard(s) {
+  const currentMode = s.provider.default_mode || 'local';
+  const modes = [
+    { id: 'local', label: 'Local', desc: 'Local JSON/CSV files', icon: '📁' },
+    { id: 'http', label: 'HTTP', desc: 'Remote HTTP JSON endpoint', icon: '🌐' },
+    { id: 'auto', label: 'Auto', desc: 'HTTP → local fallback', icon: '🔄' },
+  ];
+
+  return `
+    <div class="card" style="grid-column: span 2;">
+      <div class="card-header">
+        <span class="card-title">Provider Selection</span>
+        <span class="badge" style="background:var(--accent);color:#fff;">${currentMode.toUpperCase()}</span>
+      </div>
+      <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">
+        Switch the default data source mode. Changes apply immediately to all new requests.
+        <span style="color:var(--warning);">⚠ Requires approval token if guardrails are enabled.</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;margin-bottom:1rem;">
+        ${modes.map(m => `
+          <label class="mode-option ${currentMode === m.id ? 'active' : ''}" style="display:flex;align-items:flex-start;gap:0.5rem;padding:0.75rem;background:${currentMode === m.id ? 'var(--bg-input)' : 'transparent'};border:1px solid ${currentMode === m.id ? 'var(--accent)' : 'var(--border)'};border-radius:8px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='${currentMode === m.id ? 'var(--accent)' : 'var(--border)'}'">
+            <input type="radio" name="provider-mode" value="${m.id}" ${currentMode === m.id ? 'checked' : ''} style="margin-top:0.2rem;accent-color:var(--accent);">
+            <div>
+              <div style="font-size:0.9rem;font-weight:600;">${m.icon} ${m.label}</div>
+              <div style="font-size:0.8rem;color:var(--text-secondary);">${m.desc}</div>
+            </div>
+          </label>
+        `).join('')}
+      </div>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <input type="password" id="provider-token" placeholder="Approval token (if required)" style="flex:1;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:0.5rem 0.75rem;color:var(--text);font-size:0.85rem;" />
+        <button class="action-btn" onclick="doSelectProvider()" style="min-width:100px;">
+          <span class="action-icon">🔀</span>
+          <span class="action-label">Apply</span>
+        </button>
+      </div>
+      <div id="provider-select-result" class="action-result"></div>
+    </div>
+  `;
+}
+
+// Provider Selection Action
+async function doSelectProvider() {
+  const result = document.getElementById('provider-select-result');
+  const selected = document.querySelector('input[name="provider-mode"]:checked');
+  const token = document.getElementById('provider-token').value.trim();
+  if (!selected) {
+    showProviderSelectResult('error', 'Please select a provider mode');
+    return;
+  }
+  const mode = selected.value;
+
+  result.className = 'action-result show';
+  result.textContent = 'Switching provider...';
+  result.style.color = 'var(--text-muted)';
+
+  const opts = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode }),
+  };
+  if (token) {
+    opts.headers['X-Approval-Token'] = token;
+  }
+
+  try {
+    const res = await fetch('/provider/select', opts);
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showProviderSelectResult('success', data.message + ` (${data.provider_name}, readiness: ${data.readiness})`);
+      setTimeout(() => loadOps(), 1000);
+    } else {
+      showProviderSelectResult('error', data.error || data.details || `HTTP ${res.status}`);
+    }
+  } catch (e) {
+    showProviderSelectResult('error', `Failed: ${e.message}`);
+  }
+}
+
+function showProviderSelectResult(type, message) {
+  const result = document.getElementById('provider-select-result');
+  if (!result) return;
+  result.className = 'action-result show';
+  result.style.color = type === 'success' ? 'var(--success)' : 'var(--error)';
+  result.textContent = message;
 }
 
 // Operator Actions

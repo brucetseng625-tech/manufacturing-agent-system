@@ -91,7 +91,8 @@
     "operations": {
       "alerts:reset": { "denied": false, "require_approval": false },
       "config:reload": { "denied": false, "require_approval": false },
-      "policy:reload": { "denied": false, "require_approval": true }
+      "policy:reload": { "denied": false, "require_approval": true },
+      "provider:select": { "denied": false, "require_approval": true }
     }
   }
 }

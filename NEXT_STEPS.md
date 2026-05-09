@@ -114,6 +114,7 @@ Current completed scope:
 - MCP / ERP integration layer
 - erp data mapping + validation
 - readonly provider diagnostics dashboard
+- provider selection operator UI
 - expedite-options skill
 - material-shortage-recovery skill
 - capacity-rebalance skill
@@ -181,14 +182,23 @@ Current completed scope:
 - Supports orders and materials datasets with configurable rules
 - GET /mapping/diagnostics endpoint for operator visibility
 - 43 new tests covering coercion, mapping, validation, pipeline, diagnostics
-- P10 Phase 3 implemented: Readonly Provider Diagnostics Dashboard
-- Dashboard Ops view now includes Readonly Provider Diagnostics card
-- Displays provider type, readiness, health, active path, HTTP endpoint URL
-- Shows sub-provider details in auto mode (live + fallback readiness)
-- Data mapping status badge with per-dataset coverage and runtime stats
-- Fetches /system/status and /mapping/diagnostics in parallel for real-time data
-- Pure frontend change — no backend modifications required
-- 3 smoke test checks + 4 verify setup checks added
+|- P10 Phase 3 implemented: Readonly Provider Diagnostics Dashboard
+|- Dashboard Ops view now includes Readonly Provider Diagnostics card
+|- Displays provider type, readiness, health, active path, HTTP endpoint URL
+|- Shows sub-provider details in auto mode (live + fallback readiness)
+|- Data mapping status badge with per-dataset coverage and runtime stats
+|- Fetches /system/status and /mapping/diagnostics in parallel for real-time data
+|- Pure frontend change — no backend modifications required
+|- 3 smoke test checks + 4 verify setup checks added
+|- P10 Phase 4 implemented: Provider Selection Operator UI
+|- Dashboard Ops view now includes Provider Selection card with radio buttons
+|- Supports switching between local, http, and auto modes at runtime
+|- POST /provider/select endpoint with guardrail integration
+|- set_default_provider and get_default_provider_mode added to data_source.py
+|- /system/status now includes default_mode in provider status
+|- guardrails updated with provider:select (approval-required by default)
+|- 7 new unit tests for provider selection API + 4 smoke + 7 verify checks
+|- Updated README.md, NEXT_STEPS.md, config.example.json
 - P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
@@ -280,7 +290,7 @@ Goal: Replace skeleton LiveDataProvider with concrete readonly integrations, ena
 | ~~P10~~ | ~~HttpReadonlyProvider~~ | ~~Fetch JSON from configurable HTTP endpoints~~ | ~~HttpReadonlyProvider class, health check, tests~~ | ~~P9 complete~~ | ~~Codex~~ |
 | ~~P10~~ | ~~ERP data mapping + validation~~ | ~~Map ERP response fields to internal schema~~ | ~~data_mapper.py, field mapper, validation, tests~~ | ~~P10-1~~ | ~~Codex~~ |
 | ~~P10~~ | ~~Readonly provider diagnostics dashboard~~ | ~~Show HTTP provider health, latency, error rates~~ | ~~Dashboard card, smoke/verify checks~~ | ~~P10-1~~ | ~~Codex~~ |
-| P10 | Provider selection operator UI | Let operator switch between local/http/auto from dashboard | Dashboard controls, tests | P10-1, P9-2 | Codex |
+| ~~P10~~ | ~~Provider selection operator UI~~ | ~~Let operator switch between local/http/auto from dashboard~~ | ~~Dashboard card, POST /provider/select, guardrails, tests~~ | ~~P10-1, P9-2~~ | ~~Codex~~ |
 
 ## Start Here
 
@@ -327,7 +337,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P10 roadmap defined. P10-1 (HttpReadonlyProvider), P10-2 (ERP data mapping + validation), and P10-3 (Readonly provider diagnostics dashboard) complete. Next: P10-4 (Provider selection operator UI).
+P10 roadmap COMPLETE (4/4). All phases P4-P10 delivered. Next roadmap phase to be defined by user.
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them

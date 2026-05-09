@@ -887,13 +887,14 @@ class HttpReadonlyProvider(DataProvider):
 
 # Default provider (local)
 _default_provider = LocalFileProvider()
+_default_provider_mode = "local"
 
 
 def get_data_source() -> DataProvider:
     """Get the active data source provider.
 
     Thread-local: each thread can have its own provider.
-    Falls back to LocalFileProvider if not explicitly set.
+    Falls back to the global default provider if not explicitly set.
     """
     return getattr(_local, "provider", _default_provider)
 
@@ -901,6 +902,31 @@ def get_data_source() -> DataProvider:
 def set_data_source(provider: DataProvider) -> None:
     """Set the active data source provider for the current thread."""
     _local.provider = provider
+
+
+def set_default_provider(mode: str) -> DataProvider:
+    """Set the global default provider mode.
+
+    Affects all threads that don't have a thread-local override.
+    This is the mechanism for runtime provider selection.
+
+    Args:
+        mode: 'local', 'live', or 'auto'
+
+    Returns:
+        The newly created provider instance.
+    """
+    global _default_provider, _default_provider_mode
+    if mode not in VALID_MODES:
+        raise ValueError(f"Invalid mode: {mode}. Must be one of {VALID_MODES}")
+    _default_provider = create_provider(mode)
+    _default_provider_mode = mode
+    return _default_provider
+
+
+def get_default_provider_mode() -> str:
+    """Return the current global default provider mode."""
+    return _default_provider_mode
 
 
 def create_provider(mode: str, live_provider: DataProvider = None,
@@ -1021,6 +1047,9 @@ def get_system_status(data_dir: str = None) -> dict:
     provider_status = get_provider_status(data_dir)
     health = get_provider_health(data_dir)
     degradation = get_degradation_status(data_dir)
+
+    # Add default mode to provider status
+    provider_status['default_mode'] = get_default_provider_mode()
 
     # Determine overall system status
     health_status = health.get("status", "unknown")

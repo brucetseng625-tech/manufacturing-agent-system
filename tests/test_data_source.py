@@ -14,6 +14,9 @@ from data_source import (
     load_data,
     get_provider_name,
     VALID_MODES,
+    set_default_provider,
+    get_default_provider_mode,
+    get_system_status,
 )
 from data_loader import load_json_or_csv
 
@@ -316,3 +319,50 @@ class ServerDataSourceTest(unittest.TestCase):
             self.assertEqual(e.code, 400)
             body = json.loads(e.read())
             self.assertEqual(body["error_type"], "invalid_data_source")
+
+
+class DefaultProviderSelectionTest(unittest.TestCase):
+    """Tests for set_default_provider and get_default_provider_mode."""
+
+    def setUp(self):
+        self.mock_data_dir = os.path.join(
+            os.path.dirname(__file__), "..", "mock_data"
+        )
+
+    def tearDown(self):
+        # Reset to local
+        set_default_provider("local")
+
+    def test_default_mode_starts_as_local(self):
+        set_default_provider("local")
+        self.assertEqual(get_default_provider_mode(), "local")
+
+    def test_set_default_provider_local(self):
+        provider = set_default_provider("local")
+        self.assertEqual(provider.name(), "local")
+        self.assertEqual(get_default_provider_mode(), "local")
+
+    def test_set_default_provider_auto(self):
+        provider = set_default_provider("auto")
+        self.assertEqual(provider.name(), "auto")
+        self.assertEqual(get_default_provider_mode(), "auto")
+
+    def test_set_default_provider_live(self):
+        provider = set_default_provider("live")
+        self.assertEqual(provider.name(), "live")
+        self.assertEqual(get_default_provider_mode(), "live")
+
+    def test_set_default_provider_invalid(self):
+        with self.assertRaises(ValueError):
+            set_default_provider("invalid")
+
+    def test_get_data_source_uses_default(self):
+        set_default_provider("local")
+        # get_data_source should fall back to the default
+        ds = get_data_source()
+        self.assertEqual(ds.name(), "local")
+
+    def test_system_status_includes_default_mode(self):
+        set_default_provider("auto")
+        status = get_system_status(self.mock_data_dir)
+        self.assertEqual(status["provider"]["default_mode"], "auto")

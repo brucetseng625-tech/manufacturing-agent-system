@@ -17,7 +17,7 @@ from skills.policy import get_policy, DEFAULT_POLICY, reload_policy, get_reload_
 from skills.observability import log_request, log_asana_post
 from metrics import compute_metrics
 from data_dir_monitor import scan_data_dir, get_data_dir_metadata
-from data_source import set_data_source, create_provider, get_provider_name, get_provider_status, get_provider_health, get_degradation_status, get_system_status
+from data_source import set_data_source, create_provider, get_provider_name, get_provider_status, get_provider_health, get_degradation_status, get_system_status, set_default_provider, get_default_provider_mode
 from alert import check_alerts, get_alert_manager
 from timeline import build_timeline, timeline_summary
 from guardrails import check_guardrail, get_guardrails_status
@@ -446,6 +446,50 @@ class AgentHandler(BaseHTTPRequestHandler):
         get_alert_manager().reset()
         self._send_json_response(200, {"success": True, "message": "Alert state cleared"})
 
+    def _handle_provider_select(self):
+        """Handle POST /provider/select — switch the global default provider mode.
+
+        Expects JSON body: {"mode": "local|live|auto"}
+        Guarded by the "provider:select" guardrail (approval-required by default).
+        """
+        headers = dict(self.headers)
+        guard = check_guardrail("provider:select", headers)
+        if guard:
+            self._drain_request_body()
+            self._send_json_response(403, guard)
+            return
+
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            if content_length == 0:
+                self._send_error_response(400, "missing_body", "Request body is required")
+                return
+            body = self.rfile.read(content_length).decode("utf-8")
+            payload = json.loads(body)
+        except (json.JSONDecodeError, ValueError) as e:
+            self._send_error_response(400, "invalid_json", f"Request body is not valid JSON: {e}")
+            return
+
+        mode = payload.get("mode")
+        if mode not in VALID_DATA_SOURCES:
+            self._send_error_response(400, "invalid_mode",
+                f"Invalid mode: {mode}. Must be one of: {list(VALID_DATA_SOURCES)}")
+            return
+
+        try:
+            provider = set_default_provider(mode)
+            self._send_json_response(200, {
+                "success": True,
+                "mode": mode,
+                "provider_name": provider.name(),
+                "readiness": provider.readiness(),
+                "message": f"Default provider switched to {mode}",
+            })
+        except ValueError as e:
+            self._send_error_response(400, "provider_error", str(e))
+        except Exception as e:
+            self._send_error_response(500, "internal_error", f"Failed to switch provider: {e}")
+
     def _handle_alerts_list(self, parsed_path):
         """Handle GET /alerts — list all alerts with lifecycle status."""
         try:
@@ -638,6 +682,8 @@ class AgentHandler(BaseHTTPRequestHandler):
         elif path.endswith("/resolve") and path.startswith("/alerts/"):
             alert_id = path.split("/alerts/")[1].split("/resolve")[0]
             self._handle_alert_resolve(alert_id)
+        elif path == "/provider/select":
+            self._handle_provider_select()
         else:
             self._drain_request_body()
             self._send_error_response(404, "not_found", "Endpoint not found")

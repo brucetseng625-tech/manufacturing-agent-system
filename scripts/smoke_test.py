@@ -481,6 +481,20 @@ def main():
               "fetch('/mapping/diagnostics')" in dashboard_html,
               "loadOps fetches mapping diagnostics")
 
+        # P10-4: Provider selection operator UI
+        check("P10-4: Dashboard contains Provider Selection card",
+              "Provider Selection" in dashboard_html,
+              "Provider Selection panel present")
+        check("P10-4: Dashboard has renderProviderSelectionCard function",
+              "renderProviderSelectionCard" in dashboard_html,
+              "renderProviderSelectionCard JS function present")
+        check("P10-4: Dashboard has doSelectProvider function",
+              "doSelectProvider" in dashboard_html,
+              "doSelectProvider JS function present")
+        check("P10-4: POST /provider/select endpoint available",
+              "_handle_provider_select" in open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "server.py")).read(),
+              "provider select handler present in server.py")
+
     finally:
         server.shutdown()
 

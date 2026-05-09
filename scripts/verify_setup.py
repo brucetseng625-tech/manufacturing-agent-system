@@ -373,6 +373,29 @@ def main():
           "Readonly Provider Diagnostics" in open(os.path.join(base, "scripts", "smoke_test.py")).read(),
           "smoke test has P10-3 checks")
 
+    # P10-4: Provider selection operator UI
+    check("P10-4: Dashboard contains Provider Selection card",
+          "Provider Selection" in open(os.path.join(base, "static", "dashboard.html")).read(),
+          "Provider Selection panel present")
+    check("P10-4: renderProviderSelectionCard function in dashboard",
+          "renderProviderSelectionCard" in open(os.path.join(base, "static", "dashboard.html")).read(),
+          "renderProviderSelectionCard JS function present")
+    check("P10-4: doSelectProvider function in dashboard",
+          "doSelectProvider" in open(os.path.join(base, "static", "dashboard.html")).read(),
+          "doSelectProvider JS function present")
+    check("P10-4: set_default_provider in data_source.py",
+          "def set_default_provider" in open(os.path.join(base, "data_source.py")).read(),
+          "set_default_provider function present")
+    check("P10-4: get_default_provider_mode in data_source.py",
+          "def get_default_provider_mode" in open(os.path.join(base, "data_source.py")).read(),
+          "get_default_provider_mode function present")
+    check("P10-4: /provider/select handler in server.py",
+          "_handle_provider_select" in open(os.path.join(base, "server.py")).read(),
+          "provider select handler present in server.py")
+    check("P10-4: provider:select in config.example.json guardrails",
+          '"provider:select"' in open(os.path.join(base, "config.example.json")).read(),
+          "provider:select guardrail present")
+
     # Summary
     print()
     print("=" * 50)

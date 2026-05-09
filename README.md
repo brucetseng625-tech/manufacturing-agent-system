@@ -1155,7 +1155,39 @@ The Ops view on the dashboard now includes a **Readonly Provider Diagnostics** c
 
 The card fetches data from `/system/status` and `/mapping/diagnostics` in parallel on each Ops view load, so it's always up-to-date.
 
-![Provider Diagnostics] — visible in the Dashboard Ops view under the Data Directory card and above Operator Actions.
+### Provider Selection Operator UI (P10-4)
+
+The Ops view now includes a **Provider Selection** card that allows operators to switch the default data source mode at runtime.
+
+**Available modes:**
+- **Local** — Uses local JSON/CSV files from the data directory
+- **HTTP** — Fetches data from a configured HTTP endpoint (HttpReadonlyProvider)
+- **Auto** — Tries HTTP first, falls back to local on failure (with circuit breaker support)
+
+**How it works:**
+1. Select a mode via radio buttons
+2. Enter an approval token if guardrails require it (default: `provider:select` requires approval)
+3. Click **Apply** — the switch takes effect immediately for all new requests
+
+**Safety features:**
+- Guarded by the `provider:select` guardrail (approval-required by default)
+- Clear feedback on success or failure
+- Auto-refreshes the Ops view after a successful switch
+- Invalid modes are rejected with a 400 error
+
+**API:**
+```bash
+# Switch to auto mode
+curl -X POST http://localhost:8000/provider/select \
+  -H "Content-Type: application/json" \
+  -d '{"mode": "auto"}'
+
+# With approval token (when guardrails require it)
+curl -X POST http://localhost:8000/provider/select \
+  -H "Content-Type: application/json" \
+  -H "X-Approval-Token: your-token" \
+  -d '{"mode": "http"}'
+```
 
 ### Server Access Logging
 
