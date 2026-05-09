@@ -3,13 +3,13 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `5ec866e` `feat(p11-4): add approval workflow dashboard with queue management`
+- `29f8b10` `docs: sync handoff metadata after P11-4 approval workflow delivery`
 
 Latest verified feature commit on `main`:
 - `5ec866e` `feat(p11-4): add approval workflow dashboard with queue management`
 
 Latest roadmap sync commit on `main`:
-- `5ec866e` `feat(p11-4): add approval workflow dashboard with queue management`
+- `29f8b10` `docs: sync handoff metadata after P11-4 approval workflow delivery`
 - Full unit test status at handoff: `741 / 741 passed`
 - Smoke test status at handoff: `94 / 94 passed`
 - Setup verification status at handoff: `144 / 144 passed`
