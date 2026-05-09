@@ -3,16 +3,16 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `de2a0a0` `feat(p9): add alert acknowledgement and lifecycle workflow`
+- `8c97636` `feat(p9): add dashboard operator action panel`
 
 Latest verified feature commit on `main`:
-- `de2a0a0` `feat(p9): add alert acknowledgement and lifecycle workflow`
+- `8c97636` `feat(p9): add dashboard operator action panel`
 
 Latest roadmap sync commit on `main`:
-- `de2a0a0` `feat(p9): add alert acknowledgement and lifecycle workflow`
-- Full unit test status at handoff: `540 / 540 passed`
-- Smoke test status at handoff: `69 / 69 passed`
-- Setup verification status at handoff: `79 / 79 passed`
+- `8c97636` `feat(p9): add dashboard operator action panel`
+- Full unit test status at handoff: `554 / 554 passed`
+- Smoke test status at handoff: `70 / 70 passed`
+- Setup verification status at handoff: `82 / 82 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
@@ -135,20 +135,20 @@ Current completed scope:
 - aggregated system status endpoint
 - dashboard operations panels
 - dry-run execution controls
-|- alert/notification hooks
-|- P9 Phase 1 implemented: Alert Acknowledgement Workflow
-|- Alert lifecycle: `firing` → `acknowledged` → `resolved`
-|- Unique alert IDs (e.g. `alert-1`, `alert-2`)
-|- New endpoints: `GET /alerts`, `GET /alerts/{id}`, `POST /alerts/{id}/acknowledge`, `POST /alerts/{id}/resolve`
-|- Alert status filtering via `GET /alerts?status=firing`
-|- Auto-resolve timeout config: `alerts.auto_resolve_seconds`
-|- P9 Phase 2 implemented: Dashboard Operator Action Panel
-|- Ops view includes "Operator Actions" card with one-click buttons
-|- Actions: Reset Alerts, Reload Config, Reload Policy, Health Check
-|- Inline success/failure feedback via `doAction()` JavaScript
-|- Dashboard is pure frontend — calls existing API endpoints
-|- Zero backend changes; additive to dashboard only
-|- P8 Phase 4 implemented: Alert/Notification Hooks
+- alert/notification hooks
+- P9 Phase 1 implemented: Alert Acknowledgement Workflow
+- Alert lifecycle: `firing` → `acknowledged` → `resolved`
+- Unique alert IDs (e.g. `alert-1`, `alert-2`)
+- New endpoints: `GET /alerts`, `GET /alerts/{id}`, `POST /alerts/{id}/acknowledge`, `POST /alerts/{id}/resolve`
+- Alert status filtering via `GET /alerts?status=firing`
+- Auto-resolve timeout config: `alerts.auto_resolve_seconds`
+- P9 Phase 2 implemented: Dashboard Operator Action Panel
+- Ops view includes "Operator Actions" card with one-click buttons
+- Actions: Reset Alerts, Reload Config, Reload Policy, Health Check
+- Inline success/failure feedback via `doAction()` JavaScript
+- Dashboard is pure frontend — calls existing API endpoints
+- Zero backend changes; additive to dashboard only
+- P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
 - Three alert types: system_unhealthy (critical), circuit_breaker_open (warning), degradation_detected (warning)
