@@ -3,14 +3,14 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `29f8b10` `docs: sync handoff metadata after P11-4 approval workflow delivery`
+- `5edb62e` `feat(p12-1): add approval-linked execution handoff`
 
 Latest verified feature commit on `main`:
-- `5ec866e` `feat(p11-4): add approval workflow dashboard with queue management`
+- `5edb62e` `feat(p12-1): add approval-linked execution handoff`
 
 Latest roadmap sync commit on `main`:
-- `29f8b10` `docs: sync handoff metadata after P11-4 approval workflow delivery`
-- Full unit test status at handoff: `741 / 741 passed`
+- `5edb62e` `feat(p12-1): add approval-linked execution handoff`
+- Full unit test status at handoff: `744 / 744 passed`
 - Smoke test status at handoff: `94 / 94 passed`
 - Setup verification status at handoff: `144 / 144 passed`
 - Working tree at handoff: clean
@@ -119,6 +119,7 @@ Current completed scope:
 - incident report generation
 - auto-remediation hooks
 - approval workflow dashboard
+- approval-linked execution handoff
 - expedite-options skill
 - material-shortage-recovery skill
 - capacity-rebalance skill
@@ -242,6 +243,14 @@ Current completed scope:
 - 23 unit tests covering queue ops, approvals, stats, reset, token lookup
 - +2 smoke test checks + 10 verify setup checks
 - Updated README.md, NEXT_STEPS.md
+- P12 Phase 1 implemented: Approval-Linked Execution Handoff
+- approval_queue.py extended with original_request storage
+- POST /approvals/{id}/approve-and-retry endpoint replays blocked operations
+- Guardrail handlers capture request body before denying
+- Dashboard: approve & retry button for one-click approval + execution
+- _replay_request() helper auto-injects approval token for re-execution
+- 3 new unit tests for original_request storage
+- Updated README.md, NEXT_STEPS.md (P12 roadmap section added)
 - P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
@@ -356,7 +365,7 @@ Goal: Bridge the gap between approval and execution, enabling safe limited autom
 
 | Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
 | --- | --- | --- | --- | --- | --- |
-| P12 | Approval-linked execution handoff | Re-execute blocked operations after approval | approve-and-retry endpoint, original request capture, dashboard retry button | P11-4 | Codex |
+| P12 | ~~Approval-linked execution handoff~~ | ~~Re-execute blocked operations after approval~~ | ~~approve-and-retry endpoint, original request capture, dashboard retry button~~ | ~~P11-4~~ | ~~Codex~~ |
 | P12 | Automation policy controls | Config-driven severity tiers for auto-remediation | severity levels, risk-based cooldowns, tests | P11-3 | Codex |
 | P12 | Rollback & audit visibility | Track auto-actions with rollback capability | rollback log, audit trail enhancement, tests | P12-1, P11-1 | Codex |
 
@@ -405,7 +414,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P11 roadmap complete (P11-1 through P11-4 all delivered). All 4 P11 governance items done. Next phase TBD — define P12 or continue with user-requested features.
+P12 roadmap defined. P12-1 (Approval-linked execution handoff) complete. Next: P12-2 (Automation policy controls).
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them
