@@ -579,6 +579,39 @@ Unauthorized requests return `401` with:
 
   The Dashboard includes a Timeline view with type/limit filters.
 
+- **GET /guardrails**
+  Returns current guardrails configuration status.
+  ```bash
+  curl http://localhost:8000/guardrails
+  ```
+  Response:
+  ```json
+  {
+    "enabled": false,
+    "operations": {}
+  }
+  ```
+
+- **Execution Guardrails (config-driven)**
+  Protect mutation-capable operations with config-driven allow/deny and approval rules.
+  Configure via `config.json`:
+  ```json
+  {
+    "guardrails": {
+      "enabled": true,
+      "approval_token": "your-secret-token",
+      "operations": {
+        "alerts:reset":  { "denied": false, "require_approval": false },
+        "config:reload": { "denied": false, "require_approval": false },
+        "policy:reload": { "denied": false, "require_approval": true }
+      }
+    }
+  }
+  ```
+  Guarded operations return HTTP 403 when denied or when approval token is missing.
+  Pass `X-Approval-Token` header to bypass approval-required guards.
+  By default (no config), all operations are allowed — backward compatible.
+
 - **GET /skills**
   ```bash
   curl http://localhost:8000/skills

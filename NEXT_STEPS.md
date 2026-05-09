@@ -154,8 +154,16 @@ Current completed scope:
 - New endpoint: GET /timeline (type filter, last param)
 - Dashboard Timeline view with type/limit filters
 - Events sorted newest-first with run_id and alert_id badges
-- Read-only surface — no mutation of existing log layers
-- P8 Phase 4 implemented: Alert/Notification Hooks
+|- Read-only surface — no mutation of existing log layers
+|- P9 Phase 4 implemented: Execution Guardrails
+|- New module: guardrails.py with check_guardrail() and get_guardrails_status()
+|- Config-driven allow/deny and approval-required rules
+|- Guarded operations: alerts:reset, config:reload, policy:reload
+|- New endpoint: GET /guardrails for visibility
+|- Approval via X-Approval-Token header
+|- HTTP 403 with structured error on denial
+|- By default disabled — zero breaking changes
+|- P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
 - Three alert types: system_unhealthy (critical), circuit_breaker_open (warning), degradation_detected (warning)
@@ -233,7 +241,7 @@ Goal: Close the loop on alert lifecycle and provide operator-facing controls for
 | ~~P9~~ | ~~Alert acknowledgement workflow~~ | ~~Track alert lifecycle: firing → acknowledged → resolved~~ | ~~Alert IDs, status tracking, lifecycle endpoints, tests~~ | ~~P8-4 alert hooks~~ | ~~Codex~~ |
 | ~~P9~~ | ~~Dashboard operator action panel~~ | ~~Buttons: reset alerts, reload config, reload policy, health check~~ | ~~Ops view action card, doAction JS, tests~~ | ~~P9-1~~ | ~~Codex~~ |
 | ~~P9~~ | ~~Incident timeline view~~ | ~~Unified event stream: runs, alerts, access log~~ | ~~timeline.py, /timeline endpoint, dashboard view, tests~~ | ~~P9-1~~ | ~~Codex~~ |
-| P9 | Execution guardrails | Rate limiting + approval gates for destructive actions | Rate limiter, approval config, tests | P8-3 dry-run | Codex |
+| ~~P9~~ | ~~Execution guardrails~~ | ~~Config-driven allow/deny + approval for mutation ops~~ | ~~guardrails.py, /guardrails endpoint, tests~~ | ~~P9-1~~ | ~~Codex~~ |
 
 ## Start Here
 
@@ -280,7 +288,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P9 roadmap defined. P9-1 (Alert acknowledgement), P9-2 (Dashboard operator panel), P9-3 (Incident timeline) complete. Next: P9-4 (Execution guardrails).
+P9 roadmap COMPLETE. All 4 items delivered (alert lifecycle, operator actions, timeline, guardrails). Ready for next phase planning.
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them

@@ -301,6 +301,23 @@ def main():
           "data-view=\"timeline\"" in dashboard_html,
           "Timeline navigation item")
 
+    # P9-4: Execution guardrails
+    check("Guardrails: guardrails.py exists",
+          os.path.isfile(os.path.join(base, "guardrails.py")),
+          "guardrails module present")
+    check("Guardrails: test_guardrails.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_guardrails.py")),
+          "guardrails test file present")
+    check("Guardrails: check_guardrail function in guardrails.py",
+          "def check_guardrail" in open(os.path.join(base, "guardrails.py")).read(),
+          "check_guardrail function present")
+    check("Guardrails: /guardrails endpoint in server.py",
+          "get_guardrails_status" in open(os.path.join(base, "server.py")).read(),
+          "guardrails status handler present")
+    check("Guardrails: guardrails config in config.example.json",
+          "\"guardrails\"" in open(os.path.join(base, "config.example.json")).read(),
+          "guardrails config section present")
+
     # Summary
     print()
     print("=" * 50)

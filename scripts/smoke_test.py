@@ -430,6 +430,19 @@ def main():
               "data-view=\"timeline\"" in dashboard_html,
               "Timeline navigation item present")
 
+        # P9-4: Execution guardrails
+        req = urllib.request.Request(
+            f"http://127.0.0.1:{port}/guardrails"
+        )
+        with urllib.request.urlopen(req) as resp:
+            gr = json.loads(resp.read())
+        check("Guardrails: /guardrails responds 200",
+              resp.status == 200,
+              f"status={resp.status}")
+        check("Guardrails: /guardrails has enabled field",
+              "enabled" in gr,
+              f"keys={list(gr.keys())}")
+
     finally:
         server.shutdown()
 

@@ -43,5 +43,14 @@
     "webhook_url": "",
     "cooldown_seconds": 300,
     "auto_resolve_seconds": 0
+  },
+  "guardrails": {
+    "enabled": false,
+    "approval_token": "",
+    "operations": {
+      "alerts:reset": { "denied": false, "require_approval": false },
+      "config:reload": { "denied": false, "require_approval": false },
+      "policy:reload": { "denied": false, "require_approval": true }
+    }
   }
 }

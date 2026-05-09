@@ -20,6 +20,7 @@ from data_dir_monitor import scan_data_dir, get_data_dir_metadata
 from data_source import set_data_source, create_provider, get_provider_name, get_provider_status, get_provider_health, get_degradation_status, get_system_status
 from alert import check_alerts, get_alert_manager
 from timeline import build_timeline, timeline_summary
+from guardrails import check_guardrail, get_guardrails_status
 from config import (
     get_config,
     get_config_value,
@@ -193,6 +194,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_alert_detail(path, parsed_path)
         elif path == "/timeline":
             self._handle_timeline(parsed_path)
+        elif path == "/guardrails":
+            self._send_json_response(200, get_guardrails_status())
         else:
             self._send_error_response(404, "not_found", "Endpoint not found")
 
@@ -423,6 +426,13 @@ class AgentHandler(BaseHTTPRequestHandler):
 
     def _handle_alerts_reset(self):
         """Handle POST /alerts/reset — clear alert cooldown state and log."""
+        # Guardrail check
+        headers = dict(self.headers)
+        guard = check_guardrail("alerts:reset", headers)
+        if guard:
+            self._send_json_response(403, guard)
+            return
+
         # Drain any request body
         try:
             content_length = int(self.headers.get("Content-Length", 0))
@@ -632,6 +642,14 @@ class AgentHandler(BaseHTTPRequestHandler):
 
     def _handle_config_reload(self):
         """Handle POST /config/reload — reload centralized config file."""
+        # Guardrail check
+        headers = dict(self.headers)
+        guard = check_guardrail("config:reload", headers)
+        if guard:
+            self._drain_request_body()
+            self._send_json_response(403, guard)
+            return
+
         try:
             content_length = int(self.headers.get("Content-Length", 0))
             config_path = None
@@ -656,6 +674,14 @@ class AgentHandler(BaseHTTPRequestHandler):
 
     def _handle_policy_reload(self):
         """Handle POST /policy/reload — hot-reload policy from config file."""
+        # Guardrail check
+        headers = dict(self.headers)
+        guard = check_guardrail("policy:reload", headers)
+        if guard:
+            self._drain_request_body()
+            self._send_json_response(403, guard)
+            return
+
         try:
             # Read optional body for custom config_path
             content_length = int(self.headers.get("Content-Length", 0))
