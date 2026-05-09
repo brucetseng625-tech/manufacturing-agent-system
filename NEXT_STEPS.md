@@ -3,16 +3,16 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `da17762` `feat(p9): add incident timeline view`
+- `b362fd4` `feat(p9): add execution guardrails for mutation operations`
 
 Latest verified feature commit on `main`:
-- `da17762` `feat(p9): add incident timeline view`
+- `b362fd4` `feat(p9): add execution guardrails for mutation operations`
 
 Latest roadmap sync commit on `main`:
-- `da17762` `feat(p9): add incident timeline view`
-- Full unit test status at handoff: `571 / 571 passed`
-- Smoke test status at handoff: `74 / 74 passed`
-- Setup verification status at handoff: `87 / 87 passed`
+- `b362fd4` `feat(p9): add execution guardrails for mutation operations`
+- Full unit test status at handoff: `585 / 585 passed`
+- Smoke test status at handoff: `76 / 76 passed`
+- Setup verification status at handoff: `92 / 92 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
@@ -154,16 +154,16 @@ Current completed scope:
 - New endpoint: GET /timeline (type filter, last param)
 - Dashboard Timeline view with type/limit filters
 - Events sorted newest-first with run_id and alert_id badges
-|- Read-only surface — no mutation of existing log layers
-|- P9 Phase 4 implemented: Execution Guardrails
-|- New module: guardrails.py with check_guardrail() and get_guardrails_status()
-|- Config-driven allow/deny and approval-required rules
-|- Guarded operations: alerts:reset, config:reload, policy:reload
-|- New endpoint: GET /guardrails for visibility
-|- Approval via X-Approval-Token header
-|- HTTP 403 with structured error on denial
-|- By default disabled — zero breaking changes
-|- P8 Phase 4 implemented: Alert/Notification Hooks
+- Read-only surface — no mutation of existing log layers
+- P9 Phase 4 implemented: Execution Guardrails
+- New module: guardrails.py with check_guardrail() and get_guardrails_status()
+- Config-driven allow/deny and approval-required rules
+- Guarded operations: alerts:reset, config:reload, policy:reload
+- New endpoint: GET /guardrails for visibility
+- Approval via X-Approval-Token header
+- HTTP 403 with structured error on denial
+- By default disabled — zero breaking changes
+- P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
 - Three alert types: system_unhealthy (critical), circuit_breaker_open (warning), degradation_detected (warning)
