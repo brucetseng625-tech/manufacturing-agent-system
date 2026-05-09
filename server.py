@@ -26,6 +26,7 @@ from audit_chain import append_audit_entry, query_audit_log, get_audit_summary, 
 from incident_report import generate_incident_report
 from auto_remediation import evaluate_hooks, evaluate_all_hooks, get_remediation_status, reset_remediation_state
 from approval_queue import create_pending_item, list_pending, get_item, approve_item, reject_item, get_approval_stats, reset_queue
+from automation_policy import check_automation_allowed, get_automation_policy_status
 from guardrails import check_guardrail, get_guardrails_status, get_guardrail
 
 
@@ -262,6 +263,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_incident_report(parsed_path)
         elif path == "/auto-remediation/status":
             self._send_json_response(200, get_remediation_status())
+        elif path == "/automation/policy":
+            self._send_json_response(200, get_automation_policy_status())
         elif path == "/approvals":
             self._handle_approvals_list(parsed_path)
         else:
@@ -872,7 +875,19 @@ class AgentHandler(BaseHTTPRequestHandler):
                                     "retry": True},
                            result="success")
 
-        # Step 2: Replay the original request if available
+        # Step 2: Check automation policy before retry
+        allowed, policy_reason = check_automation_allowed(
+            "approval:retry", source_ip=self.client_address[0],
+            context={"approval_id": approval_id, "operation": result.get("operation")})
+        if not allowed:
+            response = {
+                "approval": result,
+                "retry": {"success": False, "error": "policy_denied", "reason": policy_reason},
+            }
+            self._send_json_response(200, response)
+            return
+
+        # Step 3: Replay the original request if available
         original = result.get("original_request")
         retry_result = None
         if original and original.get("method") and original.get("path"):

@@ -534,6 +534,12 @@ def main():
               ap2.get("success") is True,
               f"reset response={ap2}")
 
+        # P12-2: Automation policy
+        pol = get("/automation/policy", port)
+        check("P12-2: /automation/policy responds 200",
+              "enabled" in pol and "allowed_actions" in pol,
+              f"keys={list(pol.keys())}")
+
     finally:
         server.shutdown()
 

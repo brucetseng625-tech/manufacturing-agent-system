@@ -45,6 +45,7 @@ import urllib.error
 
 from config import get_config_value
 from audit_chain import append_audit_entry
+from automation_policy import check_automation_allowed, is_automation_enabled
 
 # ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -299,6 +300,21 @@ def _execute_hook(hook_name, hook_config, trigger, context=None):
             "reason": f"Hook still in cooldown ({cooldown}s)",
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }
+
+    # Check automation policy
+    if is_automation_enabled():
+        allowed, policy_reason = check_automation_allowed(
+            action, source_ip="127.0.0.1",
+            context={"hook": hook_name, "trigger": trigger})
+        if not allowed:
+            return {
+                "hook": hook_name,
+                "trigger": trigger,
+                "action": action,
+                "status": "policy_denied",
+                "reason": policy_reason,
+                "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            }
 
     # Execute the action
     handler = _ACTION_HANDLERS.get(action)

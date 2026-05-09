@@ -37,7 +37,11 @@
         "orders": {
           "enabled": true,
           "field_mapping": {},
-          "required_fields": ["order_id", "customer", "quantity"],
+          "required_fields": [
+            "order_id",
+            "customer",
+            "quantity"
+          ],
           "type_rules": {
             "quantity": "int",
             "penalty_per_day": "float",
@@ -51,7 +55,12 @@
         "materials": {
           "enabled": true,
           "field_mapping": {},
-          "required_fields": ["order_id", "material", "required_qty", "available_qty"],
+          "required_fields": [
+            "order_id",
+            "material",
+            "required_qty",
+            "available_qty"
+          ],
           "type_rules": {
             "required_qty": "int",
             "available_qty": "int",
@@ -89,10 +98,22 @@
     "enabled": false,
     "approval_token": "",
     "operations": {
-      "alerts:reset": { "denied": false, "require_approval": false },
-      "config:reload": { "denied": false, "require_approval": false },
-      "policy:reload": { "denied": false, "require_approval": true },
-      "provider:select": { "denied": false, "require_approval": true }
+      "alerts:reset": {
+        "denied": false,
+        "require_approval": false
+      },
+      "config:reload": {
+        "denied": false,
+        "require_approval": false
+      },
+      "policy:reload": {
+        "denied": false,
+        "require_approval": true
+      },
+      "provider:select": {
+        "denied": false,
+        "require_approval": true
+      }
     }
   },
   "auto_remediation": {
@@ -117,5 +138,16 @@
         "dry_run": true
       }
     }
+  },
+  "automation_policy": {
+    "enabled": false,
+    "allowed_actions": [
+      "alerts:reset",
+      "config:reload",
+      "policy:reload",
+      "provider:fallback",
+      "approval:retry"
+    ],
+    "denied_actions": []
   }
 }

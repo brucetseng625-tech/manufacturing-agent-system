@@ -505,6 +505,29 @@ def main():
           "doApproveRetry" in open(os.path.join(base, "static", "dashboard.html")).read(),
           "approve-and-retry button in dashboard")
 
+    # P12-2: Automation policy controls
+    check("P12-2: automation_policy.py exists",
+          os.path.isfile(os.path.join(base, "automation_policy.py")),
+          "automation_policy module present")
+    check("P12-2: test_automation_policy.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_automation_policy.py")),
+          "automation policy test file present")
+    check("P12-2: check_automation_allowed in automation_policy.py",
+          "def check_automation_allowed" in open(os.path.join(base, "automation_policy.py")).read(),
+          "check_automation_allowed function present")
+    check("P12-2: /automation/policy handler in server.py",
+          "\"/automation/policy\"" in open(os.path.join(base, "server.py")).read(),
+          "automation policy endpoint present")
+    check("P12-2: automation_policy in auto_remediation.py",
+          "automation_policy" in open(os.path.join(base, "auto_remediation.py")).read(),
+          "auto-remediation integrates automation policy")
+    check("P12-2: automation_policy in approval handler",
+          "check_automation_allowed" in open(os.path.join(base, "server.py")).read(),
+          "approval retry checks automation policy")
+    check("P12-2: automation_policy section in config.example.json",
+          "automation_policy" in open(os.path.join(base, "config.example.json")).read(),
+          "automation_policy config section present")
+
     # Summary
     print()
     print("=" * 50)
