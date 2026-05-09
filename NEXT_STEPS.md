@@ -3,16 +3,16 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `8c97636` `feat(p9): add dashboard operator action panel`
+- `da17762` `feat(p9): add incident timeline view`
 
 Latest verified feature commit on `main`:
-- `8c97636` `feat(p9): add dashboard operator action panel`
+- `da17762` `feat(p9): add incident timeline view`
 
 Latest roadmap sync commit on `main`:
-- `8c97636` `feat(p9): add dashboard operator action panel`
-- Full unit test status at handoff: `554 / 554 passed`
-- Smoke test status at handoff: `70 / 70 passed`
-- Setup verification status at handoff: `82 / 82 passed`
+- `da17762` `feat(p9): add incident timeline view`
+- Full unit test status at handoff: `571 / 571 passed`
+- Smoke test status at handoff: `74 / 74 passed`
+- Setup verification status at handoff: `87 / 87 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
@@ -146,16 +146,16 @@ Current completed scope:
 - Ops view includes "Operator Actions" card with one-click buttons
 - Actions: Reset Alerts, Reload Config, Reload Policy, Health Check
 - Inline success/failure feedback via `doAction()` JavaScript
-|- Dashboard is pure frontend — calls existing API endpoints
-|- Zero backend changes; additive to dashboard only
-|- P9 Phase 3 implemented: Incident Timeline View
-|- Unified timeline aggregating: runs.jsonl (audit), alerts (in-memory), access.log
-|- New module: timeline.py with build_timeline() and timeline_summary()
-|- New endpoint: GET /timeline (type filter, last param)
-|- Dashboard Timeline view with type/limit filters
-|- Events sorted newest-first with run_id and alert_id badges
-|- Read-only surface — no mutation of existing log layers
-|- P8 Phase 4 implemented: Alert/Notification Hooks
+- Dashboard is pure frontend — calls existing API endpoints
+- Zero backend changes; additive to dashboard only
+- P9 Phase 3 implemented: Incident Timeline View
+- Unified timeline aggregating: runs.jsonl (audit), alerts (in-memory), access.log
+- New module: timeline.py with build_timeline() and timeline_summary()
+- New endpoint: GET /timeline (type filter, last param)
+- Dashboard Timeline view with type/limit filters
+- Events sorted newest-first with run_id and alert_id badges
+- Read-only surface — no mutation of existing log layers
+- P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
 - Three alert types: system_unhealthy (critical), circuit_breaker_open (warning), degradation_detected (warning)
