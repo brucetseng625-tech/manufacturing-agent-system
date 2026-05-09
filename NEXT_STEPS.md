@@ -3,16 +3,16 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `b362fd4` `feat(p9): add execution guardrails for mutation operations`
+- `6a0a41e` `feat(p10): add HttpReadonlyProvider for real readonly HTTP integration`
 
 Latest verified feature commit on `main`:
-- `b362fd4` `feat(p9): add execution guardrails for mutation operations`
+- `6a0a41e` `feat(p10): add HttpReadonlyProvider for real readonly HTTP integration`
 
 Latest roadmap sync commit on `main`:
-- `b362fd4` `feat(p9): add execution guardrails for mutation operations`
-- Full unit test status at handoff: `585 / 585 passed`
-- Smoke test status at handoff: `76 / 76 passed`
-- Setup verification status at handoff: `92 / 92 passed`
+- `6a0a41e` `feat(p10): add HttpReadonlyProvider for real readonly HTTP integration`
+- Full unit test status at handoff: `604 / 604 passed`
+- Smoke test status at handoff: `77 / 77 passed`
+- Setup verification status at handoff: `95 / 95 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
@@ -162,17 +162,17 @@ Current completed scope:
 - New endpoint: GET /guardrails for visibility
 - Approval via X-Approval-Token header
 - HTTP 403 with structured error on denial
-|- By default disabled — zero breaking changes
-|- P10 Phase 1 implemented: HttpReadonlyProvider (First Real Readonly Provider)
-|- New class: HttpReadonlyProvider in data_source.py
-|- Fetches JSON from configurable HTTP endpoints (stdlib urllib only)
-|- Auto-detected by create_provider() when live_provider.http.base_url is set
-|- Health check: pings {base_url}{health_path} for connectivity diagnostics
-|- Read-only — no write capabilities, safe first step toward real data
-|- Falls back to skeleton LiveDataProvider when not configured
-|- Integrates with existing circuit breaker, auto-failover, degradation layers
-|- 19 new tests covering config, load, health, readiness, degradation
-|- P8 Phase 4 implemented: Alert/Notification Hooks
+- By default disabled — zero breaking changes
+- P10 Phase 1 implemented: HttpReadonlyProvider (First Real Readonly Provider)
+- New class: HttpReadonlyProvider in data_source.py
+- Fetches JSON from configurable HTTP endpoints (stdlib urllib only)
+- Auto-detected by create_provider() when live_provider.http.base_url is set
+- Health check: pings {base_url}{health_path} for connectivity diagnostics
+- Read-only — no write capabilities, safe first step toward real data
+- Falls back to skeleton LiveDataProvider when not configured
+- Integrates with existing circuit breaker, auto-failover, degradation layers
+- 19 new tests covering config, load, health, readiness, degradation
+- P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
 - Three alert types: system_unhealthy (critical), circuit_breaker_open (warning), degradation_detected (warning)
