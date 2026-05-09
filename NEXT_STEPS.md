@@ -3,16 +3,16 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `2167f84` `docs: sync handoff metadata after P11-3 auto-remediation hooks delivery`
+- `5ec866e` `feat(p11-4): add approval workflow dashboard with queue management`
 
 Latest verified feature commit on `main`:
-- `4f1e078` `feat(p11-3): add auto-remediation hooks for alert-triggered safe operations`
+- `5ec866e` `feat(p11-4): add approval workflow dashboard with queue management`
 
 Latest roadmap sync commit on `main`:
-- `2167f84` `docs: sync handoff metadata after P11-3 auto-remediation hooks delivery`
-- Full unit test status at handoff: `718 / 718 passed`
-- Smoke test status at handoff: `92 / 92 passed`
-- Setup verification status at handoff: `134 / 134 passed`
+- `5ec866e` `feat(p11-4): add approval workflow dashboard with queue management`
+- Full unit test status at handoff: `741 / 741 passed`
+- Smoke test status at handoff: `94 / 94 passed`
+- Setup verification status at handoff: `144 / 144 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
@@ -118,6 +118,7 @@ Current completed scope:
 - audit chain for critical operations
 - incident report generation
 - auto-remediation hooks
+- approval workflow dashboard
 - expedite-options skill
 - material-shortage-recovery skill
 - capacity-rebalance skill
@@ -230,6 +231,17 @@ Current completed scope:
 - 25 unit tests covering config, evaluation, cooldown, status, reset, actions
 - +2 smoke test checks + 8 verify setup checks
 - Updated README.md, NEXT_STEPS.md, config.example.json
+- P11 Phase 4 implemented: Approval Workflow Dashboard
+- New module: approval_queue.py — in-memory approval queue with max history
+- When guardrails require approval but no token is provided, a pending item is created
+- Operators can view, approve, or reject items from dashboard Approval Queue panel
+- GET /approvals (with status filter and limit), POST /approvals/{id}/approve, POST /approvals/{id}/reject, POST /approvals/reset
+- _check_guardrail_with_queue helper integrates guardrail checks with queue creation
+- All state transitions (created, approved, rejected) logged to audit chain
+- Dashboard: renderApprovalQueueCard() in Ops view with approve/reject buttons
+- 23 unit tests covering queue ops, approvals, stats, reset, token lookup
+- +2 smoke test checks + 10 verify setup checks
+- Updated README.md, NEXT_STEPS.md
 - P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
@@ -334,7 +346,7 @@ Goal: Deepen approval/audit chain, incident reporting, and limited automation sa
 | ~~P11~~ | ~~Audit chain for critical operations~~ | ~~Unified audit log for operator actions~~ | ~~audit_chain.py, /audit endpoint, integration, tests~~ | ~~P10 complete~~ | ~~Codex~~ |
 | ~~P11~~ | ~~Incident report generation~~ | ~~Auto-generate reports from timeline + audit + alerts~~ | ~~incident_report.py, /incident/report endpoint, tests~~ | ~~P11-1~~ | ~~Codex~~ |
 | ~~P11~~ | ~~Auto-remediation hooks~~ | ~~Config-driven safe auto-fix on alert triggers~~ | ~~auto_remediation.py, endpoints, cooldown, tests~~ | ~~P11-1~~ | ~~Codex~~ |
-| P11 | Approval workflow dashboard | Visual approval queue for guarded operations | Dashboard panel, tests | P11-1, P9-4 | Codex |
+| ~~P11~~ | ~~Approval workflow dashboard~~ | ~~Visual approval queue for guarded operations~~ | ~~approval_queue.py, dashboard panel, endpoints, tests~~ | ~~P11-1, P9-4~~ | ~~Codex~~ |
 
 ## Start Here
 
@@ -381,7 +393,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P11 roadmap defined. P11-1 (Audit chain), P11-2 (Incident report generation), and P11-3 (Auto-remediation hooks) complete. Next: P11-4 (Approval workflow dashboard).
+P11 roadmap complete (P11-1 through P11-4 all delivered). All 4 P11 governance items done. Next phase TBD — define P12 or continue with user-requested features.
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them
