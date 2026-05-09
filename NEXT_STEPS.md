@@ -3,13 +3,13 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `4f1e078` `feat(p11-3): add auto-remediation hooks for alert-triggered safe operations`
+- `2167f84` `docs: sync handoff metadata after P11-3 auto-remediation hooks delivery`
 
 Latest verified feature commit on `main`:
 - `4f1e078` `feat(p11-3): add auto-remediation hooks for alert-triggered safe operations`
 
 Latest roadmap sync commit on `main`:
-- `4f1e078` `feat(p11-3): add auto-remediation hooks for alert-triggered safe operations`
+- `2167f84` `docs: sync handoff metadata after P11-3 auto-remediation hooks delivery`
 - Full unit test status at handoff: `718 / 718 passed`
 - Smoke test status at handoff: `92 / 92 passed`
 - Setup verification status at handoff: `134 / 134 passed`
