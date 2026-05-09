@@ -3,13 +3,13 @@
 Last updated: 2026-05-09
 
 Current latest completed GitHub commit on `main`:
-- `d67e7e1` `feat(p10-3): add readonly provider diagnostics dashboard card`
+- `be72a4e` `docs: sync handoff metadata after P10-3 diagnostics dashboard delivery`
 
 Latest verified feature commit on `main`:
 - `d67e7e1` `feat(p10-3): add readonly provider diagnostics dashboard card`
 
 Latest roadmap sync commit on `main`:
-- `d67e7e1` `feat(p10-3): add readonly provider diagnostics dashboard card`
+- `be72a4e` `docs: sync handoff metadata after P10-3 diagnostics dashboard delivery`
 - Full unit test status at handoff: `647 / 647 passed`
 - Smoke test status at handoff: `83 / 83 passed`
 - Setup verification status at handoff: `108 / 108 passed`
@@ -174,21 +174,21 @@ Current completed scope:
 - Falls back to skeleton LiveDataProvider when not configured
 - Integrates with existing circuit breaker, auto-failover, degradation layers
 - 19 new tests covering config, load, health, readiness, degradation
-|- P10 Phase 2 implemented: ERP Data Mapping + Validation
-|- New module: data_mapper.py with SchemaMapper, SchemaValidator, apply_mapping
-|- Configurable field mapping, type coercion, default values, and validation
-|- Auto-applied by HttpReadonlyProvider when data_mapping.enabled is true
-|- Supports orders and materials datasets with configurable rules
-|- GET /mapping/diagnostics endpoint for operator visibility
-|- 43 new tests covering coercion, mapping, validation, pipeline, diagnostics
-|- P10 Phase 3 implemented: Readonly Provider Diagnostics Dashboard
-|- Dashboard Ops view now includes Readonly Provider Diagnostics card
-|- Displays provider type, readiness, health, active path, HTTP endpoint URL
-|- Shows sub-provider details in auto mode (live + fallback readiness)
-|- Data mapping status badge with per-dataset coverage and runtime stats
-|- Fetches /system/status and /mapping/diagnostics in parallel for real-time data
-|- Pure frontend change — no backend modifications required
-|- 3 smoke test checks + 4 verify setup checks added
+- P10 Phase 2 implemented: ERP Data Mapping + Validation
+- New module: data_mapper.py with SchemaMapper, SchemaValidator, apply_mapping
+- Configurable field mapping, type coercion, default values, and validation
+- Auto-applied by HttpReadonlyProvider when data_mapping.enabled is true
+- Supports orders and materials datasets with configurable rules
+- GET /mapping/diagnostics endpoint for operator visibility
+- 43 new tests covering coercion, mapping, validation, pipeline, diagnostics
+- P10 Phase 3 implemented: Readonly Provider Diagnostics Dashboard
+- Dashboard Ops view now includes Readonly Provider Diagnostics card
+- Displays provider type, readiness, health, active path, HTTP endpoint URL
+- Shows sub-provider details in auto mode (live + fallback readiness)
+- Data mapping status badge with per-dataset coverage and runtime stats
+- Fetches /system/status and /mapping/diagnostics in parallel for real-time data
+- Pure frontend change — no backend modifications required
+- 3 smoke test checks + 4 verify setup checks added
 - P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
