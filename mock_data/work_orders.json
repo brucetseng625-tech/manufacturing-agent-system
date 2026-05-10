@@ -14,5 +14,53 @@
     "machine_id": "CNC-02",
     "progress_percent": 0,
     "estimated_completion": "2026-05-16"
+  },
+  {
+    "wo_id": "WO-2001-A",
+    "order_id": "ORD-2001",
+    "status": "In Progress",
+    "machine_id": "CNC-04",
+    "progress_percent": 40,
+    "estimated_completion": "2026-05-22"
+  },
+  {
+    "wo_id": "WO-2002-A",
+    "order_id": "ORD-2002",
+    "status": "In Progress",
+    "machine_id": "CNC-03",
+    "progress_percent": 15,
+    "estimated_completion": "2026-05-15"
+  },
+  {
+    "wo_id": "WO-2003-A",
+    "order_id": "ORD-2003",
+    "status": "Blocked",
+    "machine_id": "CNC-01",
+    "progress_percent": 0,
+    "estimated_completion": "2026-05-22"
+  },
+  {
+    "wo_id": "WO-2004-A",
+    "order_id": "ORD-2004",
+    "status": "Queued",
+    "machine_id": "CNC-03",
+    "progress_percent": 0,
+    "estimated_completion": "2026-05-18"
+  },
+  {
+    "wo_id": "WO-2005-A",
+    "order_id": "ORD-2005",
+    "status": "Pending",
+    "machine_id": "CNC-03",
+    "progress_percent": 0,
+    "estimated_completion": "2026-05-17"
+  },
+  {
+    "wo_id": "WO-2006-A",
+    "order_id": "ORD-2006",
+    "status": "In Progress",
+    "machine_id": "CNC-05",
+    "progress_percent": 10,
+    "estimated_completion": "2026-05-22"
   }
 ]

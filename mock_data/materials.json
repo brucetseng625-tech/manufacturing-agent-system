@@ -18,7 +18,84 @@
     "status": "Shortage",
     "safety_stock": 30,
     "supplier_lead_time_days": 14,
-    "supplier_reliability": 0.70,
+    "supplier_reliability": 0.7,
     "unit_cost": 120.0
+  },
+  {
+    "order_id": "ORD-2001",
+    "material": "Steel Alloy 8620",
+    "required_qty": 200,
+    "available_qty": 500,
+    "status": "Ready",
+    "safety_stock": 100,
+    "supplier_lead_time_days": 5,
+    "supplier_reliability": 0.92,
+    "unit_cost": 35.0
+  },
+  {
+    "order_id": "ORD-2002",
+    "material": "Titanium Ti-6Al-4V",
+    "required_qty": 400,
+    "available_qty": 420,
+    "status": "Ready",
+    "safety_stock": 200,
+    "supplier_lead_time_days": 10,
+    "supplier_reliability": 0.85,
+    "unit_cost": 180.0
+  },
+  {
+    "order_id": "ORD-2003",
+    "material": "Inconel 718",
+    "required_qty": 150,
+    "available_qty": 30,
+    "status": "Shortage",
+    "safety_stock": 80,
+    "supplier_lead_time_days": 21,
+    "supplier_reliability": 0.65,
+    "unit_cost": 350.0
+  },
+  {
+    "order_id": "ORD-2003",
+    "material": "Coating Ceramic Z",
+    "required_qty": 200,
+    "available_qty": 50,
+    "status": "Shortage",
+    "safety_stock": 100,
+    "supplier_lead_time_days": 28,
+    "supplier_reliability": 0.55,
+    "unit_cost": 420.0
+  },
+  {
+    "order_id": "ORD-2004",
+    "material": "Aluminum 7075",
+    "required_qty": 300,
+    "available_qty": 800,
+    "status": "Ready",
+    "safety_stock": 150,
+    "supplier_lead_time_days": 4,
+    "supplier_reliability": 0.9,
+    "unit_cost": 28.0
+  },
+  {
+    "order_id": "ORD-2005",
+    "material": "Maraging Steel 300",
+    "required_qty": 1000,
+    "available_qty": 1200,
+    "status": "Ready",
+    "safety_stock": 500,
+    "supplier_lead_time_days": 8,
+    "supplier_reliability": 0.88,
+    "unit_cost": 250.0
+  },
+  {
+    "order_id": "ORD-2006",
+    "material": "Stainless Steel 316L",
+    "required_qty": 80,
+    "available_qty": 200,
+    "status": "Ready",
+    "safety_stock": 40,
+    "supplier_lead_time_days": 6,
+    "supplier_reliability": 0.93,
+    "unit_cost": 55.0
   }
 ]

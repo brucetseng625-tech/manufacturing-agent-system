@@ -23,7 +23,7 @@
     "quality_rating": 4.0,
     "risk_level": "medium",
     "valid_until": "2026-05-15",
-    "supplier_reliability": 0.70
+    "supplier_reliability": 0.7
   },
   {
     "quote_id": "Q-1003",
@@ -63,5 +63,44 @@
     "risk_level": "high",
     "valid_until": "2026-05-20",
     "supplier_reliability": 0.55
+  },
+  {
+    "quote_id": "Q-3001",
+    "material": "Inconel 718",
+    "supplier": "Supplier E",
+    "unit_price": 350.0,
+    "currency": "USD",
+    "lead_time_days": 21,
+    "moq": 50,
+    "quality_rating": 4.6,
+    "risk_level": "medium",
+    "valid_until": "2026-06-01",
+    "supplier_reliability": 0.65
+  },
+  {
+    "quote_id": "Q-3002",
+    "material": "Inconel 718",
+    "supplier": "Supplier F",
+    "unit_price": 400.0,
+    "currency": "USD",
+    "lead_time_days": 14,
+    "moq": 30,
+    "quality_rating": 4.8,
+    "risk_level": "low",
+    "valid_until": "2026-05-25",
+    "supplier_reliability": 0.8
+  },
+  {
+    "quote_id": "Q-3003",
+    "material": "Maraging Steel 300",
+    "supplier": "Supplier A",
+    "unit_price": 250.0,
+    "currency": "USD",
+    "lead_time_days": 8,
+    "moq": 200,
+    "quality_rating": 4.5,
+    "risk_level": "low",
+    "valid_until": "2026-07-01",
+    "supplier_reliability": 0.95
   }
 ]

@@ -34,5 +34,77 @@
     "penalty_per_day": 200.0,
     "expedite_option": "none",
     "expedite_cost": 0.0
+  },
+  {
+    "order_id": "ORD-2001",
+    "customer": "Alpha Electronics",
+    "product": "精密齒輪 G1",
+    "quantity": 1000,
+    "due_date": "2026-05-25",
+    "priority": "Normal",
+    "customer_tier": "Standard",
+    "penalty_per_day": 800.0,
+    "expedite_option": "overtime",
+    "expedite_cost": 5000.0
+  },
+  {
+    "order_id": "ORD-2002",
+    "customer": "Delta Motors",
+    "product": "引擎支架 M5",
+    "quantity": 2000,
+    "due_date": "2026-05-13",
+    "priority": "High",
+    "customer_tier": "VIP",
+    "penalty_per_day": 12000.0,
+    "expedite_option": "extra_shift",
+    "expedite_cost": 25000.0
+  },
+  {
+    "order_id": "ORD-2003",
+    "customer": "Gamma Aerospace",
+    "product": "航太法蘭 F7",
+    "quantity": 500,
+    "due_date": "2026-05-18",
+    "priority": "High",
+    "customer_tier": "VIP",
+    "penalty_per_day": 8000.0,
+    "expedite_option": "express_shipping",
+    "expedite_cost": 30000.0
+  },
+  {
+    "order_id": "ORD-2004",
+    "customer": "Epsilon Robotics",
+    "product": "機器人關節 J2",
+    "quantity": 800,
+    "due_date": "2026-05-16",
+    "priority": "High",
+    "customer_tier": "Standard",
+    "penalty_per_day": 3000.0,
+    "expedite_option": "overtime",
+    "expedite_cost": 10000.0
+  },
+  {
+    "order_id": "ORD-2005",
+    "customer": "Omega Defense",
+    "product": "國防零件 D9",
+    "quantity": 5000,
+    "due_date": "2026-05-14",
+    "priority": "Urgent",
+    "customer_tier": "VIP",
+    "penalty_per_day": 50000.0,
+    "expedite_option": "full_escalation",
+    "expedite_cost": 100000.0
+  },
+  {
+    "order_id": "ORD-2006",
+    "customer": "Zeta MedTech",
+    "product": "醫療植入物 I3",
+    "quantity": 200,
+    "due_date": "2026-05-20",
+    "priority": "Normal",
+    "customer_tier": "Standard",
+    "penalty_per_day": 2000.0,
+    "expedite_option": "none",
+    "expedite_cost": 0.0
   }
 ]

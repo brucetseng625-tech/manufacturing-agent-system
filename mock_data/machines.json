@@ -16,5 +16,32 @@
     "backup_available": false,
     "max_capacity_percent": 100,
     "overtime_available": false
+  },
+  {
+    "machine_id": "CNC-03",
+    "status": "Running",
+    "load_percent": 95,
+    "next_maintenance": "2026-05-12",
+    "backup_available": false,
+    "max_capacity_percent": 100,
+    "overtime_available": false
+  },
+  {
+    "machine_id": "CNC-04",
+    "status": "Idle",
+    "load_percent": 30,
+    "next_maintenance": "2026-06-01",
+    "backup_available": true,
+    "max_capacity_percent": 120,
+    "overtime_available": true
+  },
+  {
+    "machine_id": "CNC-05",
+    "status": "Maintenance",
+    "load_percent": 0,
+    "next_maintenance": "2026-05-11",
+    "backup_available": false,
+    "max_capacity_percent": 100,
+    "overtime_available": false
   }
 ]

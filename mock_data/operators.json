@@ -10,5 +10,23 @@
     "skill": "Quality Check",
     "shift": "Night",
     "status": "Absent"
+  },
+  {
+    "operator_id": "OP-03",
+    "skill": "CNC Turning",
+    "shift": "Day",
+    "status": "Available"
+  },
+  {
+    "operator_id": "OP-04",
+    "skill": "CNC Milling",
+    "shift": "Day",
+    "status": "Available"
+  },
+  {
+    "operator_id": "OP-05",
+    "skill": "CNC Turning",
+    "shift": "Night",
+    "status": "Available"
   }
 ]
