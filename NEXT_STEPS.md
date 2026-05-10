@@ -3,11 +3,10 @@
 Last updated: 2026-05-10
 
 Current latest completed feature commit on `main`:
-- `98daf6e` `feat(p13-4): add pilot readiness checklist for human pilot prerequisites`
-- P14-1 feature commit pending (work in progress)
+- `21bb1da` `feat(p14-1): add rollout gating profile for controlled production pilot`
 
 Latest verified feature commit on `main`:
-- `98daf6e` `feat(p13-4): add pilot readiness checklist for human pilot prerequisites`
+- `21bb1da` `feat(p14-1): add rollout gating profile for controlled production pilot`
 
 Important handoff note:
 - `main` may move to a docs-only sync commit after the latest verified feature commit above. Always confirm exact `HEAD` with `git rev-parse HEAD` before continuing.
@@ -318,7 +317,7 @@ Current completed scope:
 
 Goal: Move from operator pilot readiness to production pilot / limited rollout readiness. Enable controlled rollout with explicit gating, approval, and rollback surfaces.
 
-### P14-1 Rollout Gating Profile (in progress)
+### P14-1 Rollout Gating Profile (completed)
 
 - New module: `rollout_profile.py` with `get_rollout_profile`, `get_rollout_status`, `check_rollout`
 - 5 rollout levels: `disabled`, `internal_only`, `pilot_readonly`, `pilot_with_approval`, `limited_automation`
@@ -331,6 +330,7 @@ Goal: Move from operator pilot readiness to production pilot / limited rollout r
 - Audit log records all rollout-gated denials
 - Config section in `config.example.json` under `rollout_profile`
 - 30 unit tests + 4 smoke checks + 14 verify setup checks
+- Commit: `21bb1da`
 
 ### Roadmap
 
