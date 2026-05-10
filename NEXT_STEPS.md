@@ -3,16 +3,16 @@
 Last updated: 2026-05-09
 
 Current latest completed feature commit on `main`:
-- `5059e58` `feat(p13-2): add automation execution receipts for unified operation tracking`
+- `c7d10f0` `feat(p13-3): add incident closure workflow`
 
 Latest verified feature commit on `main`:
-- `5059e58` `feat(p13-2): add automation execution receipts for unified operation tracking`
+- `c7d10f0` `feat(p13-3): add incident closure workflow`
 
 Important handoff note:
 - `main` may move to a docs-only sync commit after the latest verified feature commit above. Always confirm exact `HEAD` with `git rev-parse HEAD` before continuing.
-- Full unit test status at handoff: `811 / 811 passed`
-- Smoke test status at handoff: `101 / 101 passed`
-- Setup verification status at handoff: `170 / 170 passed`
+- Full unit test status at handoff: `823 / 823 passed`
+- Smoke test status at handoff: `104 / 104 passed`
+- Setup verification status at handoff: `178 / 178 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
@@ -122,8 +122,9 @@ Current completed scope:
 - approval-linked execution handoff
 - automation policy controls
 - rollback & audit visibility
-|- approval replay preview visibility
-|- automation execution receipts
+- approval replay preview visibility
+- automation execution receipts
+- incident closure workflow
 - expedite-options skill
 - material-shortage-recovery skill
 - capacity-rebalance skill
@@ -265,22 +266,30 @@ Current completed scope:
 - 28 unit tests covering rules, analyze_entry, query, summary
 - +2 smoke test checks + 6 verify setup checks
 - Updated README.md, NEXT_STEPS.md
-|- P13 Phase 1 implemented: Approval Replay Preview Visibility
-|- Approval queue API now returns sanitized `request_preview` metadata for pending/reviewed items
-|- Sensitive request fields like `approval_token` are redacted from approval list/detail responses
-|- New endpoint: `GET /approvals/{id}` for operator review of a single approval item
-|- Dashboard Approval Queue now shows replay request method/path, body summary, and a low/medium risk badge
-|- 6 new tests covering preview serialization, redaction, single-item endpoint, and dashboard markup
-|- Updated README.md, NEXT_STEPS.md
-|- P13 Phase 2 implemented: Automation Execution Receipts
-|- New module: `execution_receipts.py` with `record_receipt`, `query_receipts`, `get_receipts_summary`, `reset_receipts`
-|- Unified in-memory capped receipt log for both approval-retry and auto-remediation outcomes
-|- New endpoints: `GET /automation/receipts` (with source/status/operation filters + summary), `POST /automation/receipts/reset`
-|- Integrated into approve-and-retry flow — records success/failed/error/skipped/policy_denied receipts
-|- Integrated into auto_remediation.py — all execution paths (executed/dry_run/cooldown/policy_denied/skipped/error) emit receipts
-|- All receipts also logged to audit chain for full traceability
-|- 20 unit tests + 3 smoke checks + 9 verify setup checks
-|- Updated README.md, NEXT_STEPS.md
+- P13 Phase 1 implemented: Approval Replay Preview Visibility
+- Approval queue API now returns sanitized `request_preview` metadata for pending/reviewed items
+- Sensitive request fields like `approval_token` are redacted from approval list/detail responses
+- New endpoint: `GET /approvals/{id}` for operator review of a single approval item
+- Dashboard Approval Queue now shows replay request method/path, body summary, and a low/medium risk badge
+- 6 new tests covering preview serialization, redaction, single-item endpoint, and dashboard markup
+- Updated README.md, NEXT_STEPS.md
+- P13 Phase 2 implemented: Automation Execution Receipts
+- New module: `execution_receipts.py` with `record_receipt`, `query_receipts`, `get_receipts_summary`, `reset_receipts`
+- Unified in-memory capped receipt log for both approval-retry and auto-remediation outcomes
+- New endpoints: `GET /automation/receipts` (with source/status/operation filters + summary), `POST /automation/receipts/reset`
+- Integrated into approve-and-retry flow — records success/failed/error/skipped/policy_denied receipts
+- Integrated into auto_remediation.py — all execution paths (executed/dry_run/cooldown/policy_denied/skipped/error) emit receipts
+- All receipts also logged to audit chain for full traceability
+- 20 unit tests + 3 smoke checks + 9 verify setup checks
+- Updated README.md, NEXT_STEPS.md
+- P13 Phase 3 implemented: Incident Closure Workflow
+- New module: `incident_closure.py` with `upsert_closure`, `query_closures`, `get_closure`, `reset_closures`
+- New endpoints: `GET /incident/closures`, `GET /incident/closures/{report_id}`, `POST /incident/closures/{report_id}`, `POST /incident/closures/reset`
+- Supports explicit operator status transitions: `open`, `investigating`, `monitoring`, `resolved`
+- Closure records support `resolution_note`, `linked_alert_ids`, and `linked_receipt_ids` for incident linkage
+- Incident report payload now includes `closure` so report snapshots can reflect operator-managed closure state
+- 12 new unit tests + 3 smoke checks + 8 verify setup checks
+- Updated README.md, NEXT_STEPS.md
 - P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
@@ -407,9 +416,9 @@ Goal: Make limited automation understandable, reviewable, and operationally safe
 
 | Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
 | --- | --- | --- | --- | --- | --- |
-|| P13 | ~~Approval replay preview visibility~~ | ~~Show operators exactly what approve-and-retry will replay before they execute it~~ | ~~Sanitized request preview, approval detail endpoint, dashboard risk labels, tests~~ | ~~P12 complete~~ | ~~Codex~~ |
-|| P13 | ~~Automation execution receipts~~ | ~~Provide a single operator-facing record for approval retries and auto-remediation outcomes~~ | ~~execution_receipts.py, /automation/receipts, /automation/receipts/reset, integration with auto_remediation and approve-and-retry, tests~~ | ~~P13-1~~ | ~~Codex~~ |
-|| P13 | Incident closure workflow | Make incident follow-up and resolution status explicitly operable | Resolution notes/status transitions, incident linkage, tests | P11-2, P13-2 | Codex |
+| P13 | ~~Approval replay preview visibility~~ | ~~Show operators exactly what approve-and-retry will replay before they execute it~~ | ~~Sanitized request preview, approval detail endpoint, dashboard risk labels, tests~~ | ~~P12 complete~~ | ~~Codex~~ |
+| P13 | ~~Automation execution receipts~~ | ~~Provide a single operator-facing record for approval retries and auto-remediation outcomes~~ | ~~execution_receipts.py, /automation/receipts, /automation/receipts/reset, integration with auto_remediation and approve-and-retry, tests~~ | ~~P13-1~~ | ~~Codex~~ |
+| P13 | ~~Incident closure workflow~~ | ~~Make incident follow-up and resolution status explicitly operable~~ | ~~Resolution notes/status transitions, incident linkage, tests~~ | ~~P11-2, P13-2~~ | ~~Codex~~ |
 | P13 | Pilot readiness checklist | Codify human pilot prerequisites across safety, observability, and workflow completion | Runbook section, checklist endpoint/doc, tests if needed | P13-1 to P13-3 | Codex |
 
 ## Start Here
@@ -419,7 +428,7 @@ When a new Codex / AI session starts, do this first:
 1. Pull latest `main`
 2. Read this file
 3. Check `skills/registry.py`, `run_agent.py`, `integrations/asana_client.py`
-4. Start with the next unfinished roadmap item, currently `P13 Incident closure workflow`
+4. Start with the next unfinished roadmap item, currently `P13 Pilot readiness checklist`
 
 ## Roadmap Table
 
@@ -457,7 +466,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P13-2 complete. Continue with `P13 Incident closure workflow` unless a new blocking issue is found.
+P13-3 complete. Continue with `P13 Pilot readiness checklist` unless a new blocking issue is found.
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them
