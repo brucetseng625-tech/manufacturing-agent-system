@@ -3,10 +3,10 @@
 Last updated: 2026-05-10
 
 Current latest completed feature commit on `main`:
-- `21bb1da` `feat(p14-1): add rollout gating profile for controlled production pilot`
+- `0de22e2` `fix(p14-1): enforce rollout gating on alert-triggered auto-remediation + fix /rollout/reload to POST`
 
 Latest verified feature commit on `main`:
-- `21bb1da` `feat(p14-1): add rollout gating profile for controlled production pilot`
+- `0de22e2` `fix(p14-1): enforce rollout gating on alert-triggered auto-remediation + fix /rollout/reload to POST`
 
 Important handoff note:
 - `main` may move to a docs-only sync commit after the latest verified feature commit above. Always confirm exact `HEAD` with `git rev-parse HEAD` before continuing.
@@ -326,11 +326,12 @@ Goal: Move from operator pilot readiness to production pilot / limited rollout r
 - GET `/rollout/status` — full rollout status with per-capability gating state
 - POST `/rollout/reload` — reload profile from `rollout_profile.json`
 - Rollout gating integrated in `/run`, `/provider/select`, `/auto-remediation/evaluate`
+- **Alert-triggered auto-remediation also gated** — `alert.py` `_trigger_auto_remediation` checks rollout before firing
 - Blocked operations return 403 with `error: "rollout_gated"` and clear gating message
-- Audit log records all rollout-gated denials
+- Audit log records all rollout-gated denials (including alert flow)
 - Config section in `config.example.json` under `rollout_profile`
-- 30 unit tests + 4 smoke checks + 14 verify setup checks
-- Commit: `21bb1da`
+- 32 unit tests + 5 smoke checks + 16 verify setup checks
+- Commits: `21bb1da` (feature) + `0de22e2` (findings fix)
 
 ### Roadmap
 
