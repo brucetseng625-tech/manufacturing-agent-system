@@ -226,9 +226,9 @@ def main():
         dashboard_html = open(dashboard_path).read()
         check("Dashboard: has Ops nav item",
               'data-view="ops"' in dashboard_html,
-              "Ops navigation item present")
+              "運營管理 navigation item present")
         check("Dashboard: has Ops view section",
-              "view-ops" in dashboard_html,
+              "運營管理" in dashboard_html,
               "Ops view section present")
         check("Dashboard: has loadOps function",
               "loadOps" in dashboard_html,
@@ -278,8 +278,8 @@ def main():
           "dashboard actions test file present")
     dashboard_html = open(os.path.join(base, "static", "dashboard.html")).read()
     check("Dashboard actions: Operator Actions card present",
-          "Operator Actions" in dashboard_html,
-          "Operator Actions panel in dashboard")
+          "快速操作" in dashboard_html,
+          "Operator Actions panel present")
     check("Dashboard actions: doAction function present",
           "doAction" in dashboard_html,
           "doAction JavaScript function")

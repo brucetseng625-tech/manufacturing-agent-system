@@ -319,7 +319,7 @@ def main():
                   "data-view=\"ops\"" in html,
                   "Ops navigation item present")
             check("Dashboard: has Ops view section",
-                  "view-ops" in html,
+                  "運營管理" in html,
                   "Ops view section present")
             check("Dashboard: calls loadOps",
                   "loadOps" in html,
@@ -408,7 +408,7 @@ def main():
         # P9-2: Dashboard operator actions
         dashboard_html = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static", "dashboard.html")).read()
         check("Dashboard: contains Operator Actions card",
-              "Operator Actions" in dashboard_html,
+              "快速操作" in dashboard_html,
               "Operator Actions panel present")
 
         # P9-3: Incident timeline

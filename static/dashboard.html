@@ -209,119 +209,128 @@ body {
 <body>
 <div class="app">
   <nav class="sidebar">
-    <h1>Agent <span>Dashboard</span></h1>
-    <div class="nav-item active" data-view="skills">
-      <span class="nav-icon">◆</span><span class="nav-text">Skills & Teams</span>
-    </div>
-    <div class="nav-item" data-view="query">
-      <span class="nav-icon">▶</span><span class="nav-text">Query Runner</span>
-    </div>
-    <div class="nav-item" data-view="history">
-      <span class="nav-icon">📋</span><span class="nav-text">Run History</span>
-    </div>
-    <div class="nav-item" data-view="stats">
-      <span class="nav-icon">📊</span><span class="nav-text">Stats</span>
+    <h1>智造中控台 <span>Dashboard</span></h1>
+    <div class="nav-item active" data-view="query">
+      <span class="nav-icon">▶</span><span class="nav-text">查詢工作台</span>
     </div>
     <div class="nav-item" data-view="ops">
-      <span class="nav-icon">🔧</span><span class="nav-text">Ops</span>
+      <span class="nav-icon">🔧</span><span class="nav-text">運營管理</span>
     </div>
     <div class="nav-item" data-view="timeline">
-      <span class="nav-icon">📅</span><span class="nav-text">Timeline</span>
+      <span class="nav-icon">📅</span><span class="nav-text">時間軸</span>
+    </div>
+    <div class="nav-item" data-view="history">
+      <span class="nav-icon">📋</span><span class="nav-text">歷史記錄</span>
+    </div>
+    <div class="nav-item" data-view="skills">
+      <span class="nav-icon">◆</span><span class="nav-text">技能與團隊</span>
+    </div>
+    <div class="nav-item" data-view="stats">
+      <span class="nav-icon">📊</span><span class="nav-text">統計資料</span>
     </div>
   </nav>
 
   <main class="main">
-    <!-- Skills View -->
-    <section id="view-skills" class="view active">
+    <!-- Query View (default / operator-first) -->
+    <section id="view-query" class="view active">
       <div class="view-header">
-        <h2>Skills & Teams</h2>
-        <p>Available agent capabilities and team workflows</p>
-      </div>
-      <div id="skills-grid" class="grid"><div class="loading">Loading skills</div></div>
-    </section>
-
-    <!-- Query View -->
-    <section id="view-query" class="view">
-      <div class="view-header">
-        <h2>Query Runner</h2>
-        <p>Execute agent queries and view results</p>
+        <h2>查詢工作台</h2>
+        <p>輸入訂單編號或描述需求，AI 自動分析交期風險、缺料狀況、排程衝突等問題</p>
       </div>
       <div class="query-box">
-        <input type="text" id="query-input" class="query-input" placeholder="Enter query, e.g., ORD-1001 能不能準時出？" />
-        <button id="query-btn" class="btn" onclick="executeQuery()">Run</button>
+        <input type="text" id="query-input" class="query-input" placeholder="例如：ORD-1001 能不能準時出？" />
+        <button id="query-btn" class="btn" onclick="executeQuery()">送出查詢</button>
+        <button class="btn" style="background:var(--bg-input);border:1px solid var(--border);" onclick="document.getElementById('query-input').value='';document.getElementById('query-result').innerHTML='';">清空</button>
+      </div>
+      <div style="margin-bottom:1rem;font-size:0.85rem;color:var(--text-muted);">
+        快速範例：
+        <span style="cursor:pointer;color:var(--accent-light);margin-right:0.5rem;" onclick="document.getElementById('query-input').value='ORD-2001 交期如何？';executeQuery()">正常單測試</span>
+        <span style="cursor:pointer;color:var(--accent-light);margin-right:0.5rem;" onclick="document.getElementById('query-input').value='ORD-2002 有沒有風險？';executeQuery()">交期風險</span>
+        <span style="cursor:pointer;color:var(--accent-light);margin-right:0.5rem;" onclick="document.getElementById('query-input').value='ORD-2003 缺料怎麼辦？';executeQuery()">缺料查詢</span>
+        <span style="cursor:pointer;color:var(--accent-light);margin-right:0.5rem;" onclick="document.getElementById('query-input').value='ORD-2004 排程有衝突嗎？';executeQuery()">排程衝突</span>
       </div>
       <div id="query-result"></div>
-    </section>
-
-    <!-- History View -->
-    <section id="view-history" class="view">
-      <div class="view-header">
-        <h2>Run History</h2>
-        <p>Recent agent execution records</p>
-      </div>
-      <div class="filters">
-        <select id="filter-status" class="filter-select" onchange="loadHistory()">
-          <option value="">All Status</option>
-          <option value="success">Success</option>
-          <option value="error">Error</option>
-        </select>
-        <input type="text" id="filter-skill" class="filter-input" placeholder="Filter by skill..." oninput="loadHistory()" />
-        <select id="filter-channel" class="filter-select" onchange="loadHistory()">
-          <option value="">All Channels</option>
-          <option value="cli">CLI</option>
-          <option value="http">HTTP</option>
-        </select>
-        <select id="filter-limit" class="filter-select" onchange="loadHistory()">
-          <option value="10">Last 10</option>
-          <option value="25">Last 25</option>
-          <option value="50">Last 50</option>
-        </select>
-      </div>
-      <div id="history-content"><div class="loading">Loading history</div></div>
-    </section>
-
-    <!-- Stats View -->
-    <section id="view-stats" class="view">
-      <div class="view-header">
-        <h2>System Statistics</h2>
-        <p>Usage metrics and skill distribution</p>
-      </div>
-      <div class="grid" id="stats-grid">
-        <div class="card"><div class="loading">Loading metrics</div></div>
-      </div>
     </section>
 
     <!-- Ops View -->
     <section id="view-ops" class="view">
       <div class="view-header">
-        <h2>Operations</h2>
-        <p>System health, provider status, and degradation visibility</p>
+        <h2>運營管理</h2>
+        <p>系統健康狀態、警報、待審批、自動化紀錄與事件管理 — 每天開工前先看這裡</p>
       </div>
-      <div id="ops-grid" class="grid"><div class="loading">Loading ops data</div></div>
+      <div id="ops-grid" class="grid"><div class="loading">載入運營資料中…</div></div>
     </section>
 
     <!-- Timeline View -->
     <section id="view-timeline" class="view">
       <div class="view-header">
-        <h2>Incident Timeline</h2>
-        <p>Unified event stream: runs, alerts, and HTTP access</p>
+        <h2>事件時間軸</h2>
+        <p>系統執行、警報與 HTTP 存取的統一事件流，方便追蹤異常與復原</p>
       </div>
       <div class="filters">
         <select id="timeline-type" class="filter-select" onchange="loadTimeline()">
-          <option value="">All Events</option>
-          <option value="run">Runs Only</option>
-          <option value="alert">Alerts Only</option>
-          <option value="access">Access Only</option>
+          <option value="">全部類型</option>
+          <option value="run">執行</option>
+          <option value="alert">警報</option>
+          <option value="access">存取</option>
         </select>
         <select id="timeline-limit" class="filter-select" onchange="loadTimeline()">
-          <option value="20">Last 20</option>
-          <option value="50" selected>Last 50</option>
-          <option value="100">Last 100</option>
-        </select>
+          <option value="10">最近 10 筆</option>
+          <option value="20">最近 20 筆</option>
+          <option value="50" selected>最近 50 筆</option>
+          <option value="100">最近 100 筆</option>
       </div>
       <div id="timeline-summary" class="card" style="display:none;"></div>
-      <div id="timeline-content"><div class="loading">Loading timeline</div></div>
+      <div id="timeline-content"><div class="loading">載入時間軸中…</div></div>
     </section>
+
+    <!-- History View -->
+    <section id="view-history" class="view">
+      <div class="view-header">
+        <h2>歷史記錄</h2>
+        <p>最近的 AI 查詢執行紀錄，可依照狀態、技能或來源篩選</p>
+      </div>
+      <div class="filters">
+        <select id="filter-status" class="filter-select" onchange="loadHistory()">
+          <option value="">全部狀態</option>
+          <option value="success">成功</option>
+          <option value="error">失敗</option>
+        </select>
+        <input type="text" id="filter-skill" class="filter-input" placeholder="篩選技能…" oninput="loadHistory()" />
+        <select id="filter-channel" class="filter-select" onchange="loadHistory()">
+          <option value="">全部來源</option>
+          <option value="cli">命令列</option>
+          <option value="http">HTTP</option>
+        </select>
+        <select id="filter-limit" class="filter-select" onchange="loadHistory()">
+          <option value="10">最近 10 筆</option>
+          <option value="25">最近 25 筆</option>
+          <option value="50">最近 50 筆</option>
+        </select>
+      </div>
+      <div id="history-content"><div class="loading">載入歷史記錄中…</div></div>
+    </section>
+
+    <!-- Skills View -->
+    <section id="view-skills" class="view">
+      <div class="view-header">
+        <h2>技能與團隊</h2>
+        <p>AI 可用的分析技能與團隊工作流程 — 進階設定用</p>
+      </div>
+      <div id="skills-grid" class="grid"><div class="loading">載入技能列表中…</div></div>
+    </section>
+
+    <!-- Stats View -->
+    <section id="view-stats" class="view">
+      <div class="view-header">
+        <h2>統計資料</h2>
+        <p>系統使用量與技能分布 — 了解哪些功能最常用</p>
+      </div>
+      <div class="grid" id="stats-grid">
+        <div class="card"><div class="loading">載入統計資料中…</div></div>
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -648,114 +657,118 @@ async function loadOps() {
 
     let html = '';
 
-    // System Status Card
+    // System Status Card → 系統狀態
     html += `
       <div class="card">
         <div class="card-header">
-          <span class="card-title">System Status</span>
-          <span class="badge" style="background:${statusColor(s.system)};color:#fff;">${s.system.toUpperCase()}</span>
+          <span class="card-title">系統狀態</span>
+          <span class="badge" style="background:${statusColor(s.system)};color:#fff;">${s.system === 'ok' ? '正常' : s.system === 'degraded' ? '降級運行' : '異常'}</span>
         </div>
+        <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">系統整體健康狀態、資料來源與降級情況。開工前確認此處正常。</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-size:0.9rem;">
-          <div><span style="color:var(--text-muted)">Provider:</span> <strong>${s.provider.name}</strong></div>
-          <div><span style="color:var(--text-muted)">Readiness:</span> <strong style="color:${readinessColor(s.provider.readiness)}">${s.provider.readiness}</strong></div>
-          <div><span style="color:var(--text-muted)">Health:</span> <strong style="color:${statusColor(s.health.status)}">${s.health.status}</strong></div>
-          <div><span style="color:var(--text-muted)">Degraded:</span> <strong style="color:${s.degradation.is_degraded ? 'var(--warning)' : 'var(--success)'}">${s.degradation.is_degraded ? 'YES' : 'No'}</strong></div>
-          <div><span style="color:var(--text-muted)">Active Path:</span> <strong>${s.degradation.active_path}</strong></div>
-          <div><span style="color:var(--text-muted)">Config Source:</span> <strong>${s.config.source}</strong></div>
-          <div><span style="color:var(--text-muted)">Uptime:</span> <strong>${s.uptime_seconds != null ? Math.floor(s.uptime_seconds) + 's' : 'N/A'}</strong></div>
-          <div><span style="color:var(--text-muted)">Updated:</span> <strong>${s.timestamp}</strong></div>
+          <div><span style="color:var(--text-muted)">資料來源：</span> <strong>${s.provider.name}</strong></div>
+          <div><span style="color:var(--text-muted)">就緒狀態：</span> <strong style="color:${readinessColor(s.provider.readiness)}">${s.provider.readiness === 'ready' ? '就緒' : s.provider.readiness === 'degraded' ? '降級' : '異常'}</strong></div>
+          <div><span style="color:var(--text-muted)">健康檢查：</span> <strong style="color:${statusColor(s.health.status)}">${s.health.status === 'ok' ? '正常' : '異常'}</strong></div>
+          <div><span style="color:var(--text-muted)">降級狀態：</span> <strong style="color:${s.degradation.is_degraded ? 'var(--warning)' : 'var(--success)'}">${s.degradation.is_degraded ? '已降級' : '正常'}</strong></div>
+          <div><span style="color:var(--text-muted)">目前路徑：</span> <strong>${s.degradation.active_path}</strong></div>
+          <div><span style="color:var(--text-muted)">設定來源：</span> <strong>${s.config.source}</strong></div>
+          <div><span style="color:var(--text-muted)">運行時間：</span> <strong>${s.uptime_seconds != null ? Math.floor(s.uptime_seconds) + 's' : 'N/A'}</strong></div>
+          <div><span style="color:var(--text-muted)">更新時間：</span> <strong>${s.timestamp}</strong></div>
         </div>
         ${s.degradation.reason ? `<div style="margin-top:0.75rem;padding:0.5rem 0.75rem;background:rgba(245,158,11,0.1);border-radius:6px;font-size:0.85rem;color:var(--warning);">⚠ ${s.degradation.reason}</div>` : ''}
       </div>
     `;
 
-    // Health Details Card
+    // Health Details → 健康診斷
     html += `
       <div class="card">
         <div class="card-header">
-          <span class="card-title">Health Diagnostics</span>
+          <span class="card-title">健康診斷</span>
           <span class="badge" style="background:${statusColor(s.health.status)};color:#fff;">${s.health.status.toUpperCase()}</span>
         </div>
         <div style="font-size:0.85rem;">
-          <div style="color:var(--text-muted);margin-bottom:0.25rem;">Supported: <strong>${s.health.supported ? 'Yes' : 'No'}</strong></div>
-          <div style="color:var(--text-muted);">Details: <code style="background:var(--bg-input);padding:0.2rem 0.4rem;border-radius:4px;font-size:0.8rem;">${JSON.stringify(s.health.details || {})}</code></div>
+          <div style="color:var(--text-muted);margin-bottom:0.25rem;">支援狀態：<strong>${s.health.supported ? '支援' : '不支援'}</strong></div>
+          <div style="color:var(--text-muted);">詳細：<code style="background:var(--bg-input);padding:0.2rem 0.4rem;border-radius:4px;font-size:0.8rem;">${JSON.stringify(s.health.details || {})}</code></div>
         </div>
       </div>
     `;
 
-    // Degradation Card
+    // Degradation → 降級可見度
     const deg = s.degradation;
     html += `
       <div class="card">
         <div class="card-header">
-          <span class="card-title">Degradation Visibility</span>
-          <span class="badge" style="background:${deg.is_degraded ? 'var(--warning)' : 'var(--success)'};color:#fff;">${deg.is_degraded ? 'DEGRADED' : 'HEALTHY'}</span>
+          <span class="card-title">降級狀態</span>
+          <span class="badge" style="background:${deg.is_degraded ? 'var(--warning)' : 'var(--success)'};color:#fff;">${deg.is_degraded ? '已降級' : '正常'}</span>
         </div>
+        <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem;">系統在主要資料來源異常時的降級行為監控。</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-size:0.85rem;">
-          <div><span style="color:var(--text-muted)">Mode:</span> <strong>${deg.mode}</strong></div>
-          <div><span style="color:var(--text-muted)">Active Path:</span> <strong>${deg.active_path}</strong></div>
-          <div><span style="color:var(--text-muted)">Live Readiness:</span> <strong style="color:${deg.live_readiness ? readinessColor(deg.live_readiness) : 'var(--text-muted)'}">${deg.live_readiness || 'N/A'}</strong></div>
-          <div><span style="color:var(--text-muted)">Fallback Readiness:</span> <strong style="color:${deg.fallback_readiness ? readinessColor(deg.fallback_readiness) : 'var(--text-muted)'}">${deg.fallback_readiness || 'N/A'}</strong></div>
-          ${deg.circuit_breaker ? `<div><span style="color:var(--text-muted)">Circuit:</span> <strong style="color:${deg.circuit_breaker.state === 'closed' ? 'var(--success)' : 'var(--warning)'}">${deg.circuit_breaker.state}</strong></div>` : ''}
+          <div><span style="color:var(--text-muted)">模式：</span> <strong>${deg.mode}</strong></div>
+          <div><span style="color:var(--text-muted)">目前路徑：</span> <strong>${deg.active_path}</strong></div>
+          <div><span style="color:var(--text-muted)">主要就緒：</span> <strong style="color:${deg.live_readiness ? readinessColor(deg.live_readiness) : 'var(--text-muted)'}">${deg.live_readiness || 'N/A'}</strong></div>
+          <div><span style="color:var(--text-muted)">備援就緒：</span> <strong style="color:${deg.fallback_readiness ? readinessColor(deg.fallback_readiness) : 'var(--text-muted)'}">${deg.fallback_readiness || 'N/A'}</strong></div>
+          ${deg.circuit_breaker ? `<div><span style="color:var(--text-muted)">斷路器：</span> <strong style="color:${deg.circuit_breaker.state === 'closed' ? 'var(--success)' : 'var(--warning)'}">${deg.circuit_breaker.state === 'closed' ? '正常' : deg.circuit_breaker.state}</strong></div>` : ''}
         </div>
-        ${deg.recommendations && deg.recommendations.length > 0 ? `<div style="margin-top:0.75rem;"><div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:0.25rem;">Recommendations:</div><ul style="font-size:0.85rem;color:var(--text-secondary);padding-left:1.2rem;">${deg.recommendations.map(r => `<li>${r}</li>`).join('')}</ul></div>` : ''}
+        ${deg.recommendations && deg.recommendations.length > 0 ? `<div style="margin-top:0.75rem;"><div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:0.25rem;">建議操作：</div><ul style="font-size:0.85rem;color:var(--text-secondary);padding-left:1.2rem;">${deg.recommendations.map(r => `<li>${r}</li>`).join('')}</ul></div>` : ''}
       </div>
     `;
 
-    // Data Directory Card
+    // Data Directory → 資料目錄
     const dd = s.data_dir;
     html += `
       <div class="card">
         <div class="card-header">
-          <span class="card-title">Data Directory</span>
+          <span class="card-title">資料目錄</span>
         </div>
+        <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem;">目前使用的資料檔案路徑與狀態。</div>
         <div style="font-size:0.85rem;">
-          <div><span style="color:var(--text-muted)">Path:</span> <code style="background:var(--bg-input);padding:0.2rem 0.4rem;border-radius:4px;font-size:0.8rem;">${dd.data_dir || dd.path || 'N/A'}</code></div>
-          ${dd.file_count != null ? `<div style="margin-top:0.25rem;"><span style="color:var(--text-muted)">Files:</span> <strong>${dd.file_count}</strong></div>` : ''}
-          ${dd.last_modified ? `<div style="margin-top:0.25rem;"><span style="color:var(--text-muted)">Last Modified:</span> <strong>${dd.last_modified}</strong></div>` : ''}
+          <div><span style="color:var(--text-muted)">路徑：</span> <code style="background:var(--bg-input);padding:0.2rem 0.4rem;border-radius:4px;font-size:0.8rem;">${dd.data_dir || dd.path || 'N/A'}</code></div>
+          ${dd.file_count != null ? `<div style="margin-top:0.25rem;"><span style="color:var(--text-muted)">檔案數：</span> <strong>${dd.file_count}</strong></div>` : ''}
+          ${dd.last_modified ? `<div style="margin-top:0.25rem;"><span style="color:var(--text-muted)">最後修改：</span> <strong>${dd.last_modified}</strong></div>` : ''}
         </div>
       </div>
     `;
 
-    // Readonly Provider Diagnostics Card
+    // Provider Diagnostics → 供應商診斷
     html += renderProviderDiagnosticsCard(s, mapping);
 
     // Provider Selection Card
     html += renderProviderSelectionCard(s);
 
-    // Operator Actions Card
+    // Operator Actions → 快速操作
     html += `
       <div class="card" style="grid-column: span 2;">
         <div class="card-header">
-          <span class="card-title">Operator Actions</span>
+          <span class="card-title">快速操作</span>
         </div>
+        <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">常用系統管理操作，點擊即可執行。</div>
         <div class="action-grid">
           <button class="action-btn" onclick="doAction('reset_alerts')">
             <span class="action-icon">🔔</span>
-            <span class="action-label">Reset Alerts</span>
-            <span class="action-desc">Clear alert cooldowns & log</span>
+            <span class="action-label">重設警報</span>
+            <span class="action-desc">清除警報冷卻與記錄</span>
           </button>
           <button class="action-btn" onclick="doAction('reload_config')">
             <span class="action-icon">⚙️</span>
-            <span class="action-label">Reload Config</span>
-            <span class="action-desc">Re-read config.json + env</span>
+            <span class="action-label">重載設定</span>
+            <span class="action-desc">重新讀取設定檔</span>
           </button>
           <button class="action-btn" onclick="doAction('reload_policy')">
             <span class="action-icon">📋</span>
-            <span class="action-label">Reload Policy</span>
-            <span class="action-desc">Refresh policy rules</span>
+            <span class="action-label">重載政策</span>
+            <span class="action-desc">刷新政策規則</span>
           </button>
           <button class="action-btn" onclick="doAction('health_check')">
             <span class="action-icon">💚</span>
-            <span class="action-label">Health Check</span>
-            <span class="action-desc">Probe provider connectivity</span>
+            <span class="action-label">健康檢查</span>
+            <span class="action-desc">測試供應商連線</span>
           </button>
         </div>
         <div id="action-result" class="action-result"></div>
       </div>
     `;
 
-    // Approval Queue Card
+    // Approval Queue → 待審批項目
     html += renderApprovalQueueCard();
 
     grid.innerHTML = html;
@@ -790,7 +803,7 @@ function renderProviderDiagnosticsCard(s, mapping) {
     const healthUrl = (s.health.details && s.health.details.url) || 'N/A';
     providerInfo = `
       <div style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border);">
-        <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.25rem;">HTTP Endpoint</div>
+        <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.25rem;">HTTP 端點</div>
         <code style="background:var(--bg-input);padding:0.2rem 0.5rem;border-radius:4px;font-size:0.75rem;word-break:break-all;display:block;">${healthUrl}</code>
       </div>`;
   } else if (providerName === 'auto') {
@@ -799,10 +812,10 @@ function renderProviderDiagnosticsCard(s, mapping) {
     const fallback = s.provider.fallback_provider || {};
     providerInfo = `
       <div style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border);">
-        <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.25rem;">Sub-providers</div>
+        <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.25rem;">子供應商</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-size:0.8rem;">
-          <div>Live: <strong style="color:${readinessColor(live.readiness)}">${live.readiness || 'N/A'}</strong></div>
-          <div>Fallback: <strong style="color:${readinessColor(fallback.readiness)}">${fallback.readiness || 'N/A'}</strong></div>
+          <div>主要：<strong style="color:${readinessColor(live.readiness)}">${live.readiness || 'N/A'}</strong></div>
+          <div>備援：<strong style="color:${readinessColor(fallback.readiness)}">${fallback.readiness || 'N/A'}</strong></div>
         </div>
       </div>`;
   }
@@ -816,30 +829,30 @@ function renderProviderDiagnosticsCard(s, mapping) {
       const mapped = stats.mapped || 0;
       const errors = stats.errors || 0;
       const statBadge = total > 0
-        ? `<span class="badge" style="background:${errors > 0 ? 'var(--error)' : 'var(--success)'};color:#fff;font-size:0.7rem;padding:0.1rem 0.4rem;">${mapped}/${total} mapped</span>`
-        : '<span style="color:var(--text-muted);font-size:0.75rem;">No data yet</span>';
+        ? `<span class="badge" style="background:${errors > 0 ? 'var(--error)' : 'var(--success)'};color:#fff;font-size:0.7rem;padding:0.1rem 0.4rem;">${mapped}/${total} 已對應</span>`
+        : '<span style="color:var(--text-muted);font-size:0.75rem;">尚無資料</span>';
       return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:0.8rem;padding:0.25rem 0;">
-        <span>${name} <span style="color:var(--text-muted);">(${ds.field_mapping_count || 0} mappings)</span></span>
+        <span>${name} <span style="color:var(--text-muted);">(${ds.field_mapping_count || 0} 對應規則)</span></span>
         ${statBadge}
       </div>`;
     }).join('');
 
     mappingSection = `
       <div style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border);">
-        <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.25rem;">Data Mapping <span class="badge" style="background:var(--accent);color:#fff;font-size:0.7rem;padding:0.1rem 0.4rem;">ENABLED</span></div>
-        ${datasetList || '<div style="font-size:0.8rem;color:var(--text-muted);">No datasets configured</div>'}
+        <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.25rem;">資料對應 <span class="badge" style="background:var(--accent);color:#fff;font-size:0.7rem;padding:0.1rem 0.4rem;">已啟用</span></div>
+        ${datasetList || '<div style="font-size:0.8rem;color:var(--text-muted);">尚未設定資料集</div>'}
       </div>`;
   } else {
     mappingSection = `
       <div style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border);">
-        <div style="font-size:0.8rem;color:var(--text-muted);">Data Mapping <span class="badge" style="background:var(--text-muted);color:#fff;font-size:0.7rem;padding:0.1rem 0.4rem;">DISABLED</span></div>
+        <div style="font-size:0.8rem;color:var(--text-muted);">資料對應 <span class="badge" style="background:var(--text-muted);color:#fff;font-size:0.7rem;padding:0.1rem 0.4rem;">未啟用</span></div>
       </div>`;
   }
 
   return `
     <div class="card" style="grid-column: span 2;">
       <div class="card-header">
-        <span class="card-title">Readonly Provider Diagnostics</span>
+        <span class="card-title">唯讀供應商診斷</span>
         <div style="display:flex;gap:0.5rem;">
           <span class="badge" style="background:${readinessColor(readiness)};color:#fff;">${readiness.toUpperCase()}</span>
           <span class="badge" style="background:${statusColor(healthStatus)};color:#fff;">${healthStatus.toUpperCase()}</span>
@@ -857,24 +870,24 @@ function renderProviderDiagnosticsCard(s, mapping) {
   `;
 }
 
-// Provider Selection Card
+// Provider Selection Card → 資料來源切換
 function renderProviderSelectionCard(s) {
   const currentMode = s.provider.default_mode || 'local';
   const modes = [
-    { id: 'local', label: 'Local', desc: 'Local JSON/CSV files', icon: '📁' },
-    { id: 'http', label: 'HTTP', desc: 'Remote HTTP JSON endpoint', icon: '🌐' },
-    { id: 'auto', label: 'Auto', desc: 'HTTP → local fallback', icon: '🔄' },
+    { id: 'local', label: '本機', desc: '使用本地 JSON/CSV 檔案', icon: '📁' },
+    { id: 'http', label: '遠端', desc: '遠端 HTTP JSON 端點', icon: '🌐' },
+    { id: 'auto', label: '自動', desc: '遠端優先，失敗自動切換本機', icon: '🔄' },
   ];
 
   return `
     <div class="card" style="grid-column: span 2;">
       <div class="card-header">
-        <span class="card-title">Provider Selection</span>
-        <span class="badge" style="background:var(--accent);color:#fff;">${currentMode.toUpperCase()}</span>
+        <span class="card-title">資料來源切換</span>
+        <span class="badge" style="background:var(--accent);color:#fff;">${currentMode === 'local' ? '本機' : currentMode === 'http' ? '遠端' : '自動'}</span>
       </div>
       <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">
-        Switch the default data source mode. Changes apply immediately to all new requests.
-        <span style="color:var(--warning);">⚠ Requires approval token if guardrails are enabled.</span>
+        切換預設資料來源模式，變更立即生效。若啟用了保護機制，需審批權杖。
+        <span style="color:var(--warning);">⚠ 需要審批權杖（若保護機制已啟用）。</span>
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;margin-bottom:1rem;">
         ${modes.map(m => `
@@ -888,10 +901,10 @@ function renderProviderSelectionCard(s) {
         `).join('')}
       </div>
       <div style="display:flex;gap:0.5rem;align-items:center;">
-        <input type="password" id="provider-token" placeholder="Approval token (if required)" style="flex:1;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:0.5rem 0.75rem;color:var(--text);font-size:0.85rem;" />
+        <input type="password" id="provider-token" placeholder="審批權杖（若需要）" style="flex:1;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:0.5rem 0.75rem;color:var(--text);font-size:0.85rem;" />
         <button class="action-btn" onclick="doSelectProvider()" style="min-width:100px;">
           <span class="action-icon">🔀</span>
-          <span class="action-label">Apply</span>
+          <span class="action-label">套用</span>
         </button>
       </div>
       <div id="provider-select-result" class="action-result"></div>
@@ -905,13 +918,13 @@ async function doSelectProvider() {
   const selected = document.querySelector('input[name="provider-mode"]:checked');
   const token = document.getElementById('provider-token').value.trim();
   if (!selected) {
-    showProviderSelectResult('error', 'Please select a provider mode');
+    showProviderSelectResult('error', '請選擇資料來源模式');
     return;
   }
   const mode = selected.value;
 
   result.className = 'action-result show';
-  result.textContent = 'Switching provider...';
+  result.textContent = '切換資料來源中…';
   result.style.color = 'var(--text-muted)';
 
   const opts = {
@@ -962,7 +975,7 @@ async function doAction(action) {
       health_check: { method: 'GET', url: '/provider/health' },
     };
     const cfg = endpoints[action];
-    if (!cfg) { showActionResult('error', 'Unknown action: ' + action); return; }
+    if (!cfg) { showActionResult('error', '未知操作: ' + action); return; }
 
     const opts = { method: cfg.method, headers: {} };
     if (cfg.body) {
@@ -974,12 +987,12 @@ async function doAction(action) {
     const data = await res.json();
 
     if (!res.ok || data.error) {
-      showActionResult('error', `${action}: ${data.error || data.message || 'Failed'}`);
+      showActionResult('error', `${action}: ${data.error || data.message || '失敗'}`);
     } else {
-      let msg = `${action}: OK`;
-      if (data.source) msg += ` (source: ${data.source})`;
-      if (data.reloaded_at) msg += ` at ${data.reloaded_at}`;
-      if (data.status) msg += ` (status: ${data.status})`;
+      let msg = `${action}: 成功`;
+      if (data.source) msg += ` (來源: ${data.source})`;
+      if (data.reloaded_at) msg += ` (時間: ${data.reloaded_at})`;
+      if (data.status) msg += ` (狀態: ${data.status})`;
       showActionResult('success', msg);
     }
   } catch (e) {
@@ -1007,14 +1020,14 @@ async function renderApprovalQueueCard() {
 
     let rows = '';
     if (items.length === 0) {
-      rows = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:1rem;">No pending approvals</td></tr>`;
+      rows = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:1rem;">目前沒有待審批項目</td></tr>`;
     } else {
       rows = items.map(item => {
         const ts = item.created_at ? new Date(item.created_at).toLocaleString() : 'N/A';
-        const guardCondition = item.guardrail_config?.require_approval ? 'Requires approval token' : 'Denied by guardrail';
+        const guardCondition = item.guardrail_config?.require_approval ? '需審批權杖' : '已被保護機制拒絕';
         const preview = item.request_preview || {};
-        const bodySummary = preview.body_summary || 'no body';
-        const requestSummary = `${preview.method || 'POST'} ${preview.path || '(no path)'}`;
+        const bodySummary = preview.body_summary || '無內容';
+        const requestSummary = `${preview.method || 'POST'} ${preview.path || '(無路徑)'}`;
         const riskLevel = (item.risk_level || 'low').toUpperCase();
         const riskColor = item.risk_level === 'medium' ? 'var(--warning)' : 'var(--success)';
         return `<tr>
@@ -1041,19 +1054,19 @@ async function renderApprovalQueueCard() {
     return `
       <div class="card" style="grid-column: span 2;">
         <div class="card-header">
-          <span class="card-title">Approval Queue</span>
-          <span class="badge" style="background:${pendingCount > 0 ? 'var(--warning)' : 'var(--success)'};color:#fff;">${pendingCount} PENDING</span>
+          <span class="card-title">待審批項目</span>
+          <span class="badge" style="background:${pendingCount > 0 ? 'var(--warning)' : 'var(--success)'};color:#fff;">${pendingCount} 待處理</span>
         </div>
         <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">
-          Operations requiring your approval before execution. Approve to allow, reject to cancel.
+          需要您審批才能執行的操作。核准以允許，拒絕以取消。
         </div>
         <table class="history-table">
           <thead><tr>
-            <th style="width:120px;">ID</th>
-            <th style="width:140px;">Operation</th>
-            <th>Reason</th>
-            <th style="width:160px;">Requested</th>
-            <th style="width:80px;">Actions</th>
+            <th style="width:120px;">編號</th>
+            <th style="width:140px;">操作</th>
+            <th>原因</th>
+            <th style="width:160px;">請求時間</th>
+            <th style="width:80px;">操作</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
@@ -1177,14 +1190,14 @@ async function loadTimeline() {
     const data = await res.json();
 
     if (data.total === 0) {
-      content.innerHTML = '<div class="empty-state">No events found</div>';
+      content.innerHTML = '<div class="empty-state">找不到事件</div>';
       return;
     }
 
     // Summary
     summaryDiv.style.display = 'block';
     summaryDiv.innerHTML = `
-      <div class="card-title">Summary: ${data.total} events</div>
+      <div class="card-title">摘要：${data.total} 筆事件</div>
       <pre style="margin-top:0.5rem;font-size:0.8rem;color:var(--text-secondary);white-space:pre-wrap;">${data.summary}</pre>
     `;
 
@@ -1192,6 +1205,11 @@ async function loadTimeline() {
       if (t === 'run') return 'var(--info)';
       if (t === 'alert') return 'var(--warning)';
       return 'var(--text-muted)';
+    };
+    const typeLabel = (t) => {
+      if (t === 'run') return '執行';
+      if (t === 'alert') return '警報';
+      return '存取';
     };
     const typeIcon = (t) => {
       if (t === 'run') return '▶';
@@ -1212,7 +1230,7 @@ async function loadTimeline() {
 
       html += `<div class="step-result" style="border-left-color:${typeColor(e.event_type)};">
         <div class="step-header">
-          <span class="step-title">${typeIcon(e.event_type)} ${e.event_type.toUpperCase()}</span>
+          <span class="step-title">${typeIcon(e.event_type)} ${typeLabel(e.event_type)}</span>
           <span style="font-size:0.8rem;color:var(--text-muted);">${ts}</span>
         </div>
         <div class="step-content">
@@ -1227,7 +1245,7 @@ async function loadTimeline() {
   }
 }
 
-// Initial load
+// Initial load - load query view first (operator-first)
 loadSkills();
 </script>
 </body>

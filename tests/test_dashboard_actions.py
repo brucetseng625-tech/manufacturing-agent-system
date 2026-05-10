@@ -22,28 +22,28 @@ class DashboardOperatorActionsHTMLTest(unittest.TestCase):
             self.html = f.read()
 
     def test_contains_operator_actions_card(self):
-        """Dashboard must contain Operator Actions card title."""
-        self.assertIn("Operator Actions", self.html)
+        """Dashboard must contain 快速操作 card title."""
+        self.assertIn("快速操作", self.html)
 
     def test_contains_reset_alerts_button(self):
         """Dashboard must contain reset_alerts action button."""
         self.assertIn("doAction('reset_alerts')", self.html)
-        self.assertIn("Reset Alerts", self.html)
+        self.assertIn("重設警報", self.html)
 
     def test_contains_reload_config_button(self):
         """Dashboard must contain reload_config action button."""
         self.assertIn("doAction('reload_config')", self.html)
-        self.assertIn("Reload Config", self.html)
+        self.assertIn("重載設定", self.html)
 
     def test_contains_reload_policy_button(self):
         """Dashboard must contain reload_policy action button."""
         self.assertIn("doAction('reload_policy')", self.html)
-        self.assertIn("Reload Policy", self.html)
+        self.assertIn("重載政策", self.html)
 
     def test_contains_health_check_button(self):
         """Dashboard must contain health_check action button."""
         self.assertIn("doAction('health_check')", self.html)
-        self.assertIn("Health Check", self.html)
+        self.assertIn("健康檢查", self.html)
 
     def test_contains_action_result_element(self):
         """Dashboard must have action-result div for feedback."""

@@ -500,7 +500,7 @@ class ServerTest(unittest.TestCase):
         with urllib.request.urlopen(url) as response:
             self.assertEqual(response.status, 200)
             html = response.read().decode("utf-8")
-            self.assertIn("Skills & Teams", html)
+            self.assertIn("智造中控台", html)
 
     def test_static_file_not_found(self):
         """GET /static/nonexistent returns 404."""
