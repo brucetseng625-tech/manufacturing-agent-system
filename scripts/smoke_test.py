@@ -578,6 +578,18 @@ def main():
               post("/incident/closures/reset", port, {}).get("success"),
               f"reset response={post('/incident/closures/reset', port, {})}")
 
+        # P13-4: Pilot readiness checklist
+        pc = get("/pilot/checklist", port)
+        check("P13-4: /pilot/checklist responds 200",
+              "items" in pc and "summary" in pc,
+              f"keys={list(pc.keys())}")
+        check("P13-4: checklist has summary with all_ready",
+              "all_ready" in pc.get("summary", {}),
+              f"summary keys={list(pc.get('summary', {}).keys())}")
+        check("P13-4: checklist has safety, observability, workflow categories",
+              len(pc.get("items", [])) > 0,
+              f"items count={len(pc.get('items', []))}")
+
     finally:
         server.shutdown()
 

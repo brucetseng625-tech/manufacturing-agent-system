@@ -30,6 +30,7 @@ from automation_policy import check_automation_allowed, get_automation_policy_st
 from rollback_eligibility import query_rollback_eligibility, get_rollback_summary
 from guardrails import check_guardrail, get_guardrails_status, get_guardrail
 from execution_receipts import record_receipt, query_receipts, get_receipts_summary, reset_receipts
+from pilot_checklist import get_checklist, get_checklist_summary
 from incident_closure import get_closure, query_closures, upsert_closure, reset_closures
 
 
@@ -276,6 +277,12 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._send_json_response(200, get_automation_policy_status())
         elif path == "/automation/receipts":
             self._handle_automation_receipts(parsed_path)
+        elif path == "/pilot/checklist":
+            checklist = get_checklist()
+            self._send_json_response(200, {
+                "items": checklist,
+                "summary": get_checklist_summary(checklist),
+            })
         elif path == "/approvals":
             self._handle_approvals_list(parsed_path)
         elif path.startswith("/approvals/"):

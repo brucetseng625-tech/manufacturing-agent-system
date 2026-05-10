@@ -603,6 +603,38 @@ def main():
           "from incident_closure import" in open(os.path.join(base, "server.py")).read(),
           "server imports incident_closure")
 
+    # P13-4: Pilot readiness checklist
+    check("P13-4: pilot_checklist.py exists",
+          os.path.isfile(os.path.join(base, "pilot_checklist.py")),
+          "pilot checklist module present")
+    check("P13-4: test_pilot_checklist.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_pilot_checklist.py")),
+          "pilot checklist test file present")
+    check("P13-4: get_checklist in pilot_checklist.py",
+          "def get_checklist(" in open(os.path.join(base, "pilot_checklist.py")).read(),
+          "get_checklist function present")
+    check("P13-4: get_checklist_summary in pilot_checklist.py",
+          "def get_checklist_summary(" in open(os.path.join(base, "pilot_checklist.py")).read(),
+          "get_checklist_summary function present")
+    check("P13-4: /pilot/checklist handler in server.py",
+          "\"/pilot/checklist\"" in open(os.path.join(base, "server.py")).read(),
+          "pilot checklist endpoint present")
+    check("P13-4: pilot_checklist import in server.py",
+          "from pilot_checklist import" in open(os.path.join(base, "server.py")).read(),
+          "server imports pilot_checklist")
+    check("P13-4: checklist aggregates safety checks",
+          "def _safety_checks(" in open(os.path.join(base, "pilot_checklist.py")).read(),
+          "safety checks function present")
+    check("P13-4: checklist aggregates observability checks",
+          "def _observability_checks(" in open(os.path.join(base, "pilot_checklist.py")).read(),
+          "observability checks function present")
+    check("P13-4: checklist aggregates workflow checks",
+          "def _workflow_checks(" in open(os.path.join(base, "pilot_checklist.py")).read(),
+          "workflow checks function present")
+    check("P13-4: checklist integrates circuit breaker",
+          "circuit_breaker" in open(os.path.join(base, "pilot_checklist.py")).read(),
+          "checklist checks circuit breaker state")
+
     # Summary
     print()
     print("=" * 50)
