@@ -346,6 +346,18 @@ Goal: Move from operator pilot readiness to production pilot / limited rollout r
 - TEST_DATA.md: test case documentation with recommended API test paths
 - Commit: `1306e42`
 
+### P14-3 Dashboard Localization and Operator UX Refresh (completed)
+
+- Full Traditional Chinese localization across all UI elements
+- Navigation reordering: 查詢工作台 (default) → 運營管理 → 時間軸 → 歷史記錄 → 技能與團隊 → 統計資料
+- Card titles: 系統狀態, 健康診斷, 降級狀態, 資料目錄, 快速操作, 待審批項目, 唯讀供應商診斷, 資料來源切換
+- Quick action buttons: 重設警報, 重載設定, 重載政策, 健康檢查
+- Provider modes: 本機, 遠端, 自動
+- All descriptions, button labels, empty states, filter options in zh-Hant
+- Added query quick examples for test data cases (ORD-2001~2004)
+- All tests updated to match Chinese labels
+- Commit: `ddcb486`
+
 ## P5 Productionization / Live Integration Planning
 
 Goal: Move from mock-data-first prototype toward real internal use without major architecture changes.
