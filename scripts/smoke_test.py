@@ -561,6 +561,23 @@ def main():
               post("/automation/receipts/reset", port, {}).get("success"),
               f"reset response={post('/automation/receipts/reset', port, {})}")
 
+        # P13-3: Incident closure workflow
+        ic = post("/incident/closures/incident-smoke-1", port, {
+            "status": "investigating",
+            "updated_by": "smoke-test",
+            "linked_alert_ids": ["alert-1"],
+        })
+        check("P13-3: create incident closure responds 200",
+              ic.get("status") == "investigating",
+              f"status={ic.get('status')}")
+        ic_list = get("/incident/closures", port)
+        check("P13-3: /incident/closures responds 200",
+              "closures" in ic_list and "summary" in ic_list,
+              f"keys={list(ic_list.keys())}")
+        check("P13-3: /incident/closures/reset responds 200",
+              post("/incident/closures/reset", port, {}).get("success"),
+              f"reset response={post('/incident/closures/reset', port, {})}")
+
     finally:
         server.shutdown()
 

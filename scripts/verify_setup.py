@@ -577,6 +577,32 @@ def main():
           "from execution_receipts import" in open(os.path.join(base, "auto_remediation.py")).read(),
           "auto-remediation integrates execution receipts")
 
+    # P13-3: Incident closure workflow
+    check("P13-3: incident_closure.py exists",
+          os.path.isfile(os.path.join(base, "incident_closure.py")),
+          "incident closure module present")
+    check("P13-3: test_incident_closure.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_incident_closure.py")),
+          "incident closure test file present")
+    check("P13-3: upsert_closure in incident_closure.py",
+          "def upsert_closure(" in open(os.path.join(base, "incident_closure.py")).read(),
+          "upsert_closure function present")
+    check("P13-3: query_closures in incident_closure.py",
+          "def query_closures(" in open(os.path.join(base, "incident_closure.py")).read(),
+          "query_closures function present")
+    check("P13-3: reset_closures in incident_closure.py",
+          "def reset_closures(" in open(os.path.join(base, "incident_closure.py")).read(),
+          "reset_closures function present")
+    check("P13-3: /incident/closures handler in server.py",
+          "\"/incident/closures\"" in open(os.path.join(base, "server.py")).read(),
+          "incident closures endpoint present")
+    check("P13-3: /incident/closures/reset handler in server.py",
+          "\"/incident/closures/reset\"" in open(os.path.join(base, "server.py")).read(),
+          "incident closures reset endpoint present")
+    check("P13-3: incident_closure import in server.py",
+          "from incident_closure import" in open(os.path.join(base, "server.py")).read(),
+          "server imports incident_closure")
+
     # Summary
     print()
     print("=" * 50)

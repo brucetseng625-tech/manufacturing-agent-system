@@ -21,6 +21,7 @@ from timeline import build_timeline
 from audit_chain import query_audit_log, get_audit_summary
 from data_source import get_system_status, get_provider_status, get_provider_health, get_degradation_status
 from config import get_config_value
+from incident_closure import get_closure
 
 # Thread-safe report cache
 _report_cache_lock = threading.Lock()
@@ -128,6 +129,7 @@ def generate_incident_report(window_minutes=60, log_dir=None):
         "resolution_status": resolution_status,
         "recommendations": _build_recommendations(system_status, is_degraded, is_resolved),
     }
+    report["closure"] = get_closure(report["report_id"])
 
     # Cache
     with _report_cache_lock:

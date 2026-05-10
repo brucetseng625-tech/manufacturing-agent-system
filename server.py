@@ -30,6 +30,7 @@ from automation_policy import check_automation_allowed, get_automation_policy_st
 from rollback_eligibility import query_rollback_eligibility, get_rollback_summary
 from guardrails import check_guardrail, get_guardrails_status, get_guardrail
 from execution_receipts import record_receipt, query_receipts, get_receipts_summary, reset_receipts
+from incident_closure import get_closure, query_closures, upsert_closure, reset_closures
 
 
 def _check_guardrail_with_queue(operation, headers, source_ip, details=None,
@@ -265,6 +266,10 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_audit_query(parsed_path)
         elif path == "/incident/report":
             self._handle_incident_report(parsed_path)
+        elif path == "/incident/closures":
+            self._handle_incident_closures(parsed_path)
+        elif path.startswith("/incident/closures/"):
+            self._handle_incident_closure_detail(path)
         elif path == "/auto-remediation/status":
             self._send_json_response(200, get_remediation_status())
         elif path == "/automation/policy":
@@ -805,6 +810,76 @@ class AgentHandler(BaseHTTPRequestHandler):
         except Exception as e:
             self._send_error_response(500, "internal_error", "Failed to generate incident report", str(e))
 
+    def _handle_incident_closures(self, parsed_path):
+        """Handle GET /incident/closures — list incident closure records."""
+        try:
+            params = parse_qs(parsed_path.query)
+            status = params.get("status", [None])[0]
+            limit = int(params.get("limit", ["20"])[0])
+            offset = int(params.get("offset", ["0"])[0])
+            self._send_json_response(200, query_closures(status=status, limit=limit, offset=offset))
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to query incident closures", str(e))
+
+    def _handle_incident_closure_detail(self, path):
+        """Handle GET /incident/closures/{report_id} — return one closure record."""
+        report_id = path.split("/incident/closures/")[1].split("/")[0]
+        if not report_id or report_id == "reset":
+            self._send_error_response(404, "not_found", "Incident closure not found")
+            return
+
+        record = get_closure(report_id)
+        if record is None:
+            self._send_error_response(404, "incident_closure_not_found", "Incident closure not found")
+            return
+
+        self._send_json_response(200, record)
+
+    def _handle_incident_closure_upsert(self, report_id):
+        """Handle POST /incident/closures/{report_id} — create or update closure state."""
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            payload = {}
+            if content_length > 0:
+                payload = json.loads(self.rfile.read(content_length).decode("utf-8"))
+        except (json.JSONDecodeError, ValueError) as e:
+            self._send_error_response(400, "invalid_json", f"Request body is not valid JSON: {e}")
+            return
+
+        result = upsert_closure(
+            report_id=report_id,
+            status=payload.get("status"),
+            updated_by=payload.get("updated_by", "operator"),
+            resolution_note=payload.get("resolution_note"),
+            linked_alert_ids=payload.get("linked_alert_ids"),
+            linked_receipt_ids=payload.get("linked_receipt_ids"),
+        )
+        if "error" in result:
+            if result["error"] in ("invalid_report_id", "invalid_status", "resolution_note_required"):
+                self._send_json_response(400, result)
+            elif result["error"] == "invalid_transition":
+                self._send_json_response(409, result)
+            else:
+                self._send_json_response(500, result)
+            return
+
+        self._send_json_response(200, result)
+
+    def _handle_incident_closures_reset(self):
+        """Handle POST /incident/closures/reset — clear closure workflow state."""
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            if content_length > 0:
+                self.rfile.read(content_length)
+        except Exception:
+            pass
+
+        reset_closures()
+        self._send_json_response(200, {
+            "success": True,
+            "message": "Incident closures cleared",
+        })
+
     def _handle_auto_remediation_evaluate(self):
         """Handle POST /auto-remediation/evaluate — trigger auto-remediation.
 
@@ -1195,6 +1270,11 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_auto_remediation_reset()
         elif path == "/automation/receipts/reset":
             self._handle_automation_receipts_reset()
+        elif path == "/incident/closures/reset":
+            self._handle_incident_closures_reset()
+        elif path.startswith("/incident/closures/"):
+            report_id = path.split("/incident/closures/")[1]
+            self._handle_incident_closure_upsert(report_id)
         elif path.startswith("/approvals/") and path.endswith("/approve"):
             approval_id = path.split("/approvals/")[1].split("/approve")[0]
             self._handle_approval_approve(approval_id)

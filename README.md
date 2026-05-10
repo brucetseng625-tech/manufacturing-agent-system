@@ -1299,6 +1299,7 @@ The incident report generator aggregates data from all available sources (system
 - **Timeline preview** — Most recent timeline events
 - **Affected provider** — Detailed provider info including readiness, capabilities, health, active path
 - **Resolution status** — `resolved`, `degraded`, or `unresolved`
+- **Closure workflow** — Optional operator-managed closure record linked to this report snapshot
 - **Recommendations** — Actionable suggestions based on current state
 
 **API:**
@@ -1311,6 +1312,89 @@ curl http://localhost:8000/incident/report?window_minutes=30
 ```
 
 Reports are cached for 30 seconds to avoid redundant system status calls.
+
+### Incident Closure Workflow (P13-3)
+
+Operators can now track explicit closure progress for an incident report snapshot without leaving the platform. Closure records are linked to `report_id` and can carry status transitions, closure notes, and related alert/receipt references.
+
+**Design principles:**
+- **Operator-managed** — transitions are explicit, not inferred from system health
+- **Linked context** — each closure can reference related `alert_id`s and `receipt_id`s
+- **Transition-safe** — only valid status transitions are accepted
+- **Audit-backed** — every closure update is written to the audit chain
+
+**Statuses:**
+- `open`
+- `investigating`
+- `monitoring`
+- `resolved`
+
+**Allowed transitions:**
+- `open` → `investigating`, `monitoring`, `resolved`
+- `investigating` → `monitoring`, `resolved`
+- `monitoring` → `investigating`, `resolved`
+- `resolved` → no further transitions
+
+**Endpoints:**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/incident/closures` | List incident closure records with optional status filter |
+| `GET` | `/incident/closures/{report_id}` | Fetch one closure record |
+| `POST` | `/incident/closures/{report_id}` | Create or update closure state |
+| `POST` | `/incident/closures/reset` | Clear closure records (operator/testing) |
+
+**Query parameters (`GET /incident/closures`):**
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `status` | string | Filter by status |
+| `limit` | int | Max closures to return (default 20) |
+| `offset` | int | Skip first N records (default 0) |
+
+**Example update:**
+```bash
+curl -X POST http://localhost:8000/incident/closures/incident-1746873600 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "status": "resolved",
+    "updated_by": "night-operator",
+    "resolution_note": "Provider recovered after fallback to local mode",
+    "linked_alert_ids": ["alert-3"],
+    "linked_receipt_ids": ["rcpt-a1b2c3d4"]
+  }'
+```
+
+**Example response:**
+```json
+{
+  "report_id": "incident-1746873600",
+  "status": "resolved",
+  "created_at": "2026-05-10T09:00:00Z",
+  "updated_at": "2026-05-10T09:10:00Z",
+  "updated_by": "night-operator",
+  "resolved_at": "2026-05-10T09:10:00Z",
+  "resolution_note": "Provider recovered after fallback to local mode",
+  "linked_alert_ids": ["alert-3"],
+  "linked_receipt_ids": ["rcpt-a1b2c3d4"],
+  "history": [
+    {
+      "from_status": null,
+      "to_status": "investigating",
+      "updated_by": "night-operator",
+      "resolution_note": "",
+      "timestamp": "2026-05-10T09:00:00Z"
+    },
+    {
+      "from_status": "investigating",
+      "to_status": "resolved",
+      "updated_by": "night-operator",
+      "resolution_note": "Provider recovered after fallback to local mode",
+      "timestamp": "2026-05-10T09:10:00Z"
+    }
+  ]
+}
+```
 
 ### Auto-Remediation Hooks (P11-3)
 

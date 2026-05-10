@@ -29,6 +29,7 @@ class IncidentReportTest(unittest.TestCase):
             "system_status", "incident_summary", "related_alerts",
             "related_audit", "audit_summary", "timeline_preview",
             "affected_provider", "resolution_status", "recommendations",
+            "closure",
         ]
         for field in required_fields:
             self.assertIn(field, report, f"Missing field: {field}")
@@ -104,6 +105,12 @@ class IncidentReportTest(unittest.TestCase):
         """timeline_preview should be a list."""
         report = generate_incident_report()
         self.assertIsInstance(report["timeline_preview"], list)
+
+    def test_closure_defaults_to_none(self):
+        """Closure should be present even when no operator workflow exists yet."""
+        report = generate_incident_report()
+        self.assertIn("closure", report)
+        self.assertIsNone(report["closure"])
 
 
 class IncidentReportHelpersTest(unittest.TestCase):
