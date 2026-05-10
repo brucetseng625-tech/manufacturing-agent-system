@@ -590,6 +590,23 @@ def main():
               len(pc.get("items", [])) > 0,
               f"items count={len(pc.get('items', []))}")
 
+        # P14-1: Rollout gating profile
+        rp = get("/rollout/profile", port)
+        check("P14-1: /rollout/profile responds 200",
+              "global_level" in rp and "capabilities" in rp,
+              f"keys={list(rp.keys())}")
+        check("P14-1: profile has all 5 capabilities",
+              len(rp.get("capabilities", {})) == 5,
+              f"capabilities={list(rp.get('capabilities', {}).keys())}")
+
+        rs = get("/rollout/status", port)
+        check("P14-1: /rollout/status responds 200",
+              "profile" in rs and "capabilities" in rs,
+              f"keys={list(rs.keys())}")
+        check("P14-1: status has checked_at",
+              "checked_at" in rs,
+              f"status keys={list(rs.keys())}")
+
     finally:
         server.shutdown()
 

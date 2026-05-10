@@ -32,6 +32,7 @@ from guardrails import check_guardrail, get_guardrails_status, get_guardrail
 from execution_receipts import record_receipt, query_receipts, get_receipts_summary, reset_receipts
 from pilot_checklist import get_checklist, get_checklist_summary
 from incident_closure import get_closure, query_closures, upsert_closure, reset_closures
+from rollout_profile import get_rollout_profile, get_rollout_status, check_rollout, reload_rollout_profile
 
 
 def _check_guardrail_with_queue(operation, headers, source_ip, details=None,
@@ -283,6 +284,14 @@ class AgentHandler(BaseHTTPRequestHandler):
                 "items": checklist,
                 "summary": get_checklist_summary(checklist),
             })
+        elif path == "/rollout/profile":
+            self._send_json_response(200, get_rollout_profile())
+        elif path == "/rollout/status":
+            self._send_json_response(200, get_rollout_status())
+        elif path == "/rollout/reload":
+            result = reload_rollout_profile()
+            status = 200 if result.get("success") else 400
+            self._send_json_response(status, result)
         elif path == "/approvals":
             self._handle_approvals_list(parsed_path)
         elif path.startswith("/approvals/"):
@@ -547,6 +556,7 @@ class AgentHandler(BaseHTTPRequestHandler):
 
         Expects JSON body: {"mode": "local|live|auto"}
         Guarded by the "provider:select" guardrail (approval-required by default).
+        Also gated by rollout profile (provider_selection capability).
         """
         # Read body first for guardrail queue
         try:
@@ -557,6 +567,17 @@ class AgentHandler(BaseHTTPRequestHandler):
                 body = json.loads(raw)
         except (json.JSONDecodeError, ValueError):
             body = None
+
+        # Rollout gating: provider_selection
+        rollout = check_rollout("provider_selection", operation="provider:select")
+        if not rollout["allowed"]:
+            append_audit_entry("provider:select", operator="api",
+                               source_ip=self.client_address[0],
+                               details={"mode": body.get("mode") if body else "unknown",
+                                        "rollout_blocked": True, "rollout_message": rollout["message"]},
+                               result="denied")
+            self._send_error_response(403, "rollout_gated", rollout["message"])
+            return
 
         headers = dict(self.headers)
         original_request = {"method": "POST", "path": "/provider/select", "body": body}
@@ -892,6 +913,7 @@ class AgentHandler(BaseHTTPRequestHandler):
 
         Expects optional JSON body: {"trigger": "circuit_breaker_open", "context": {...}}
         If no trigger specified, evaluates all hooks.
+        Gated by rollout profile (auto_remediation capability).
         """
         # Drain any request body
         try:
@@ -903,6 +925,12 @@ class AgentHandler(BaseHTTPRequestHandler):
                 payload = {}
         except (json.JSONDecodeError, ValueError):
             payload = {}
+
+        # Rollout gating: auto_remediation
+        rollout = check_rollout("auto_remediation", operation="auto_remediation:evaluate")
+        if not rollout["allowed"]:
+            self._send_error_response(403, "rollout_gated", rollout["message"])
+            return
 
         trigger = payload.get("trigger")
         context = payload.get("context", {})
@@ -1426,6 +1454,13 @@ class AgentHandler(BaseHTTPRequestHandler):
 
         if not query:
             self._send_error_response(400, "missing_query", "Request payload must include 'query'")
+            return
+
+        # Rollout gating: run_query
+        op = "run:dry_run" if dry_run else "run:query"
+        rollout = check_rollout("run_query", operation=op)
+        if not rollout["allowed"]:
+            self._send_error_response(403, "rollout_gated", rollout["message"])
             return
 
         self._process_run(query, data_dir, asana_task, payload, dry_run)

@@ -1,18 +1,19 @@
 # Manufacturing Agent System Next Steps
 
-Last updated: 2026-05-09
+Last updated: 2026-05-10
 
 Current latest completed feature commit on `main`:
 - `98daf6e` `feat(p13-4): add pilot readiness checklist for human pilot prerequisites`
+- P14-1 feature commit pending (work in progress)
 
 Latest verified feature commit on `main`:
 - `98daf6e` `feat(p13-4): add pilot readiness checklist for human pilot prerequisites`
 
 Important handoff note:
 - `main` may move to a docs-only sync commit after the latest verified feature commit above. Always confirm exact `HEAD` with `git rev-parse HEAD` before continuing.
-- Full unit test status at handoff: `841 / 841 passed`
-- Smoke test status at handoff: `107 / 107 passed`
-- Setup verification status at handoff: `188 / 188 passed`
+- Full unit test status at handoff: `871 / 871 passed`
+- Smoke test status at handoff: `111 / 111 passed`
+- Setup verification status at handoff: `202 / 202 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
@@ -312,6 +313,30 @@ Current completed scope:
 - Dry-run validates request, extracts orders, previews routing — no side effects
 - No skill execution, no Asana posting, no audit log writes in dry-run mode
 - Response includes: matched skill/team, order_ids, intent, steps
+
+## P14 Limited Rollout Readiness
+
+Goal: Move from operator pilot readiness to production pilot / limited rollout readiness. Enable controlled rollout with explicit gating, approval, and rollback surfaces.
+
+### P14-1 Rollout Gating Profile (in progress)
+
+- New module: `rollout_profile.py` with `get_rollout_profile`, `get_rollout_status`, `check_rollout`
+- 5 rollout levels: `disabled`, `internal_only`, `pilot_readonly`, `pilot_with_approval`, `limited_automation`
+- 5 capabilities gated: `run_query`, `team_workflows`, `provider_selection`, `approval_linked_execution`, `auto_remediation`
+- GET `/rollout/profile` — query current rollout profile
+- GET `/rollout/status` — full rollout status with per-capability gating state
+- POST `/rollout/reload` — reload profile from `rollout_profile.json`
+- Rollout gating integrated in `/run`, `/provider/select`, `/auto-remediation/evaluate`
+- Blocked operations return 403 with `error: "rollout_gated"` and clear gating message
+- Audit log records all rollout-gated denials
+- Config section in `config.example.json` under `rollout_profile`
+- 30 unit tests + 4 smoke checks + 14 verify setup checks
+
+### Roadmap
+
+| Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
+| --- | --- | --- | --- | --- | --- |
+| P14-1 | Rollout Gating Profile | Centralized rollout policy with per-capability levels | Module, endpoints, gating in server, tests | P13 complete | Codex |
 
 ## P5 Productionization / Live Integration Planning
 

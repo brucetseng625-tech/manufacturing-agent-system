@@ -1450,6 +1450,41 @@ Before a human operator runs the system in production pilot mode, the checklist 
 }
 ```
 
+### Rollout Gating Profile (P14-1)
+
+Centralized rollout policy surface that defines per-capability rollout levels and enforces gating across `/run`, team workflows, provider selection, approval-linked execution, and auto-remediation.
+
+**Rollout levels (most restrictive → least):**
+- `disabled` — All operations blocked
+- `internal_only` — Read-only queries allowed
+- `pilot_readonly` — Read + limited visibility
+- `pilot_with_approval` — Requires human approval for mutations
+- `limited_automation` — Full internal testing allowed
+
+**Capabilities gated:**
+
+| Capability | Default Level | Gated Endpoint |
+|------------|--------------|----------------|
+| `run_query` | `limited_automation` | `POST /run`, `POST /batch` |
+| `team_workflows` | `limited_automation` | Team workflow queries |
+| `provider_selection` | `internal_only` | `POST /provider/select` |
+| `approval_linked_execution` | `pilot_with_approval` | Approval retry operations |
+| `auto_remediation` | `pilot_readonly` | `POST /auto-remediation/evaluate` |
+
+**Endpoints:**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/rollout/profile` | Query current rollout profile |
+| `GET` | `/rollout/status` | Full rollout status with per-capability gating state |
+| `POST` | `/rollout/reload` | Reload profile from `rollout_profile.json` |
+
+**Gating behavior:**
+- Operations blocked by rollout profile return `403` with `error: "rollout_gated"`
+- Response includes which gating rule blocked the operation
+- Audit log records all rollout-gated denials
+- Cannot be bypassed by guardrails, approval, or provider selection
+
 ### Auto-Remediation Hooks (P11-3)
 
 Config-driven, opt-in automation that triggers safe internal operations when specific alert conditions are detected. All actions are low-risk and designed to be reversible. Disabled by default — zero breaking changes.

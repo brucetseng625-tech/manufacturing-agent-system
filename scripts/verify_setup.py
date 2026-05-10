@@ -635,6 +635,50 @@ def main():
           "circuit_breaker" in open(os.path.join(base, "pilot_checklist.py")).read(),
           "checklist checks circuit breaker state")
 
+    # P14-1: Rollout gating profile
+    check("P14-1: rollout_profile.py exists",
+          os.path.isfile(os.path.join(base, "rollout_profile.py")),
+          "rollout profile module present")
+    check("P14-1: test_rollout_profile.py exists",
+          os.path.isfile(os.path.join(base, "tests", "test_rollout_profile.py")),
+          "rollout profile test file present")
+    check("P14-1: get_rollout_profile in rollout_profile.py",
+          "def get_rollout_profile(" in open(os.path.join(base, "rollout_profile.py")).read(),
+          "get_rollout_profile function present")
+    check("P14-1: get_rollout_status in rollout_profile.py",
+          "def get_rollout_status(" in open(os.path.join(base, "rollout_profile.py")).read(),
+          "get_rollout_status function present")
+    check("P14-1: check_rollout in rollout_profile.py",
+          "def check_rollout(" in open(os.path.join(base, "rollout_profile.py")).read(),
+          "check_rollout function present")
+    check("P14-1: ROLLOUT_LEVELS defined",
+          "ROLLOUT_LEVELS" in open(os.path.join(base, "rollout_profile.py")).read(),
+          "ROLLOUT_LEVELS constant present")
+    check("P14-1: CAPABILITIES defined",
+          "CAPABILITIES" in open(os.path.join(base, "rollout_profile.py")).read(),
+          "CAPABILITIES constant present")
+    check("P14-1: /rollout/profile handler in server.py",
+          "\"/rollout/profile\"" in open(os.path.join(base, "server.py")).read(),
+          "rollout profile endpoint present")
+    check("P14-1: /rollout/status handler in server.py",
+          "\"/rollout/status\"" in open(os.path.join(base, "server.py")).read(),
+          "rollout status endpoint present")
+    check("P14-1: rollout_profile import in server.py",
+          "from rollout_profile import" in open(os.path.join(base, "server.py")).read(),
+          "server imports rollout_profile")
+    check("P14-1: rollout gating in /run handler",
+          "check_rollout(\"run_query\"" in open(os.path.join(base, "server.py")).read(),
+          "run handler gated by rollout")
+    check("P14-1: rollout gating in /provider/select",
+          "check_rollout(\"provider_selection\"" in open(os.path.join(base, "server.py")).read(),
+          "provider select gated by rollout")
+    check("P14-1: rollout gating in auto-remediation",
+          "check_rollout(\"auto_remediation\"" in open(os.path.join(base, "server.py")).read(),
+          "auto-remediation gated by rollout")
+    check("P14-1: rollout_profile config in config.example.json",
+          "rollout_profile" in open(os.path.join(base, "config.example.json")).read(),
+          "rollout_profile config section present")
+
     # Summary
     print()
     print("=" * 50)

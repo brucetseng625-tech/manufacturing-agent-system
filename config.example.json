@@ -149,5 +149,16 @@
       "approval:retry"
     ],
     "denied_actions": []
+  },
+  "rollout_profile": {
+    "global_level": "internal_only",
+    "capabilities": {
+      "run_query": "limited_automation",
+      "team_workflows": "limited_automation",
+      "provider_selection": "internal_only",
+      "approval_linked_execution": "pilot_with_approval",
+      "auto_remediation": "pilot_readonly"
+    },
+    "description": "Rollout gating profile \u2014 controls which capabilities are available at which rollout level."
   }
 }
