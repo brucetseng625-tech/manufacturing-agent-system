@@ -1396,6 +1396,60 @@ curl -X POST http://localhost:8000/incident/closures/incident-1746873600 \
 }
 ```
 
+### Pilot Readiness Checklist (P13-4)
+
+Before a human operator runs the system in production pilot mode, the checklist aggregates live safety, observability, and workflow signals into a single queryable surface.
+
+**Design principles:**
+- **Pure read-only aggregation** — queries live system surfaces, no new state
+- **Three categories** — Safety, Observability, Workflow
+- **Clear status per item** — `ready`, `pending`, or `blocked`
+- **`all_ready` flag** — single boolean indicating pilot readiness
+
+**Endpoint:**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/pilot/checklist` | Query pilot readiness checklist |
+
+**Checklist items:**
+
+| ID | Category | Check | Status Logic |
+|----|----------|-------|--------------|
+| SC-01 | Safety | Circuit breaker is closed | `ready` if not `open` |
+| SC-02 | Safety | Automation policy configured | `ready` if policy surface available |
+| SC-03 | Safety | Guardrails configured | `ready` if rules exist |
+| OB-01 | Observability | No unacknowledged firing alerts | `ready` if no firing alerts |
+| OB-02 | Observability | Audit chain writable | `ready` if probe write succeeds |
+| OB-03 | Observability | Execution receipts available | `ready` if receipts surface exists |
+| OB-04 | Observability | Incident closure available | `ready` if closure surface exists |
+| WF-01 | Workflow | Approval queue operational | `ready` if queue accessible |
+| WF-02 | Workflow | Provider ready | `ready` if readiness is `ready` or `degraded` |
+| WF-03 | Workflow | System health acceptable | `ready` if overall `ok` or `degraded` |
+| WF-04 | Workflow | Rollback visibility available | `ready` if rollback surface exists |
+
+**Example response:**
+```json
+{
+  "items": [
+    {
+      "id": "SC-01",
+      "category": "safety",
+      "description": "Circuit breaker is closed (no active failover block)",
+      "status": "ready",
+      "detail": {"circuit_breaker_state": "closed"}
+    }
+  ],
+  "summary": {
+    "total": 11,
+    "by_category": {"safety": 3, "observability": 4, "workflow": 4},
+    "by_status": {"ready": 11},
+    "all_ready": true,
+    "checked_at": "2026-05-10T12:00:00Z"
+  }
+}
+```
+
 ### Auto-Remediation Hooks (P11-3)
 
 Config-driven, opt-in automation that triggers safe internal operations when specific alert conditions are detected. All actions are low-risk and designed to be reversible. Disabled by default — zero breaking changes.

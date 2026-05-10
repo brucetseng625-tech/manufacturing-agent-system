@@ -3,16 +3,16 @@
 Last updated: 2026-05-09
 
 Current latest completed feature commit on `main`:
-- `c7d10f0` `feat(p13-3): add incident closure workflow`
+- `98daf6e` `feat(p13-4): add pilot readiness checklist for human pilot prerequisites`
 
 Latest verified feature commit on `main`:
-- `c7d10f0` `feat(p13-3): add incident closure workflow`
+- `98daf6e` `feat(p13-4): add pilot readiness checklist for human pilot prerequisites`
 
 Important handoff note:
 - `main` may move to a docs-only sync commit after the latest verified feature commit above. Always confirm exact `HEAD` with `git rev-parse HEAD` before continuing.
-- Full unit test status at handoff: `823 / 823 passed`
-- Smoke test status at handoff: `104 / 104 passed`
-- Setup verification status at handoff: `178 / 178 passed`
+- Full unit test status at handoff: `841 / 841 passed`
+- Smoke test status at handoff: `107 / 107 passed`
+- Setup verification status at handoff: `188 / 188 passed`
 - Working tree at handoff: clean
 
 Accepted P4 completion context:
@@ -124,7 +124,8 @@ Current completed scope:
 - rollback & audit visibility
 - approval replay preview visibility
 - automation execution receipts
-- incident closure workflow
+|- incident closure workflow
+|- pilot readiness checklist
 - expedite-options skill
 - material-shortage-recovery skill
 - capacity-rebalance skill
@@ -290,6 +291,13 @@ Current completed scope:
 - Incident report payload now includes `closure` so report snapshots can reflect operator-managed closure state
 - 12 new unit tests + 3 smoke checks + 8 verify setup checks
 - Updated README.md, NEXT_STEPS.md
+- P13 Phase 4 implemented: Pilot Readiness Checklist
+- New module: `pilot_checklist.py` with `get_checklist`, `get_checklist_summary`
+- 11 checklist items across 3 categories: Safety (SC-01 to SC-03), Observability (OB-01 to OB-04), Workflow (WF-01 to WF-04)
+- GET /pilot/checklist endpoint — returns items + summary with `all_ready` flag
+- Pure read-only aggregation — queries live system surfaces (circuit breaker, alerts, audit chain, receipts, closures, provider, guardrails, rollback)
+- 18 unit tests + 3 smoke checks + 10 verify setup checks
+- Updated README.md, NEXT_STEPS.md
 - P8 Phase 4 implemented: Alert/Notification Hooks
 - `alert.py` module with AlertManager for state change detection
 - Webhook-based notifications for degraded/unhealthy/critical states
@@ -418,8 +426,8 @@ Goal: Make limited automation understandable, reviewable, and operationally safe
 | --- | --- | --- | --- | --- | --- |
 | P13 | ~~Approval replay preview visibility~~ | ~~Show operators exactly what approve-and-retry will replay before they execute it~~ | ~~Sanitized request preview, approval detail endpoint, dashboard risk labels, tests~~ | ~~P12 complete~~ | ~~Codex~~ |
 | P13 | ~~Automation execution receipts~~ | ~~Provide a single operator-facing record for approval retries and auto-remediation outcomes~~ | ~~execution_receipts.py, /automation/receipts, /automation/receipts/reset, integration with auto_remediation and approve-and-retry, tests~~ | ~~P13-1~~ | ~~Codex~~ |
-| P13 | ~~Incident closure workflow~~ | ~~Make incident follow-up and resolution status explicitly operable~~ | ~~Resolution notes/status transitions, incident linkage, tests~~ | ~~P11-2, P13-2~~ | ~~Codex~~ |
-| P13 | Pilot readiness checklist | Codify human pilot prerequisites across safety, observability, and workflow completion | Runbook section, checklist endpoint/doc, tests if needed | P13-1 to P13-3 | Codex |
+|| P13 | ~~Incident closure workflow~~ | ~~Make incident follow-up and resolution status explicitly operable~~ | ~~Resolution notes/status transitions, incident linkage, tests~~ | ~~P11-2, P13-2~~ | ~~Codex~~ |
+|| P13 | ~~Pilot readiness checklist~~ | ~~Codify human pilot prerequisites across safety, observability, and workflow completion~~ | ~~pilot_checklist.py, /pilot/checklist endpoint, aggregated status surface, tests~~ | ~~P13-1 to P13-3~~ | ~~Codex~~ |
 
 ## Start Here
 
@@ -428,7 +436,7 @@ When a new Codex / AI session starts, do this first:
 1. Pull latest `main`
 2. Read this file
 3. Check `skills/registry.py`, `run_agent.py`, `integrations/asana_client.py`
-4. Start with the next unfinished roadmap item, currently `P13 Pilot readiness checklist`
+4. Start with the next unfinished roadmap item, currently P13 phase is complete — define next phase or expand P13 scope
 
 ## Roadmap Table
 
@@ -466,7 +474,7 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P13-3 complete. Continue with `P13 Pilot readiness checklist` unless a new blocking issue is found.
+P13-4 complete. P13 phase fully delivered (P13-1 through P13-4). Define next roadmap phase or expand P13 scope.
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them
