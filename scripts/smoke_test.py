@@ -607,6 +607,11 @@ def main():
               "checked_at" in rs,
               f"status keys={list(rs.keys())}")
 
+        rr = post("/rollout/reload", port, {})
+        check("P14-1: POST /rollout/reload responds 200",
+              "success" in rr,
+              f"keys={list(rr.keys())}")
+
     finally:
         server.shutdown()
 

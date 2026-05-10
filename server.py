@@ -288,10 +288,6 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._send_json_response(200, get_rollout_profile())
         elif path == "/rollout/status":
             self._send_json_response(200, get_rollout_status())
-        elif path == "/rollout/reload":
-            result = reload_rollout_profile()
-            status = 200 if result.get("success") else 400
-            self._send_json_response(status, result)
         elif path == "/approvals":
             self._handle_approvals_list(parsed_path)
         elif path.startswith("/approvals/"):
@@ -965,6 +961,28 @@ class AgentHandler(BaseHTTPRequestHandler):
             "message": "Auto-remediation state reset",
         })
 
+    def _handle_rollout_reload(self):
+        """Handle POST /rollout/reload — reload rollout profile from file.
+
+        Reloads the rollout profile from rollout_profile.json if present,
+        otherwise falls back to default profile.
+        """
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            if content_length > 0:
+                self.rfile.read(content_length)
+        except Exception:
+            pass
+
+        result = reload_rollout_profile()
+        status = 200 if result.get("success") else 400
+        append_audit_entry("rollout:reload", operator="api",
+                           source_ip=self.client_address[0],
+                           details={"success": result.get("success"),
+                                    "source": result.get("source")},
+                           result="success" if result.get("success") else "failed")
+        self._send_json_response(status, result)
+
     def _handle_automation_receipts_reset(self):
         """Handle POST /automation/receipts/reset — clear execution receipts."""
         try:
@@ -1289,6 +1307,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_config_reload()
         elif path == "/policy/reload":
             self._handle_policy_reload()
+        elif path == "/rollout/reload":
+            self._handle_rollout_reload()
         elif path == "/alerts/reset":
             self._handle_alerts_reset()
         elif path.endswith("/acknowledge") and path.startswith("/alerts/"):

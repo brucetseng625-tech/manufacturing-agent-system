@@ -314,3 +314,70 @@ class ServerAlertsResetTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class AlertAutoRemediationRolloutGatingTest(unittest.TestCase):
+    """Test that alert-triggered auto-remediation respects rollout gating."""
+
+    def test_alert_trigger_respects_rollout_disabled(self):
+        """When auto_remediation is disabled in rollout, alert-triggered remediation is blocked."""
+        from alert import get_alert_manager
+        from rollout_profile import reload_rollout_profile
+        import tempfile, json, os
+
+        profile = {
+            "global_level": "internal_only",
+            "capabilities": {
+                "run_query": "limited_automation",
+                "team_workflows": "limited_automation",
+                "provider_selection": "internal_only",
+                "approval_linked_execution": "pilot_with_approval",
+                "auto_remediation": "disabled",
+            },
+        }
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump(profile, f)
+            tmp_path = f.name
+
+        try:
+            reload_rollout_profile(tmp_path)
+            mgr = get_alert_manager()
+            mgr._trigger_auto_remediation(
+                {"type": "circuit_breaker_open", "severity": "warning"},
+                {}, {}, {"name": "local", "readiness": "ready"}
+            )
+        finally:
+            os.unlink(tmp_path)
+            reload_rollout_profile()
+
+    def test_alert_trigger_allowed_when_rollout_sufficient(self):
+        """When auto_remediation level is sufficient, alert-triggered remediation proceeds."""
+        from alert import get_alert_manager
+        from rollout_profile import reload_rollout_profile
+        import tempfile, json, os
+
+        profile = {
+            "global_level": "internal_only",
+            "capabilities": {
+                "run_query": "limited_automation",
+                "team_workflows": "limited_automation",
+                "provider_selection": "internal_only",
+                "approval_linked_execution": "pilot_with_approval",
+                "auto_remediation": "pilot_readonly",
+            },
+        }
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump(profile, f)
+            tmp_path = f.name
+
+        try:
+            reload_rollout_profile(tmp_path)
+            mgr = get_alert_manager()
+            mgr._trigger_auto_remediation(
+                {"type": "circuit_breaker_open", "severity": "warning"},
+                {}, {}, {"name": "local", "readiness": "ready"}
+            )
+        finally:
+            os.unlink(tmp_path)
+            reload_rollout_profile()
+

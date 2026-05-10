@@ -678,6 +678,14 @@ def main():
     check("P14-1: rollout_profile config in config.example.json",
           "rollout_profile" in open(os.path.join(base, "config.example.json")).read(),
           "rollout_profile config section present")
+    check("P14-1: POST /rollout/reload handler in server.py",
+          "\"/rollout/reload\"" in open(os.path.join(base, "server.py")).read() and
+          "_handle_rollout_reload" in open(os.path.join(base, "server.py")).read(),
+          "POST /rollout/reload handler present")
+    check("P14-1: alert-triggered auto-remediation respects rollout gating",
+          "check_rollout" in open(os.path.join(base, "alert.py")).read() and
+          "auto_remediation" in open(os.path.join(base, "alert.py")).read(),
+          "alert flow gated by rollout")
 
     # Summary
     print()

@@ -252,9 +252,28 @@ class AlertManager:
         """Evaluate auto-remediation hooks for this alert type.
 
         Uses lazy import to avoid circular dependency with auto_remediation module.
+        Gated by rollout profile — if auto_remediation capability is not allowed,
+        the remediation is skipped and logged.
         """
         try:
             from auto_remediation import evaluate_hooks
+            # Rollout gating: check if auto_remediation is allowed before firing
+            from rollout_profile import check_rollout
+            rollout = check_rollout("auto_remediation", operation="auto_remediation:evaluate")
+            if not rollout["allowed"]:
+                # Gated: skip auto-remediation and log the denial
+                try:
+                    from audit_chain import append_audit_entry
+                    append_audit_entry("auto_remediation", operator="system",
+                                       source_ip="127.0.0.1",
+                                       details={"trigger": alert_info["type"],
+                                                "rollout_blocked": True,
+                                                "rollout_level": rollout["current_level"],
+                                                "rollout_message": rollout["message"]},
+                                       result="denied")
+                except Exception:
+                    pass  # Audit failure should not break alert flow
+                return
             context = {
                 "alert_type": alert_info["type"],
                 "severity": alert_info["severity"],
