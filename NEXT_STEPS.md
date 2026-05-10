@@ -333,11 +333,18 @@ Goal: Move from operator pilot readiness to production pilot / limited rollout r
 - 32 unit tests + 5 smoke checks + 16 verify setup checks
 - Commits: `21bb1da` (feature) + `0de22e2` (findings fix)
 
-### Roadmap
+### P14-2 Test Data Pack (completed)
 
-| Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
-| --- | --- | --- | --- | --- | --- |
-| P14-1 | Rollout Gating Profile | Centralized rollout policy with per-capability levels | Module, endpoints, gating in server, tests | P13 complete | Codex |
+- 6 core test cases covering all main system capabilities
+- 1. ORD-2001 正常單 → delivery-risk-analysis (low risk baseline)
+- 2. ORD-2002 交期風險單 → delivery-risk-analysis, expedite-options
+- 3. ORD-2003 缺料單 → material-shortage-recovery, supplier-followup-draft
+- 4. ORD-2004 排程衝突單 → schedule-conflict-check, capacity-rebalance
+- 5. ORD-2005 高風險需審批 → guardrails, approval queue (requires API ops)
+- 6. ORD-2006 incident closure → alerts, auto-remediation, incident report, closure (requires API ops)
+- New data across orders/work_orders/materials/machines/operators/schedule/quotes
+- TEST_DATA.md: test case documentation with recommended API test paths
+- Commit: `1306e42`
 
 ## P5 Productionization / Live Integration Planning
 
