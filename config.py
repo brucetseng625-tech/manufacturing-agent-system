@@ -194,7 +194,7 @@ def get_config_value(key_path, default=None, raw=True):
 def reload_config(config_path=None):
     global DEFAULT_CONFIG  # noqa: PLW0603
 
-    now = datetime.datetime.now(datetime.UTC).isoformat().replace("+00:00", "Z")
+    now = datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z")
     result = {
         "success": False,
         "source": None,
