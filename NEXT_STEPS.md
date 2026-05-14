@@ -616,6 +616,16 @@ Goal: Enable external channel access (Discord/LINE) for operator queries, notifi
 - Updated existing tests to accommodate new item parameter in format_approval_action_result
 - Total unit test count: 948/948 passed
 
+### P17 Completion Assessment (2026-05-14)
+
+- **P17-1 至 P17-4 已完成**: Notification, Query, Approval, Retry Visibility 皆交付
+- **安全邊界**: allowlist + audit + read-only-first 已建立
+- **Explainability**: 所有 Discord 回應包含 reason/next_action/decision_state
+- **Handoff clarity**: P17-4 補齊「審批 ≠ 執行」認知落差
+- **未完成項目** (均為加值): Button UI, Role mapping, LINE adapter, 多輪對話
+- **P17 判定**: 可視為完成，下一步回到 P16-4 Isometric Scene Layout
+- 完整評估：`docs/P17_COMPLETION_ASSESSMENT.md`
+
 ## Start Here
 
 When a new Codex / AI session starts, do this first:
