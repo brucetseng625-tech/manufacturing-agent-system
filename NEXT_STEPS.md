@@ -562,6 +562,19 @@ Goal: Replace engineering-card UI with an intuitive factory-floor scene view for
 - **P16 判定**: 可視為完成，P17 可開始
 - 完整評估：`docs/P16_COMPLETION_ASSESSMENT.md`
 
+## P17 Channel Integrations & External Operator Entry
+
+Goal: Enable external channel access (Discord/LINE) for operator queries, notifications, and approvals.
+
+### P17-1 Discord vs LINE Integration Prerequisites Assessment (completed)
+
+- Assessment doc: `docs/P17_1_CHANNEL_ASSESSMENT.md`
+- Recommendation: Start with **Discord** (better approval flow support, lower complexity, richer explainability display)
+- MVP scope: Notification-first + Query-only
+- P17-2 can begin
+
+### P17-2 Discord Notification & Query Bot (pending)
+
 ## Start Here
 
 When a new Codex / AI session starts, do this first:
