@@ -562,6 +562,18 @@ Goal: Replace engineering-card UI with an intuitive factory-floor scene view for
 - **P16 判定**: 可視為完成，P17 可開始
 - 完整評估：`docs/P16_COMPLETION_ASSESSMENT.md`
 
+### P16-4 Isometric Scene Layout (completed)
+
+- `static/dashboard.html`: CSS upgraded with 2.5D/isometric spatial semantics
+- Zone cards now have platform depth: `::before` top highlight, `::after` base shadow, `box-shadow` elevation
+- Agent nodes elevated with `::after` base shadow, enhanced hover lift (`translateY(-4px) scale(1.02)`)
+- Scene floor uses subtle grid lines + perspective gradient layer + depth shadow at bottom
+- Container `overflow: visible` to allow shadow projections outside boundaries
+- All P16-1/2/3 functionality preserved: node states, event projection, detail panel, read-only
+- Layout space reserved for P16-5 SVG overlay (container overflow visible, zones with clear z-index)
+- No backend changes, no new dependencies
+- Tests unchanged: 948/948 passed
+
 ## P17 Channel Integrations & External Operator Entry
 
 Goal: Enable external channel access (Discord/LINE) for operator queries, notifications, and approvals.

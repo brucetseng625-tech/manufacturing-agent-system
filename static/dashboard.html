@@ -230,7 +230,7 @@ body {
 .decision-inspector .di-value.di-pending { color: var(--warning); }
 .decision-inspector .di-value.di-gated { color: var(--warning); }
 
-/* Scene View — P16-1/P16-3 */
+/* Scene View — P16-1/P16-3/P16-4 */
 .scene-header {
   margin-bottom: 1.25rem; padding: 1rem 1.25rem;
   background: linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(16,185,129,0.05) 100%);
@@ -241,83 +241,113 @@ body {
 .scene-header .sh-desc { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem; }
 .scene-header .sh-badge { font-size: 0.7rem; padding: 0.25rem 0.6rem; background: var(--accent); color: #fff; border-radius: 12px; font-weight: 600; }
 
+/* P16-4: Isometric Scene Layout */
 .scene-container {
-  position: relative; min-height: 700px;
-  background:
-    radial-gradient(ellipse at 20% 50%, rgba(99,102,241,0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 30%, rgba(16,185,129,0.04) 0%, transparent 50%),
-    linear-gradient(180deg, #0a0e1a 0%, #0d1117 40%, #111827 100%);
-  border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+  position: relative; min-height: 750px;
+  background: linear-gradient(180deg, #0a0e1a 0%, #0d1117 40%, #111827 100%);
+  border: 1px solid var(--border); border-radius: 14px; overflow: visible;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 24px rgba(0,0,0,0.4);
 }
 .scene-container .scene-floor {
-  position: absolute; inset: 0; opacity: 0.04;
-  background-image:
-    linear-gradient(rgba(99,102,241,0.5) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(99,102,241,0.5) 1px, transparent 1px);
-  background-size: 48px 48px; pointer-events: none;
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(99,102,241,0.06) 0%, transparent 60%),
+    repeating-linear-gradient(0deg, rgba(99,102,241,0.03) 0px, rgba(99,102,241,0.03) 1px, transparent 1px, transparent 40px),
+    repeating-linear-gradient(90deg, rgba(99,102,241,0.03) 0px, rgba(99,102,241,0.03) 1px, transparent 1px, transparent 40px);
+  pointer-events: none;
 }
+/* Isometric perspective layer — P16-4 */
+.scene-container .scene-floor::before {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 55%;
+  background: linear-gradient(180deg, transparent 0%, rgba(99,102,241,0.04) 100%);
+  clip-path: polygon(5% 0%, 95% 0%, 100% 100%, 0% 100%);
+}
+/* Depth shadow at bottom — P16-4 */
 .scene-container .scene-floor::after {
-  content: ''; position: absolute; inset: 0;
-  background: radial-gradient(circle at 50% 0%, rgba(99,102,241,0.08) 0%, transparent 60%);
-}
-.scene-container .scene-zone {
-  position: relative; z-index: 1; padding: 0.75rem;
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 60px;
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,0.3));
+  pointer-events: none;
 }
 
-/* Zone cards — room/workspace panels */
-.zone-card {
-  margin-bottom: 1rem; padding: 0.85rem 1rem;
-  background: rgba(22,33,62,0.6); backdrop-filter: blur(4px);
-  border: 1px solid rgba(42,42,74,0.6); border-radius: 12px;
-  border-left: 4px solid var(--border);
-  transition: border-color 0.2s;
+.scene-container .scene-zone {
+  position: relative; z-index: 1; padding: 1rem 1.25rem;
 }
-.zone-card:hover { border-color: rgba(99,102,241,0.4); }
-.zone-card.zone-orchestrator { border-left-color: #6366f1; background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(22,33,62,0.6) 100%); }
-.zone-card.zone-risk { border-left-color: #ef4444; background: linear-gradient(135deg, rgba(239,68,68,0.06) 0%, rgba(22,33,62,0.6) 100%); }
-.zone-card.zone-production { border-left-color: #f59e0b; background: linear-gradient(135deg, rgba(245,158,11,0.06) 0%, rgba(22,33,62,0.6) 100%); }
-.zone-card.zone-commercial { border-left-color: #10b981; background: linear-gradient(135deg, rgba(16,185,129,0.06) 0%, rgba(22,33,62,0.6) 100%); }
-.zone-card.zone-comm { border-left-color: #a855f7; background: linear-gradient(135deg, rgba(168,85,247,0.06) 0%, rgba(22,33,62,0.6) 100%); }
+
+/* Zone cards — room/workspace platforms with 2.5D depth — P16-4 */
+.zone-card {
+  position: relative; margin-bottom: 1.25rem; padding: 1rem 1.1rem;
+  background: rgba(22,33,62,0.5); backdrop-filter: blur(2px);
+  border: 1px solid rgba(42,42,74,0.5); border-radius: 14px;
+  border-left: 5px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.04) inset;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center top;
+}
+/* Platform edge highlight — P16-4 */
+.zone-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+}
+/* Platform base shadow — P16-4 */
+.zone-card::after {
+  content: ''; position: absolute; bottom: -4px; left: 4px; right: -4px; height: 8px;
+  background: rgba(0,0,0,0.25); border-radius: 0 0 12px 12px;
+  z-index: -1; filter: blur(2px);
+}
+.zone-card:hover {
+  border-color: rgba(99,102,241,0.5); transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(99,102,241,0.15), 0 1px 0 rgba(255,255,255,0.06) inset;
+}
+.zone-card.zone-orchestrator { border-left-color: #6366f1; background: linear-gradient(145deg, rgba(99,102,241,0.1) 0%, rgba(22,33,62,0.5) 100%); }
+.zone-card.zone-risk { border-left-color: #ef4444; background: linear-gradient(145deg, rgba(239,68,68,0.08) 0%, rgba(22,33,62,0.5) 100%); }
+.zone-card.zone-production { border-left-color: #f59e0b; background: linear-gradient(145deg, rgba(245,158,11,0.08) 0%, rgba(22,33,62,0.5) 100%); }
+.zone-card.zone-commercial { border-left-color: #10b981; background: linear-gradient(145deg, rgba(16,185,129,0.08) 0%, rgba(22,33,62,0.5) 100%); }
+.zone-card.zone-comm { border-left-color: #a855f7; background: linear-gradient(145deg, rgba(168,85,247,0.08) 0%, rgba(22,33,62,0.5) 100%); }
 
 .zone-card-header {
-  display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem;
-  padding-bottom: 0.5rem; border-bottom: 1px solid rgba(42,42,74,0.4);
+  display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.85rem;
+  padding-bottom: 0.6rem; border-bottom: 1px solid rgba(42,42,74,0.4);
 }
-.zone-card-header .zc-icon { font-size: 1.2rem; }
-.zone-card-header .zc-label { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.05em; }
+.zone-card-header .zc-icon { font-size: 1.3rem; }
+.zone-card-header .zc-label { font-size: 0.9rem; font-weight: 700; letter-spacing: 0.05em; }
 .zone-card-header .zc-desc { font-size: 0.7rem; color: var(--text-muted); margin-left: auto; }
 
 .agent-row {
-  display: flex; gap: 0.85rem; flex-wrap: wrap; justify-content: flex-start;
+  display: flex; gap: 1rem; flex-wrap: wrap; justify-content: flex-start;
 }
 
-/* Agent nodes — improved 3D-ish cards */
+/* Agent nodes — elevated 3D cards — P16-4 */
 .agent-node {
   position: relative; display: flex; flex-direction: column; align-items: center;
-  width: 130px; padding: 1rem 0.6rem;
-  background: linear-gradient(160deg, rgba(30,30,58,0.9) 0%, rgba(22,33,62,0.95) 100%);
-  border: 1px solid rgba(42,42,74,0.6); border-radius: 14px; cursor: pointer;
+  width: 130px; padding: 1rem 0.7rem;
+  background: linear-gradient(165deg, rgba(30,30,58,0.95) 0%, rgba(22,33,62,0.98) 100%);
+  border: 1px solid rgba(42,42,74,0.5); border-radius: 14px; cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-align: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+/* Node base shadow — P16-4 */
+.agent-node::after {
+  content: ''; position: absolute; bottom: -3px; left: 3px; right: -3px; height: 6px;
+  background: rgba(0,0,0,0.2); border-radius: 0 0 12px 12px; z-index: -1; filter: blur(1px);
 }
 .agent-node:hover {
-  border-color: var(--accent); transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(99,102,241,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+  border-color: var(--accent); transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
 }
 .agent-node.selected {
-  border-color: var(--accent-light); background: rgba(99,102,241,0.12);
-  box-shadow: 0 0 20px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+  border-color: var(--accent-light); background: rgba(99,102,241,0.15);
+  box-shadow: 0 0 24px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.12);
 }
 .agent-node .agent-icon {
-  width: 48px; height: 48px; border-radius: 12px;
+  width: 50px; height: 50px; border-radius: 14px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.4rem; margin-bottom: 0.6rem;
-  background: rgba(30,30,58,0.8); border: 1px solid rgba(42,42,74,0.5);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+  font-size: 1.5rem; margin-bottom: 0.6rem;
+  background: rgba(30,30,58,0.8); border: 1px solid rgba(42,42,74,0.4);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 6px rgba(0,0,0,0.3);
 }
-.agent-node .agent-name { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.3rem; color: var(--text-primary); }
-.agent-node .agent-status { font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 6px; font-weight: 500; }
+.agent-node .agent-name { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-primary); }
+.agent-node .agent-status { font-size: 0.7rem; padding: 0.2rem 0.55rem; border-radius: 6px; font-weight: 500; }
 .agent-status.status-idle { background: rgba(107,114,128,0.15); color: #9ca3af; border: 1px solid rgba(107,114,128,0.2); }
 .agent-status.status-running { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
 .agent-status.status-blocked { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
