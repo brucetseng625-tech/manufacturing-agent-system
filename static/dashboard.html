@@ -230,6 +230,204 @@ body {
 .decision-inspector .di-value.di-pending { color: var(--warning); }
 .decision-inspector .di-value.di-gated { color: var(--warning); }
 
+/* P16-6 Dual-Pane Chat + Scene Workspace */
+.scene-workspace {
+  display: grid;
+  grid-template-columns: minmax(320px, 360px) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+.scene-sidepanel {
+  background: linear-gradient(180deg, rgba(19,24,39,0.96), rgba(15,23,42,0.94));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.28);
+  position: sticky;
+  top: 1rem;
+}
+.scene-sidepanel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+.scene-sidepanel-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #e9eafe;
+}
+.scene-sidepanel-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 0.15rem;
+  line-height: 1.5;
+}
+.scene-mode-badge {
+  font-size: 0.62rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(99,102,241,0.16);
+  color: #c7d2fe;
+  border: 1px solid rgba(99,102,241,0.22);
+  white-space: nowrap;
+}
+.scene-thread {
+  background: rgba(15,23,42,0.64);
+  border: 1px solid rgba(42,42,74,0.32);
+  border-radius: 12px;
+  padding: 0.75rem;
+  min-height: 280px;
+  max-height: 420px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.scene-message {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.scene-message.user {
+  align-items: flex-end;
+}
+.scene-message.assistant,
+.scene-message.system {
+  align-items: flex-start;
+}
+.scene-message-meta {
+  font-size: 0.66rem;
+  color: var(--text-muted);
+}
+.scene-message-bubble {
+  max-width: 100%;
+  border-radius: 12px;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(42,42,74,0.3);
+  line-height: 1.55;
+  font-size: 0.82rem;
+  white-space: pre-wrap;
+}
+.scene-message.user .scene-message-bubble {
+  background: linear-gradient(135deg, rgba(99,102,241,0.22), rgba(67,56,202,0.18));
+  color: var(--text-primary);
+}
+.scene-message.assistant .scene-message-bubble {
+  background: rgba(30,41,59,0.85);
+  color: var(--text-primary);
+}
+.scene-message.system .scene-message-bubble {
+  background: rgba(16,185,129,0.08);
+  color: var(--text-secondary);
+}
+.scene-message-bubble strong {
+  color: #eef2ff;
+}
+.scene-thread-empty {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 1rem 0;
+}
+.scene-sidepanel-section {
+  margin-top: 0.85rem;
+}
+.scene-sidepanel-label {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+.scene-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.scene-quick-btn {
+  border: 1px solid rgba(99,102,241,0.18);
+  background: rgba(99,102,241,0.08);
+  color: #c7d2fe;
+  border-radius: 999px;
+  padding: 0.32rem 0.6rem;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.scene-quick-btn:hover {
+  background: rgba(99,102,241,0.15);
+  border-color: rgba(99,102,241,0.32);
+}
+.scene-composer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.55rem;
+  margin-top: 0.55rem;
+}
+.scene-query-input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.65rem 0.8rem;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  outline: none;
+}
+.scene-query-input:focus {
+  border-color: var(--accent);
+}
+.scene-query-btn {
+  padding: 0.65rem 1rem;
+  border-radius: 10px;
+  font-size: 0.88rem;
+}
+.scene-context-panel {
+  border: 1px solid rgba(42,42,74,0.3);
+  background: rgba(15,23,42,0.7);
+  border-radius: 10px;
+  padding: 0.7rem 0.75rem;
+}
+.scene-context-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin-bottom: 0.2rem;
+}
+.scene-context-copy {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.scene-context-list {
+  margin-top: 0.4rem;
+  display: grid;
+  gap: 0.3rem;
+}
+.scene-context-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  font-size: 0.74rem;
+}
+.scene-context-item span:first-child {
+  color: var(--text-muted);
+}
+.scene-workstage {
+  min-width: 0;
+}
+
+@media (max-width: 1200px) {
+  .scene-workspace {
+    grid-template-columns: 1fr;
+  }
+  .scene-sidepanel {
+    position: static;
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════
    Scene View — P16 Control Room Redesign
    製造業 Agent 團隊協作控制室 — 首屏可理解
@@ -749,13 +947,49 @@ body {
         <h2>場景視圖</h2>
         <p>Agent 團隊狀態總覽 — 直覺理解各職能節點健康狀態與阻塞原因</p>
       </div>
-      <div class="scene-container" id="scene-container">
-        <div class="scene-floor"></div>
-        <!-- P16-5: SVG Task Flow overlay -->
-        <svg class="scene-taskflow" id="scene-taskflow" xmlns="http://www.w3.org/2000/svg"></svg>
-        <div class="scene-zone" id="scene-content"><div class="loading">載入場景中…</div></div>
+      <div class="scene-workspace">
+        <aside class="scene-sidepanel">
+          <div class="scene-sidepanel-header">
+            <div>
+              <div class="scene-sidepanel-title">協作工作台</div>
+              <div class="scene-sidepanel-desc">在同一畫面完成查詢、看派工、點節點追原因。左側負責提問與脈絡，右側負責場景總覽。</div>
+            </div>
+            <span class="scene-mode-badge">Workspace</span>
+          </div>
+          <div id="scene-thread" class="scene-thread">
+            <div class="scene-thread-empty">載入工作台脈絡中…</div>
+          </div>
+          <div class="scene-sidepanel-section">
+            <div class="scene-sidepanel-label">快速查詢</div>
+            <div class="scene-quick-actions">
+              <button class="scene-quick-btn" onclick="setSceneQuery('ORD-2002 有沒有交期風險？')">交期風險</button>
+              <button class="scene-quick-btn" onclick="setSceneQuery('ORD-2003 缺料怎麼恢復？')">缺料恢復</button>
+              <button class="scene-quick-btn" onclick="setSceneQuery('ORD-2004 排程是否衝突？')">排程衝突</button>
+              <button class="scene-quick-btn" onclick="setSceneQuery('幫我比較目前報價與交付風險')">商務分析</button>
+            </div>
+            <div class="scene-composer">
+              <input type="text" id="scene-query-input" class="scene-query-input" placeholder="例如：ORD-2002 交期風險與下一步是什麼？" />
+              <button id="scene-query-btn" class="btn scene-query-btn" onclick="executeSceneWorkspaceQuery()">送出</button>
+            </div>
+          </div>
+          <div class="scene-sidepanel-section">
+            <div class="scene-sidepanel-label">節點上下文</div>
+            <div id="scene-context-panel" class="scene-context-panel">
+              <div class="scene-context-title">尚未選取節點</div>
+              <div class="scene-context-copy">點擊右側任一 Agent 節點後，這裡會顯示它的職責、當前狀態、最近事件與建議下一步。</div>
+            </div>
+          </div>
+        </aside>
+        <div class="scene-workstage">
+          <div class="scene-container" id="scene-container">
+            <div class="scene-floor"></div>
+            <!-- P16-5: SVG Task Flow overlay -->
+            <svg class="scene-taskflow" id="scene-taskflow" xmlns="http://www.w3.org/2000/svg"></svg>
+            <div class="scene-zone" id="scene-content"><div class="loading">載入場景中…</div></div>
+          </div>
+          <div id="scene-inspector" class="scene-inspector"></div>
+        </div>
       </div>
-      <div id="scene-inspector" class="scene-inspector"></div>
     </section>
 
   </main>
@@ -782,6 +1016,11 @@ document.querySelectorAll('.nav-item').forEach(item => {
 // Enter key support
 document.getElementById('query-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') executeQuery();
+});
+document.addEventListener('keydown', e => {
+  if (e.target && e.target.id === 'scene-query-input' && e.key === 'Enter') {
+    executeSceneWorkspaceQuery();
+  }
 });
 
 // Skills View
@@ -902,6 +1141,146 @@ async function executeQuery() {
   } finally {
     btn.disabled = false;
     btn.textContent = '送出查詢';
+  }
+}
+
+const SCENE_WORKSPACE_STATE = {
+  messages: [
+    {
+      role: 'system',
+      label: 'Workspace',
+      content: '這裡會保留你在場景頁的查詢與系統回應。先從左側提問，再到右側看主控派工與各職能節點狀態。',
+    }
+  ],
+};
+
+function setSceneQuery(text) {
+  const input = document.getElementById('scene-query-input');
+  if (!input) return;
+  input.value = text;
+  input.focus();
+}
+
+function ensureSceneThreadVisible() {
+  const thread = document.getElementById('scene-thread');
+  if (thread) {
+    thread.scrollTop = thread.scrollHeight;
+  }
+}
+
+function renderSceneWorkspaceThread() {
+  const thread = document.getElementById('scene-thread');
+  if (!thread) return;
+  if (!SCENE_WORKSPACE_STATE.messages.length) {
+    thread.innerHTML = '<div class="scene-thread-empty">目前還沒有查詢紀錄</div>';
+    return;
+  }
+  thread.innerHTML = SCENE_WORKSPACE_STATE.messages.map(msg => `
+    <div class="scene-message ${msg.role}">
+      <div class="scene-message-meta">${msg.label}</div>
+      <div class="scene-message-bubble">${msg.content}</div>
+    </div>
+  `).join('');
+  ensureSceneThreadVisible();
+}
+
+function summarizeSceneResponse(data) {
+  if (data.status === 'error') {
+    const lines = [
+      `❌ 查詢失敗：${data.error_type || 'unknown'}`,
+      data.reason ? `原因：${data.reason}` : (data.error || data.details || '無詳細資訊'),
+      data.next_action ? `下一步：${data.next_action}` : '',
+    ].filter(Boolean);
+    return lines.join('\n');
+  }
+
+  const lines = [];
+  if (data.skill) {
+    lines.push(`🎯 路由結果：${data.skill}`);
+  }
+  if (data.data?.decision) {
+    lines.push(`決策：${data.data.decision}`);
+  }
+  if (data.data?.order_id) {
+    lines.push(`訂單：${data.data.order_id}`);
+  }
+  if (data.data?.customer) {
+    lines.push(`客戶：${data.data.customer}`);
+  }
+  if (data.data?.next_action) {
+    const actionText = Array.isArray(data.data.next_action) ? data.data.next_action.join(' ') : data.data.next_action;
+    lines.push(`下一步：${actionText}`);
+  }
+  if (data.data?.blockers?.length && !data.data.blockers[0].includes('No critical')) {
+    lines.push(`阻礙：${data.data.blockers.slice(0, 2).join('；')}`);
+  }
+  if (data.data?.summary && data.data.team_name) {
+    lines.push(`團隊流程：${data.data.team_name}（${data.data.summary.success_count}/${data.data.summary.total_steps} 成功）`);
+  }
+  if (data.reason) lines.push(`原因：${data.reason}`);
+  if (data.next_action) lines.push(`建議：${data.next_action}`);
+  return lines.filter(Boolean).join('\n') || '查詢已完成。';
+}
+
+function focusSceneAgentFromResponse(data) {
+  if (!data) return;
+  let targetAgent = null;
+  if (data.skill) {
+    targetAgent = AGENT_CATALOG.find(a => a.skill === data.skill);
+  }
+  if (!targetAgent && data.skill && data.skill.startsWith('team:')) {
+    targetAgent = AGENT_CATALOG.find(a => a.id === 'orchestrator');
+  }
+  if (!targetAgent && data.data?.decision) {
+    targetAgent = AGENT_CATALOG.find(a => a.id === 'orchestrator');
+  }
+  if (targetAgent) {
+    showAgentDetail(targetAgent.id);
+  }
+}
+
+async function executeSceneWorkspaceQuery() {
+  const input = document.getElementById('scene-query-input');
+  const btn = document.getElementById('scene-query-btn');
+  if (!input || !btn) return;
+  const query = input.value.trim();
+  if (!query) return;
+
+  SCENE_WORKSPACE_STATE.messages.push({
+    role: 'user',
+    label: '你',
+    content: query,
+  });
+  renderSceneWorkspaceThread();
+
+  btn.disabled = true;
+  btn.textContent = '分析中…';
+  input.value = '';
+
+  try {
+    const res = await fetch('/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
+    });
+    const data = await res.json();
+    SCENE_WORKSPACE_STATE.messages.push({
+      role: 'assistant',
+      label: data.status === 'error' ? '系統回應' : 'AI 協作結果',
+      content: summarizeSceneResponse(data),
+    });
+    renderSceneWorkspaceThread();
+    focusSceneAgentFromResponse(data);
+  } catch (e) {
+    SCENE_WORKSPACE_STATE.messages.push({
+      role: 'assistant',
+      label: '系統回應',
+      content: `❌ 請求失敗：${e.message}`,
+    });
+    renderSceneWorkspaceThread();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '送出';
   }
 }
 
@@ -1694,6 +2073,7 @@ async function renderScene() {
   const content = document.getElementById('scene-content');
   if (!content) return;
   content.innerHTML = '<div class="loading">載入場景中…</div>';
+  renderSceneWorkspaceThread();
 
   const [skillsRes, approvalsRes, historyRes, guardrailsRes, incidentRes, receiptsRes, timelineRes, alertsRes] = await Promise.all([
     fetch('/skills').catch(() => null),
@@ -1959,6 +2339,23 @@ async function renderScene() {
     alerts: alertsData.alerts || [],
     guardrails: guardrailsData,
   };
+}
+
+function updateSceneContextPanel(agent, st, reason, nextAction, relatedApprovals, recentHistory, relatedReceipts) {
+  const panel = document.getElementById('scene-context-panel');
+  if (!panel || !agent) return;
+  panel.innerHTML = `
+    <div class="scene-context-title">${agent.name}</div>
+    <div class="scene-context-copy">${agent.desc}</div>
+    <div class="scene-context-list">
+      <div class="scene-context-item"><span>角色</span><strong>${agent.role}</strong></div>
+      <div class="scene-context-item"><span>狀態</span><strong>${statusLabel(st.status)}</strong></div>
+      <div class="scene-context-item"><span>待審批</span><strong>${relatedApprovals.length}</strong></div>
+      <div class="scene-context-item"><span>最近執行</span><strong>${recentHistory.length}</strong></div>
+      <div class="scene-context-item"><span>執行紀錄</span><strong>${relatedReceipts.length}</strong></div>
+      <div class="scene-context-item"><span>下一步</span><strong>${nextAction || reason || '目前正常待命'}</strong></div>
+    </div>
+  `;
 }
 
 
@@ -2271,6 +2668,7 @@ function showAgentDetail(agentId) {
 
   inspector.innerHTML = html;
   inspector.classList.add('show');
+  updateSceneContextPanel(agent, st, reason, nextAction, relatedApprovals, recentHistory, relatedReceipts);
   inspector.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 

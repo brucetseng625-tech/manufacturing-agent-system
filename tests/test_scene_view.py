@@ -37,6 +37,18 @@ class SceneViewHTMLTest(unittest.TestCase):
         """Dashboard must have scene-inspector div for detail panel."""
         self.assertIn('id="scene-inspector"', self.html)
 
+    def test_contains_scene_workspace_dual_pane(self):
+        """Scene view must provide dual-pane workspace shell."""
+        self.assertIn("scene-workspace", self.html)
+        self.assertIn("scene-sidepanel", self.html)
+        self.assertIn("scene-workstage", self.html)
+
+    def test_contains_scene_thread_and_context_panel(self):
+        """Scene workspace must include thread and node context surfaces."""
+        self.assertIn('id="scene-thread"', self.html)
+        self.assertIn('id="scene-context-panel"', self.html)
+        self.assertIn("協作工作台", self.html)
+
     def test_contains_agent_catalog(self):
         """Scene view must define AGENT_CATALOG with 10 agents."""
         self.assertIn("AGENT_CATALOG", self.html)
@@ -61,6 +73,12 @@ class SceneViewHTMLTest(unittest.TestCase):
     def test_contains_show_agent_detail_function(self):
         """Dashboard must have showAgentDetail function for click inspection."""
         self.assertIn("function showAgentDetail(agentId)", self.html)
+
+    def test_contains_scene_workspace_query_functions(self):
+        """Scene workspace must support local query execution and focus handoff."""
+        self.assertIn("executeSceneWorkspaceQuery", self.html)
+        self.assertIn("renderSceneWorkspaceThread", self.html)
+        self.assertIn("focusSceneAgentFromResponse", self.html)
 
     def test_contains_agent_node_css(self):
         """Dashboard must contain agent-node CSS styles."""

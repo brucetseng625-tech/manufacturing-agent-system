@@ -601,6 +601,24 @@ Goal: Replace engineering-card UI with an intuitive factory-floor scene view for
 - Tests: 948/948 passed
 - Commit: `432050c`
 
+### P16-6 Dual-Pane Chat + Scene Workspace (completed)
+
+- `static/dashboard.html`: Scene view upgraded into a dual-pane workspace
+- Left pane now provides:
+  - conversation thread for scene-specific queries
+  - quick query chips for risk / shortage / schedule / commercial prompts
+  - lightweight composer that routes through existing `/run`
+  - node context panel synced with the selected scene agent
+- Right pane preserves the existing scene stage:
+  - control-room layout
+  - SVG task flow
+  - read-only detail inspector
+  - event projection / explainability
+- Scene queries stay read-only and use existing routing / explainability rather than a second protocol
+- Query responses can focus the most relevant agent node to connect text answers back to the scene
+- No backend changes, no new APIs, no changes to Discord/P17
+- Tests: 951/951 passed
+
 ## P17 Channel Integrations & External Operator Entry
 
 Goal: Enable external channel access (Discord/LINE) for operator queries, notifications, and approvals.
