@@ -2,11 +2,11 @@
 
 Last updated: 2026-05-14
 
-Current latest completed feature commit on `main`:
-- `63f9b18` `feat(P16-3): visual asset and scene styling upgrade`
+Latest `HEAD` on `main`:
+- `a7ba509` `feat(P16): scene view visual redesign — grid layout, 2.5D depth, enhanced agent nodes`
 
 Latest verified feature commit on `main`:
-- `63f9b18` `feat(P16-3): visual asset and scene styling upgrade`
+- `a7ba509` `feat(P16): scene view visual redesign — grid layout, 2.5D depth, enhanced agent nodes`
 
 Important handoff note:
 - `main` may move to a docs-only sync commit after the latest verified feature commit above. Always confirm exact `HEAD` with `git rev-parse HEAD` before continuing.
@@ -585,6 +585,19 @@ Goal: Replace engineering-card UI with an intuitive factory-floor scene view for
 - Zero backend changes, zero new APIs, fully read-only
 - Compatible with P16-4 isometric layout (z-index: 2 overlay, overflow: visible)
 - Tests unchanged: 948/948 passed
+
+### P16 Scene View Visual Redesign (completed)
+
+- `static/dashboard.html`: Complete visual redesign from 'tilted cards' to spatially meaningful Agent Team collaboration control room
+- 3-layer layout: Scene Header (product-page style) → Main Stage (CSS Grid) → Inspector Panel (preserved)
+- Main Stage grid: orchestrator top-center (full span), risk/production side-by-side (row 2), commercial bottom-left (row 3), comm full-bottom (row 4)
+- Zone cards with 2.5D platform depth: `::before` top highlight + `::after` base shadow, semantic color themes (indigo/red/blue/amber/green)
+- Zone header + subtitle per station describing function
+- Agent nodes: larger 140px cards with icon/name/role/status layers; orchestrator at 175px with glow effect
+- Pulse animations, event badges, and SVG task flow paths preserved
+- Fully read-only, zero backend changes, zero new APIs
+- Tests: 948/948 passed
+- Commit: `a7ba509`
 
 ## P17 Channel Integrations & External Operator Entry
 

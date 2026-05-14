@@ -231,241 +231,275 @@ body {
 .decision-inspector .di-value.di-gated { color: var(--warning); }
 
 /* ═══════════════════════════════════════════════════════════
-   Scene View — P16 Visual Redesign
-   製造業 Agent 協作控制室場景
+   Scene View — P16 Control Room Redesign
+   製造業 Agent 團隊協作控制室 — 首屏可理解
    ═══════════════════════════════════════════════════════════ */
 
-/* Scene Header — product-page style */
+/* Scene Header */
 .scene-header {
-  margin-bottom: 1rem; padding: 1rem 1.5rem;
+  margin-bottom: 0.6rem; padding: 0.75rem 1.25rem;
   background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(16,185,129,0.04) 100%);
-  border: 1px solid var(--border); border-radius: 12px;
+  border: 1px solid var(--border); border-radius: 10px;
   display: flex; justify-content: space-between; align-items: center;
 }
-.scene-header .sh-title { font-size: 1.1rem; font-weight: 700; color: var(--accent-light); }
-.scene-header .sh-desc { font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.15rem; }
+.scene-header .sh-title { font-size: 1rem; font-weight: 700; color: var(--accent-light); }
+.scene-header .sh-desc { font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.1rem; }
 .scene-header .sh-badge {
-  font-size: 0.68rem; padding: 0.2rem 0.55rem;
-  background: rgba(99,102,241,0.25); color: #a5b4fc; border-radius: 10px;
-  font-weight: 600; letter-spacing: 0.04em;
+  font-size: 0.65rem; padding: 0.18rem 0.5rem;
+  background: rgba(99,102,241,0.2); color: #a5b4fc; border-radius: 8px;
+  font-weight: 600; letter-spacing: 0.03em;
 }
 
-/* ── Scene Container ── */
+/* Scene Container — compact, first-screen */
 .scene-container {
-  position: relative; min-height: 850px; padding: 1.25rem;
+  position: relative; min-height: 600px; padding: 1rem 1.2rem;
   background:
-    radial-gradient(ellipse 80% 60% at 50% 20%, rgba(99,102,241,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 70% 50% at 50% 15%, rgba(99,102,241,0.05) 0%, transparent 70%),
     linear-gradient(180deg, #0b0f1e 0%, #0d1117 50%, #111827 100%);
-  border: 1px solid var(--border); border-radius: 16px;
-  box-shadow: inset 0 2px 0 rgba(255,255,255,0.04), 0 8px 32px rgba(0,0,0,0.5);
+  border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 6px 24px rgba(0,0,0,0.4);
   overflow: visible;
 }
 .scene-container .scene-floor {
-  position: absolute; inset: 0; border-radius: 16px;
+  position: absolute; inset: 0; border-radius: 14px;
   background:
-    repeating-linear-gradient(0deg, rgba(99,102,241,0.02) 0px, rgba(99,102,241,0.02) 1px, transparent 1px, transparent 50px),
-    repeating-linear-gradient(90deg, rgba(99,102,241,0.02) 0px, rgba(99,102,241,0.02) 1px, transparent 1px, transparent 50px);
+    repeating-linear-gradient(0deg, rgba(99,102,241,0.015) 0px, rgba(99,102,241,0.015) 1px, transparent 1px, transparent 60px),
+    repeating-linear-gradient(90deg, rgba(99,102,241,0.015) 0px, rgba(99,102,241,0.015) 1px, transparent 1px, transparent 60px);
   pointer-events: none;
 }
 .scene-container .scene-floor::before {
-  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40%;
-  background: linear-gradient(180deg, transparent, rgba(0,0,0,0.25));
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 30%;
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,0.2));
   pointer-events: none;
 }
 
-/* ── Scene Zone wrapper ── */
 .scene-container .scene-zone {
   position: relative; z-index: 1;
 }
 
-/* ── Main Stage Grid Layout ── */
+/* ── Main Stage: Orchestrator top, 4 zones in 2x2 grid below ── */
 .scene-stage {
   display: grid;
-  grid-template-columns: 1fr 1.4fr 1fr;
-  grid-template-rows: auto auto auto auto;
-  gap: 1rem 1.25rem;
-  padding: 0.5rem 0;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto;
+  gap: 0.75rem;
+  padding: 0.25rem 0;
 }
-.zone-orchestrator-stage { grid-column: 1 / -1; grid-row: 1; }
-.zone-risk-stage { grid-column: 1; grid-row: 2; }
-.zone-production-stage { grid-column: 3; grid-row: 2; }
-.zone-commercial-stage { grid-column: 1; grid-row: 3; }
-.zone-comm-stage { grid-column: 1 / -1; grid-row: 4; }
+.zone-orchestrator-stage {
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+.zone-risk-stage {
+  grid-column: 1;
+  grid-row: 2;
+}
+.zone-production-stage {
+  grid-column: 2;
+  grid-row: 2;
+}
+.zone-commercial-stage {
+  grid-column: 1;
+  grid-row: 3;
+}
+.zone-comm-stage {
+  grid-column: 2;
+  grid-row: 3;
+}
 
 /* ── Zone Cards — workbench platforms with 2.5D depth ── */
 .zone-card {
-  position: relative; padding: 1rem 1.2rem;
-  background: rgba(18,24,42,0.85); backdrop-filter: blur(3px);
-  border: 1px solid rgba(42,42,74,0.4); border-radius: 14px;
-  border-left: 4px solid var(--border);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative; padding: 0.75rem 1rem;
+  background: rgba(18,24,42,0.88); backdrop-filter: blur(3px);
+  border: 1px solid rgba(42,42,74,0.35); border-radius: 12px;
+  border-left: 3px solid var(--border);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .zone-card::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-  border-radius: 14px 14px 0 0;
-  background: linear-gradient(90deg, transparent 5%, rgba(255,255,255,0.06) 50%, transparent 95%);
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(90deg, transparent 10%, rgba(255,255,255,0.05) 50%, transparent 90%);
 }
 .zone-card::after {
   content: ''; position: absolute;
-  bottom: -6px; left: 6px; right: -6px; height: 12px;
-  background: rgba(0,0,0,0.3); border-radius: 0 0 10px 10px;
-  z-index: -1; filter: blur(3px);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  bottom: -4px; left: 4px; right: -4px; height: 8px;
+  background: rgba(0,0,0,0.25); border-radius: 0 0 8px 8px;
+  z-index: -1; filter: blur(2px);
 }
 .zone-card:hover {
-  border-color: rgba(99,102,241,0.4);
-  box-shadow: 0 6px 20px rgba(99,102,241,0.12), 0 1px 0 rgba(255,255,255,0.04) inset;
-}
-.zone-card:hover::after {
-  bottom: -8px; left: 8px; right: -8px; height: 16px;
-  background: rgba(0,0,0,0.35);
+  border-color: rgba(99,102,241,0.35);
+  box-shadow: 0 4px 16px rgba(99,102,241,0.1);
 }
 
-/* Zone color themes — semantic */
+/* Zone color themes */
 .zone-card.zone-orchestrator {
   border-left-color: #6366f1;
-  background: linear-gradient(160deg, rgba(99,102,241,0.12) 0%, rgba(18,24,42,0.85) 100%);
-  box-shadow: 0 6px 24px rgba(99,102,241,0.15), 0 1px 0 rgba(255,255,255,0.04) inset;
+  background: linear-gradient(155deg, rgba(99,102,241,0.1) 0%, rgba(18,24,42,0.88) 100%);
+  box-shadow: 0 4px 20px rgba(99,102,241,0.12), inset 0 1px 0 rgba(255,255,255,0.04);
 }
 .zone-card.zone-risk {
   border-left-color: #ef4444;
-  background: linear-gradient(160deg, rgba(239,68,68,0.08) 0%, rgba(18,24,42,0.85) 100%);
+  background: linear-gradient(155deg, rgba(239,68,68,0.06) 0%, rgba(18,24,42,0.88) 100%);
 }
 .zone-card.zone-production {
   border-left-color: #3b82f6;
-  background: linear-gradient(160deg, rgba(59,130,246,0.08) 0%, rgba(18,24,42,0.85) 100%);
+  background: linear-gradient(155deg, rgba(59,130,246,0.06) 0%, rgba(18,24,42,0.88) 100%);
 }
 .zone-card.zone-commercial {
   border-left-color: #d97706;
-  background: linear-gradient(160deg, rgba(217,119,6,0.08) 0%, rgba(18,24,42,0.85) 100%);
+  background: linear-gradient(155deg, rgba(217,119,6,0.06) 0%, rgba(18,24,42,0.88) 100%);
 }
 .zone-card.zone-comm {
   border-left-color: #10b981;
-  background: linear-gradient(160deg, rgba(16,185,129,0.08) 0%, rgba(18,24,42,0.85) 100%);
+  background: linear-gradient(155deg, rgba(16,185,129,0.06) 0%, rgba(18,24,42,0.88) 100%);
 }
 
 /* Zone header */
 .zone-card-header {
-  display: flex; align-items: center; gap: 0.5rem;
-  margin-bottom: 0.75rem; padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(42,42,74,0.3);
+  display: flex; align-items: center; gap: 0.45rem;
+  margin-bottom: 0.5rem; padding-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(42,42,74,0.25);
 }
-.zone-card-header .zc-icon { font-size: 1.2rem; }
-.zone-card-header .zc-label { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.04em; }
-.zone-card-header .zc-desc { font-size: 0.68rem; color: var(--text-muted); margin-left: auto; }
+.zone-card-header .zc-icon { font-size: 1rem; }
+.zone-card-header .zc-label { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.03em; }
+.zone-card-header .zc-desc { font-size: 0.65rem; color: var(--text-muted); margin-left: auto; }
 
 /* Zone subtitle */
 .zone-subtitle {
-  font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.75rem;
-  padding: 0.25rem 0.5rem;
-  background: rgba(0,0,0,0.15); border-radius: 4px;
+  font-size: 0.65rem; color: var(--text-muted); margin-bottom: 0.5rem;
+  padding: 0.2rem 0.4rem;
+  background: rgba(0,0,0,0.12); border-radius: 3px;
   display: inline-block;
 }
 
-/* ── Agent Row ── */
+/* ── Orchestrator Command Center — fills the zone with info ── */
+.orchestrator-dashboard {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+.orchestrator-main-node {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 0.75rem;
+  background: rgba(99,102,241,0.08); border-radius: 10px;
+  border: 1px solid rgba(99,102,241,0.2);
+}
+.orchestrator-status-row {
+  display: flex; flex-direction: column; gap: 0.35rem;
+}
+.orch-status-item {
+  display: flex; align-items: center; gap: 0.4rem;
+  font-size: 0.7rem; padding: 0.2rem 0.4rem;
+  background: rgba(0,0,0,0.12); border-radius: 4px;
+}
+.orch-status-item .orch-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.orch-status-item .orch-label { color: var(--text-muted); }
+.orch-status-item .orch-value { color: var(--text-primary); font-weight: 500; margin-left: auto; }
+
+/* ── Agent Row — compact ── */
 .agent-row {
-  display: flex; gap: 0.85rem; flex-wrap: wrap; justify-content: flex-start;
+  display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: flex-start;
   align-items: flex-start;
 }
 
 /* ── Agent Nodes ── */
 .agent-node {
   position: relative; display: flex; flex-direction: column; align-items: center;
-  width: 140px; padding: 1rem 0.6rem 0.8rem;
-  background: linear-gradient(170deg, rgba(30,30,58,0.95) 0%, rgba(18,24,42,0.98) 100%);
-  border: 1px solid rgba(42,42,74,0.4); border-radius: 12px; cursor: pointer;
+  width: 120px; padding: 0.75rem 0.5rem 0.6rem;
+  background: linear-gradient(165deg, rgba(30,30,58,0.95) 0%, rgba(18,24,42,0.98) 100%);
+  border: 1px solid rgba(42,42,74,0.35); border-radius: 10px; cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-align: center;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04);
 }
 .agent-node::after {
   content: ''; position: absolute;
-  bottom: -4px; left: 4px; right: -4px; height: 8px;
-  background: rgba(0,0,0,0.25); border-radius: 0 0 10px 10px;
+  bottom: -3px; left: 3px; right: -3px; height: 6px;
+  background: rgba(0,0,0,0.2); border-radius: 0 0 8px 8px;
   z-index: -1; filter: blur(1px);
 }
 .agent-node:hover {
-  border-color: var(--accent-light); transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(99,102,241,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
-}
-.agent-node:hover::after {
-  bottom: -5px; left: 5px; right: -5px; height: 10px;
+  border-color: var(--accent-light); transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(99,102,241,0.2);
 }
 .agent-node.selected {
   border-color: var(--accent-light);
-  background: linear-gradient(170deg, rgba(99,102,241,0.18) 0%, rgba(18,24,42,0.98) 100%);
-  box-shadow: 0 0 20px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+  background: linear-gradient(165deg, rgba(99,102,241,0.15) 0%, rgba(18,24,42,0.98) 100%);
+  box-shadow: 0 0 16px rgba(99,102,241,0.25);
 }
 
 .agent-node .agent-icon {
-  width: 56px; height: 56px; border-radius: 14px;
+  width: 44px; height: 44px; border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.6rem; margin-bottom: 0.5rem;
+  font-size: 1.4rem; margin-bottom: 0.35rem;
   background: rgba(30,30,58,0.8); border: 1px solid rgba(42,42,74,0.3);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 2px 8px rgba(0,0,0,0.3);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 2px 6px rgba(0,0,0,0.25);
 }
-.agent-node .agent-name { font-size: 0.78rem; font-weight: 600; margin-bottom: 0.3rem; color: var(--text-primary); line-height: 1.2; }
-.agent-node .agent-role { font-size: 0.62rem; color: var(--text-muted); margin-bottom: 0.35rem; }
-.agent-node .agent-status { font-size: 0.68rem; padding: 0.18rem 0.5rem; border-radius: 6px; font-weight: 500; }
+.agent-node .agent-name { font-size: 0.72rem; font-weight: 600; margin-bottom: 0.2rem; color: var(--text-primary); line-height: 1.15; }
+.agent-node .agent-role { font-size: 0.58rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+.agent-node .agent-status { font-size: 0.62rem; padding: 0.15rem 0.4rem; border-radius: 5px; font-weight: 500; }
 
-/* Status badges — unified */
-.agent-status.status-idle { background: rgba(107,114,128,0.12); color: #9ca3af; border: 1px solid rgba(107,114,128,0.18); }
-.agent-status.status-running { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
-.agent-status.status-blocked { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
-.agent-status.status-approval { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
-.agent-status.status-incident { background: rgba(239,68,68,0.18); color: #fca5a5; border: 1px solid rgba(239,68,68,0.35); }
+/* Status badges */
+.agent-status.status-idle { background: rgba(107,114,128,0.1); color: #9ca3af; border: 1px solid rgba(107,114,128,0.15); }
+.agent-status.status-running { background: rgba(16,185,129,0.1); color: #34d399; border: 1px solid rgba(16,185,129,0.18); }
+.agent-status.status-blocked { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.18); }
+.agent-status.status-approval { background: rgba(245,158,11,0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.18); }
+.agent-status.status-incident { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
 
-/* Orchestrator — largest, brightest */
+/* Orchestrator main node — largest, brightest */
 .agent-node.orchestrator {
-  width: 175px; padding: 1.2rem 0.7rem 1rem;
-  border-color: rgba(99,102,241,0.35);
-  background: linear-gradient(170deg, rgba(99,102,241,0.15) 0%, rgba(18,24,42,0.98) 100%);
-  box-shadow: 0 4px 20px rgba(99,102,241,0.2), inset 0 1px 0 rgba(255,255,255,0.08);
+  width: 140px; padding: 0.9rem 0.6rem 0.8rem;
+  border-color: rgba(99,102,241,0.3);
+  background: linear-gradient(165deg, rgba(99,102,241,0.12) 0%, rgba(18,24,42,0.98) 100%);
+  box-shadow: 0 3px 16px rgba(99,102,241,0.15), inset 0 1px 0 rgba(255,255,255,0.06);
 }
 .agent-node.orchestrator .agent-icon {
-  width: 64px; height: 64px; font-size: 1.8rem;
-  background: rgba(99,102,241,0.18); border-color: rgba(99,102,241,0.3);
-  box-shadow: 0 0 16px rgba(99,102,241,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+  width: 52px; height: 52px; font-size: 1.6rem;
+  background: rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.25);
+  box-shadow: 0 0 12px rgba(99,102,241,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
 }
-.agent-node.orchestrator .agent-name { font-size: 0.85rem; }
+.agent-node.orchestrator .agent-name { font-size: 0.78rem; }
 
 /* Pulse */
 .agent-node .agent-pulse {
-  position: absolute; top: -2px; right: -2px; width: 12px; height: 12px;
+  position: absolute; top: -2px; right: -2px; width: 10px; height: 10px;
   border-radius: 50%; border: 2px solid; background: var(--bg-primary);
 }
 .agent-pulse.pulse-running { border-color: var(--success); animation: pulse-green 2s infinite; }
 .agent-pulse.pulse-blocked { border-color: var(--error); animation: pulse-red 1.5s infinite; }
 .agent-pulse.pulse-approval { border-color: var(--warning); animation: pulse-yellow 2s infinite; }
-@keyframes pulse-green { 0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); } 50% { box-shadow: 0 0 0 6px rgba(16,185,129,0); } }
-@keyframes pulse-red { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); } 50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); } }
-@keyframes pulse-yellow { 0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); } 50% { box-shadow: 0 0 0 6px rgba(245,158,11,0); } }
+@keyframes pulse-green { 0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.35); } 50% { box-shadow: 0 0 0 5px rgba(16,185,129,0); } }
+@keyframes pulse-red { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.35); } 50% { box-shadow: 0 0 0 5px rgba(239,68,68,0); } }
+@keyframes pulse-yellow { 0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.35); } 50% { box-shadow: 0 0 0 5px rgba(245,158,11,0); } }
 
 /* Event badges */
 .agent-event-badges {
-  display: flex; gap: 0.2rem; flex-wrap: wrap; justify-content: center;
-  margin-top: 0.35rem; min-height: 1.1rem;
+  display: flex; gap: 0.15rem; flex-wrap: wrap; justify-content: center;
+  margin-top: 0.25rem; min-height: 1rem;
 }
 .event-badge {
-  font-size: 0.58rem; padding: 0.12rem 0.35rem; border-radius: 4px; font-weight: 600;
+  font-size: 0.52rem; padding: 0.1rem 0.3rem; border-radius: 3px; font-weight: 600;
   white-space: nowrap; border: 1px solid transparent;
 }
-.event-badge.evt-approval { background: rgba(245,158,11,0.18); color: #fbbf24; border-color: rgba(245,158,11,0.25); }
-.event-badge.evt-blocked { background: rgba(239,68,68,0.18); color: #f87171; border-color: rgba(239,68,68,0.25); }
-.event-badge.evt-incident { background: rgba(239,68,68,0.22); color: #fca5a5; border: 1px solid rgba(239,68,68,0.35); }
-.event-badge.evt-receipt { background: rgba(59,130,246,0.12); color: #93c5fd; border-color: rgba(59,130,246,0.2); }
-.event-badge.evt-alert { background: rgba(245,158,11,0.12); color: #fcd34d; border-color: rgba(245,158,11,0.2); }
+.event-badge.evt-approval { background: rgba(245,158,11,0.15); color: #fbbf24; border-color: rgba(245,158,11,0.2); }
+.event-badge.evt-blocked { background: rgba(239,68,68,0.15); color: #f87171; border-color: rgba(239,68,68,0.2); }
+.event-badge.evt-incident { background: rgba(239,68,68,0.18); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+.event-badge.evt-receipt { background: rgba(59,130,246,0.1); color: #93c5fd; border-color: rgba(59,130,246,0.18); }
+.event-badge.evt-alert { background: rgba(245,158,11,0.1); color: #fcd34d; border-color: rgba(245,158,11,0.18); }
 
-/* Scene legend */
+/* Scene legend — compact */
 .scene-legend {
-  margin-top: 1rem; padding: 0.8rem 1rem;
-  background: rgba(11,15,30,0.8); border: 1px solid rgba(42,42,74,0.4);
-  border-radius: 10px; backdrop-filter: blur(4px);
+  margin-top: 0.75rem; padding: 0.6rem 0.8rem;
+  background: rgba(11,15,30,0.7); border: 1px solid rgba(42,42,74,0.3);
+  border-radius: 8px; backdrop-filter: blur(4px);
 }
-.scene-legend .legend-title { font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.5rem; }
-.scene-legend .legend-section { font-size: 0.68rem; color: var(--text-muted); margin: 0.45rem 0 0.3rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
-.scene-legend .legend-row { display: flex; flex-wrap: wrap; gap: 0.75rem; }
-.scene-legend .legend-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; color: var(--text-muted); }
-.scene-legend .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.08); }
+.scene-legend .legend-title { font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem; }
+.scene-legend .legend-section { font-size: 0.62rem; color: var(--text-muted); margin: 0.35rem 0 0.2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+.scene-legend .legend-row { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.scene-legend .legend-item { display: flex; align-items: center; gap: 0.3rem; font-size: 0.65rem; color: var(--text-muted); }
+.scene-legend .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.06); }
 
 /* ── SVG Task Flow ── */
 .scene-taskflow {
@@ -473,53 +507,53 @@ body {
   z-index: 2; pointer-events: none;
 }
 .scene-taskflow path { fill: none; stroke-width: 2; stroke-linecap: round; }
-.taskflow-path-idle { stroke: rgba(107,114,128,0.12); stroke-dasharray: 4 6; }
+.taskflow-path-idle { stroke: rgba(107,114,128,0.1); stroke-dasharray: 4 6; }
 .taskflow-path-recent {
-  stroke: rgba(99,102,241,0.3); stroke-dasharray: 6 4;
+  stroke: rgba(99,102,241,0.25); stroke-dasharray: 6 4;
   animation: flow-recent 2s linear infinite;
 }
 .taskflow-path-active {
-  stroke: rgba(16,185,129,0.55); stroke-width: 2.5;
+  stroke: rgba(16,185,129,0.5); stroke-width: 2.5;
   stroke-dasharray: 8 4;
   animation: flow-active 1.5s linear infinite;
-  filter: drop-shadow(0 0 3px rgba(16,185,129,0.35));
+  filter: drop-shadow(0 0 3px rgba(16,185,129,0.3));
 }
 @keyframes flow-recent { from { stroke-dashoffset: 20; } to { stroke-dashoffset: 0; } }
 @keyframes flow-active { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
-.taskflow-dot { fill: rgba(16,185,129,0.85); filter: drop-shadow(0 0 4px rgba(16,185,129,0.5)); }
+.taskflow-dot { fill: rgba(16,185,129,0.8); filter: drop-shadow(0 0 4px rgba(16,185,129,0.4)); }
 .taskflow-dot-dot { animation: dot-pulse 1.5s ease-in-out infinite; }
 @keyframes dot-pulse { 0%,100% { r: 3; opacity: 0.9; } 50% { r: 4.5; opacity: 1; } }
 
 /* ── Scene Inspector ── */
 .scene-inspector {
-  margin-top: 1rem; padding: 1.2rem;
-  background: linear-gradient(160deg, rgba(30,30,58,0.92) 0%, rgba(18,24,42,0.96) 100%);
-  border: 1px solid var(--border); border-radius: 12px; display: none;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+  margin-top: 0.75rem; padding: 1rem;
+  background: linear-gradient(155deg, rgba(30,30,58,0.9) 0%, rgba(18,24,42,0.94) 100%);
+  border: 1px solid var(--border); border-radius: 10px; display: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
 }
 .scene-inspector.show { display: block; }
-.scene-inspector .si-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+.scene-inspector .si-header { display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.6rem; }
 .scene-inspector .si-icon {
-  width: 56px; height: 56px; border-radius: 14px;
+  width: 48px; height: 48px; border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.5rem; background: rgba(30,30,58,0.8);
-  border: 1px solid rgba(42,42,74,0.4);
+  font-size: 1.3rem; background: rgba(30,30,58,0.8);
+  border: 1px solid rgba(42,42,74,0.35);
 }
-.scene-inspector .si-title { font-size: 1.05rem; font-weight: 700; }
-.scene-inspector .si-subtitle { font-size: 0.82rem; color: var(--text-secondary); }
-.scene-inspector .si-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.75rem; }
-.scene-inspector .si-field { font-size: 0.82rem; }
-.scene-inspector .si-field-label { color: var(--text-muted); margin-bottom: 0.12rem; }
+.scene-inspector .si-title { font-size: 0.95rem; font-weight: 700; }
+.scene-inspector .si-subtitle { font-size: 0.75rem; color: var(--text-secondary); }
+.scene-inspector .si-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-top: 0.6rem; }
+.scene-inspector .si-field { font-size: 0.78rem; }
+.scene-inspector .si-field-label { color: var(--text-muted); margin-bottom: 0.1rem; }
 .scene-inspector .si-field-value { color: var(--text-primary); }
 
-.si-section { margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid rgba(42,42,74,0.4); }
-.si-section-title { font-size: 0.78rem; font-weight: 700; color: var(--accent-light); margin-bottom: 0.4rem; }
-.si-reason-block { padding: 0.5rem 0.75rem; background: rgba(239,68,68,0.05); border-left: 3px solid var(--error); border-radius: 6px; margin-top: 0.35rem; }
-.si-reason-block .si-reason-label { font-size: 0.72rem; color: #f87171; font-weight: 600; }
-.si-reason-block .si-reason-text { font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.15rem; }
-.si-next-action { padding: 0.5rem 0.75rem; background: rgba(16,185,129,0.05); border-left: 3px solid var(--success); border-radius: 6px; margin-top: 0.35rem; }
-.si-next-action .si-next-label { font-size: 0.72rem; color: #34d399; font-weight: 600; }
-.si-next-action .si-next-text { font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.15rem; }
+.si-section { margin-top: 0.65rem; padding-top: 0.65rem; border-top: 1px solid rgba(42,42,74,0.35); }
+.si-section-title { font-size: 0.72rem; font-weight: 700; color: var(--accent-light); margin-bottom: 0.3rem; }
+.si-reason-block { padding: 0.4rem 0.6rem; background: rgba(239,68,68,0.04); border-left: 3px solid var(--error); border-radius: 5px; margin-top: 0.25rem; }
+.si-reason-block .si-reason-label { font-size: 0.68rem; color: #f87171; font-weight: 600; }
+.si-reason-block .si-reason-text { font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.1rem; }
+.si-next-action { padding: 0.4rem 0.6rem; background: rgba(16,185,129,0.04); border-left: 3px solid var(--success); border-radius: 5px; margin-top: 0.25rem; }
+.si-next-action .si-next-label { font-size: 0.68rem; color: #34d399; font-weight: 600; }
+.si-next-action .si-next-text { font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.1rem; }
 </style>
 </head>
 <body>
@@ -1623,7 +1657,6 @@ async function renderScene() {
   const timelineData = timelineRes && timelineRes.ok ? await timelineRes.json() : { events: [] };
   const alertsData = alertsRes && alertsRes.ok ? await alertsData.json() : { alerts: [] };
 
-  const pendingOps = (approvalsData.items || []).map(a => a.operation);
   const recentSkills = (historyData.runs || []).filter(r => r.status === 'success').map(r => r.skill);
   const recentSkillsAll = (historyData.runs || []).map(r => ({ skill: r.skill, status: r.status, timestamp: r.timestamp, error_type: r.error_type }));
   const firingAlerts = (alertsData.alerts || []).filter(a => a.status === 'firing');
@@ -1697,19 +1730,28 @@ async function renderScene() {
     zones[agent.zone].push(agent);
   }
 
-  // Build HTML — Main Stage grid layout
+  // Orchestrator dashboard stats
+  const runningCount = Object.values(agentStates).filter(s => s.status === 'running').length;
+  const blockedCount = Object.values(agentStates).filter(s => s.status === 'blocked' || s.status === 'incident').length;
+  const approvalCount = Object.values(agentStates).filter(s => s.status === 'approval').length;
+  const activeRoutes = TASK_FLOW_ROUTES.filter(route => {
+    const relevantSkills = Object.keys(SKILL_TO_ZONE).filter(s => SKILL_TO_ZONE[s] === route.to);
+    return relevantSkills.some(s => recentSkills.includes(s));
+  }).length;
+
+  // Build HTML — compact 2-row grid layout
   let html = `
     <div class="scene-header">
       <div>
         <div class="sh-title">🏭 Agent 團隊協作總覽</div>
-        <div class="sh-desc">製造業 AI 協作控制室 — 一眼看懂任務流向與瓶頸</div>
+        <div class="sh-desc">從主控派工到職能協作的即時可視化總覽</div>
       </div>
       <span class="sh-badge">🔒 Read-Only</span>
     </div>`;
 
   html += '<div class="scene-stage">';
 
-  // Zone order: orchestrator first, then risk+production (row 2), commercial (row 3), comm (row 4)
+  // Zone order for grid layout
   const zoneOrder = ['orchestrator', 'risk', 'production', 'commercial', 'comm'];
   for (const zoneId of zoneOrder) {
     const agents = zones[zoneId];
@@ -1728,55 +1770,103 @@ async function renderScene() {
         <span class="zc-icon">${zc.label.split(' ')[0]}</span>
         <span class="zc-label">${zc.label.split(' ').slice(1).join(' ')}</span>
         <span class="zc-desc">${zoneDesc}</span>
-      </div>
-      <div class="zone-subtitle">${zc.subtitle}</div>
+      </div>`;
+
+    // Orchestrator special layout — command center with dashboard
+    if (zoneId === 'orchestrator') {
+      html += `<div class="orchestrator-dashboard">
+        <div class="orchestrator-main-node">`;
+
+      const orch = agents[0];
+      const st = agentStates[orch.id];
+      const pulseClass = st.status === 'running' ? 'pulse-running' : st.status === 'blocked' ? 'pulse-blocked' : st.status === 'approval' ? 'pulse-approval' : '';
+
+      html += `<div class="agent-node orchestrator" data-agent="${orch.id}" onclick="showAgentDetail('${orch.id}')">
+          <div class="agent-icon" style="background:${orch.bg};">${orch.icon}</div>
+          <div class="agent-name">${orch.name}</div>
+          <div class="agent-role">${orch.role}</div>
+          <div class="agent-status status-${st.status}">${statusLabel(st.status)}</div>
+          ${pulseClass ? `<div class="agent-pulse ${pulseClass}"></div>` : ''}
+        </div>
+        </div>
+        <div class="orchestrator-status-row">
+          <div class="orch-status-item">
+            <span class="orch-dot" style="background:var(--success);"></span>
+            <span class="orch-label">運行中</span>
+            <span class="orch-value">${runningCount}</span>
+          </div>
+          <div class="orch-status-item">
+            <span class="orch-dot" style="background:var(--error);"></span>
+            <span class="orch-label">受阻</span>
+            <span class="orch-value">${blockedCount}</span>
+          </div>
+          <div class="orch-status-item">
+            <span class="orch-dot" style="background:var(--warning);"></span>
+            <span class="orch-label">待審批</span>
+            <span class="orch-value">${approvalCount}</span>
+          </div>
+          <div class="orch-status-item">
+            <span class="orch-dot" style="background:var(--accent);"></span>
+            <span class="orch-label">活躍路線</span>
+            <span class="orch-value">${activeRoutes}/${TASK_FLOW_ROUTES.length}</span>
+          </div>
+          <div class="orch-status-item">
+            <span class="orch-dot" style="background:#9ca3af;"></span>
+            <span class="orch-label">系統狀態</span>
+            <span class="orch-value">${st.detail}</span>
+          </div>
+        </div>
+      </div>`;
+    } else {
+      // Regular zone layout
+      html += `<div class="zone-subtitle">${zc.subtitle}</div>
       <div class="agent-row">`;
 
-    for (const agent of agents) {
-      const st = agentStates[agent.id];
-      const isOrchestrator = agent.id === 'orchestrator';
-      const pulseClass = st.status === 'running' ? 'pulse-running' : st.status === 'blocked' || st.status === 'incident' ? 'pulse-blocked' : st.status === 'approval' ? 'pulse-approval' : '';
+      for (const agent of agents) {
+        const st = agentStates[agent.id];
+        const pulseClass = st.status === 'running' ? 'pulse-running' : st.status === 'blocked' || st.status === 'incident' ? 'pulse-blocked' : st.status === 'approval' ? 'pulse-approval' : '';
 
-      let badgesHtml = '';
-      if (st.events && st.events.length > 0) {
-        badgesHtml = '<div class="agent-event-badges">' + st.events.map(e => `<span class="event-badge evt-${e.type}">${e.label}</span>`).join('') + '</div>';
+        let badgesHtml = '';
+        if (st.events && st.events.length > 0) {
+          badgesHtml = '<div class="agent-event-badges">' + st.events.map(e => `<span class="event-badge evt-${e.type}">${e.label}</span>`).join('') + '</div>';
+        }
+
+        html += `<div class="agent-node" data-agent="${agent.id}" onclick="showAgentDetail('${agent.id}')">
+          <div class="agent-icon" style="background:${agent.bg};">${agent.icon}</div>
+          <div class="agent-name">${agent.name}</div>
+          <div class="agent-role">${agent.role}</div>
+          <div class="agent-status status-${st.status}">${statusLabel(st.status)}</div>
+          ${badgesHtml}
+          ${pulseClass ? `<div class="agent-pulse ${pulseClass}"></div>` : ''}
+        </div>`;
       }
-
-      html += `<div class="agent-node ${isOrchestrator ? 'orchestrator' : ''}" data-agent="${agent.id}" onclick="showAgentDetail('${agent.id}')">
-        <div class="agent-icon" style="background:${agent.bg};">${agent.icon}</div>
-        <div class="agent-name">${agent.name}</div>
-        ${agent.role ? `<div class="agent-role">${agent.role}</div>` : ''}
-        <div class="agent-status status-${st.status}">${statusLabel(st.status)}</div>
-        ${badgesHtml}
-        ${pulseClass ? `<div class="agent-pulse ${pulseClass}"></div>` : ''}
-      </div>`;
+      html += '</div>';
     }
-    html += '</div></div>';
+
+    html += '</div>'; // end zone-card
   }
 
   html += '</div>'; // end scene-stage
 
-  // Scene legend
+  // Scene legend — compact
   html += `
     <div class="scene-legend">
       <div class="legend-title">📖 狀態與事件說明</div>
       <div class="legend-row">
-        <div class="legend-item"><span class="legend-dot" style="background:var(--text-muted);"></span>待機 — 無近期活動</div>
-        <div class="legend-item"><span class="legend-dot" style="background:var(--success);"></span>執行中 — 最近有成功紀錄</div>
-        <div class="legend-item"><span class="legend-dot" style="background:var(--warning);"></span>待審批 — 需要 Operator 核准</div>
-        <div class="legend-item"><span class="legend-dot" style="background:var(--error);"></span>已阻擋 — 被規則阻擋或執行失敗</div>
-        <div class="legend-item"><span class="legend-dot" style="background:#f87171;"></span>事故中 — 涉及系統事故</div>
-        <div class="legend-item"><span class="event-badge evt-approval">待審批</span>有待處理審批</div>
-        <div class="legend-item"><span class="event-badge evt-blocked">受阻</span>執行受阻或規則阻擋</div>
-        <div class="legend-item"><span class="event-badge evt-incident">事故相關</span>與事故報告相關</div>
-        <div class="legend-item"><span class="event-badge evt-receipt">執行紀錄</span>有自動化執行紀錄</div>
-        <div class="legend-item"><span class="event-badge evt-alert">警報</span>有活躍系統警報</div>
+        <div class="legend-item"><span class="legend-dot" style="background:var(--text-muted);"></span>待機</div>
+        <div class="legend-item"><span class="legend-dot" style="background:var(--success);"></span>執行中</div>
+        <div class="legend-item"><span class="legend-dot" style="background:var(--warning);"></span>待審批</div>
+        <div class="legend-item"><span class="legend-dot" style="background:var(--error);"></span>已阻擋</div>
+        <div class="legend-item"><span class="event-badge evt-approval">待審批</span></div>
+        <div class="legend-item"><span class="event-badge evt-blocked">受阻</span></div>
+        <div class="legend-item"><span class="event-badge evt-receipt">執行紀錄</span></div>
+        <div class="legend-item"><span class="event-badge evt-alert">警報</span></div>
       </div>
       <div class="legend-section">任務流向</div>
       <div class="legend-row">
-        <div class="legend-item"><svg width="24" height="8"><line x1="0" y1="4" x2="24" y2="4" stroke="rgba(16,185,129,0.6)" stroke-width="2.5" stroke-dasharray="8 4"/></svg>主線流向 — 最近有任務流動</div>
-        <div class="legend-item"><svg width="24" height="8"><line x1="0" y1="4" x2="24" y2="4" stroke="rgba(99,102,241,0.35)" stroke-width="2" stroke-dasharray="6 4"/></svg>最近活動 — 近期有互動</div>
-        <div class="legend-item"><svg width="24" height="8"><line x1="0" y1="4" x2="24" y2="4" stroke="rgba(107,114,128,0.15)" stroke-width="2" stroke-dasharray="4 6"/></svg>待命路徑 — 無近期活動</div>
+        <div class="legend-item"><svg width="20" height="6"><line x1="0" y1="3" x2="20" y2="3" stroke="rgba(16,185,129,0.5)" stroke-width="2.5" stroke-dasharray="8 4"/></svg>主線流向</div>
+        <div class="legend-item"><svg width="20" height="6"><line x1="0" y1="3" x2="20" y2="3" stroke="rgba(99,102,241,0.3)" stroke-width="2" stroke-dasharray="6 4"/></svg>最近活動</div>
+        <div class="legend-item"><svg width="20" height="6"><line x1="0" y1="3" x2="20" y2="3" stroke="rgba(107,114,128,0.15)" stroke-width="2" stroke-dasharray="4 6"/></svg>待命路徑</div>
       </div>
     </div>`;
 
@@ -1938,6 +2028,10 @@ function statusLabel(s) {
   return { idle: '待機', running: '執行中', blocked: '已阻擋', approval: '待審批', incident: '事故中' }[s] || s;
 }
 
+function statusLabel(s) {
+  return { idle: '待機', running: '執行中', blocked: '已阻擋', approval: '待審批', incident: '事故中' }[s] || s;
+}
+
 function showAgentDetail(agentId) {
   document.querySelectorAll('.agent-node.selected').forEach(n => n.classList.remove('selected'));
   const node = document.querySelector(`.agent-node[data-agent="${agentId}"]`);
@@ -2008,7 +2102,7 @@ function showAgentDetail(agentId) {
     </div>`;
 
   if (st.events && st.events.length > 0) {
-    html += `<div class="si-section"><div class="si-section-title">📌 目前事件</div><div style="display:flex;gap:0.4rem;flex-wrap:wrap;">` +
+    html += `<div class="si-section"><div class="si-section-title">📌 目前事件</div><div style="display:flex;gap:0.35rem;flex-wrap:wrap;">` +
       st.events.map(e => `<span class="event-badge evt-${e.type}">${e.label}</span>`).join('') + `</div></div>`;
   }
 
@@ -2024,9 +2118,9 @@ function showAgentDetail(agentId) {
 
   if (relatedApprovals.length > 0) {
     html += `<div class="si-section"><div class="si-section-title">⏳ 待審批項目 (${relatedApprovals.length})</div>` +
-      relatedApprovals.map(a => `<div style="font-size:0.8rem;padding:0.35rem 0;border-bottom:1px solid var(--border);">
+      relatedApprovals.map(a => `<div style="font-size:0.8rem;padding:0.3rem 0;border-bottom:1px solid var(--border);">
         <div><code style="background:var(--bg-input);padding:0.1rem 0.3rem;border-radius:3px;">${a.operation || 'N/A'}</code></div>
-        <div style="color:var(--text-muted);margin-top:0.15rem;">${a.created_at ? new Date(a.created_at).toLocaleString() : 'N/A'} — 風險等級: ${{ low: '低', medium: '中', high: '高', critical: '嚴重' }[a.risk_level || 'low'] || a.risk_level}</div>
+        <div style="color:var(--text-muted);margin-top:0.1rem;">${a.created_at ? new Date(a.created_at).toLocaleString() : 'N/A'} — 風險等級: ${{ low: '低', medium: '中', high: '高', critical: '嚴重' }[a.risk_level || 'low'] || a.risk_level}</div>
       </div>`).join('') + `</div>`;
   } else if (agent.skill) {
     html += `<div class="si-section"><div class="si-section-title">⏳ 待審批項目</div><div style="font-size:0.8rem;color:var(--text-muted);">目前無待審批</div></div>`;
@@ -2034,7 +2128,7 @@ function showAgentDetail(agentId) {
 
   if (recentHistory.length > 0) {
     html += `<div class="si-section"><div class="si-section-title">📋 最近執行紀錄 (${recentHistory.length})</div>` +
-      recentHistory.map(r => `<div style="font-size:0.8rem;padding:0.35rem 0;border-bottom:1px solid var(--border);">
+      recentHistory.map(r => `<div style="font-size:0.8rem;padding:0.3rem 0;border-bottom:1px solid var(--border);">
         <span class="badge ${r.status === 'success' ? 'badge-success' : 'badge-error'}" style="margin-right:0.3rem;">${r.status === 'success' ? '成功' : '失敗'}</span>
         <span style="color:var(--text-muted);">${r.timestamp ? new Date(r.timestamp).toLocaleString() : 'N/A'}</span>
         ${r.error_type ? `<br><span style="color:var(--error);font-size:0.75rem;">錯誤: ${r.error_type}</span>` : ''}
@@ -2045,7 +2139,7 @@ function showAgentDetail(agentId) {
 
   if (relatedReceipts.length > 0) {
     html += `<div class="si-section"><div class="si-section-title">🤖 自動化執行紀錄 (${relatedReceipts.length})</div>` +
-      relatedReceipts.map(r => `<div style="font-size:0.8rem;padding:0.35rem 0;border-bottom:1px solid var(--border);">
+      relatedReceipts.map(r => `<div style="font-size:0.8rem;padding:0.3rem 0;border-bottom:1px solid var(--border);">
         <span style="color:var(--text-secondary);">${r.operation || r.source || 'N/A'}</span>
         <span class="badge ${r.status === 'success' ? 'badge-success' : 'badge-warning'}" style="margin-left:0.3rem;">${r.status || 'unknown'}</span>
         ${r.retried ? '<span style="color:var(--warning);font-size:0.7rem;margin-left:0.3rem;">重試</span>' : ''}
@@ -2054,7 +2148,7 @@ function showAgentDetail(agentId) {
 
   if (relatedTimeline.length > 0) {
     html += `<div class="si-section"><div class="si-section-title">📅 相關時間軸事件 (${relatedTimeline.length})</div>` +
-      relatedTimeline.map(e => `<div style="font-size:0.8rem;padding:0.35rem 0;border-bottom:1px solid var(--border);">
+      relatedTimeline.map(e => `<div style="font-size:0.8rem;padding:0.3rem 0;border-bottom:1px solid var(--border);">
         <span class="badge" style="background:var(--bg-input);margin-right:0.3rem;">${e.type}</span>
         <span style="color:var(--text-secondary);">${e.summary || e.description || 'N/A'}</span>
         ${e.timestamp ? `<span style="color:var(--text-muted);margin-left:auto;font-size:0.75rem;">${new Date(e.timestamp).toLocaleString()}</span>` : ''}
@@ -2065,7 +2159,7 @@ function showAgentDetail(agentId) {
   const incidentSummary = incident_summary;
   if (incidentSummary && (incidentSummary.includes(agent.skill) || incidentSummary.includes(agent.name))) {
     html += `<div class="si-section"><div class="si-section-title">🚨 事故報告摘要</div>
-      <div style="font-size:0.8rem;color:var(--text-secondary);padding:0.35rem 0;">${incidentSummary}</div>
+      <div style="font-size:0.8rem;color:var(--text-secondary);padding:0.3rem 0;">${incidentSummary}</div>
     </div>`;
   }
 
@@ -2074,7 +2168,7 @@ function showAgentDetail(agentId) {
   inspector.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-// Timeline View
+// Timeline View// Timeline View
 async function loadTimeline() {
   const content = document.getElementById('timeline-content');
   const summaryDiv = document.getElementById('timeline-summary');
