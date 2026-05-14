@@ -47,6 +47,7 @@ class SceneViewHTMLTest(unittest.TestCase):
         """Scene workspace must include thread and node context surfaces."""
         self.assertIn('id="scene-thread"', self.html)
         self.assertIn('id="scene-context-panel"', self.html)
+        self.assertIn('id="scene-workspace-status"', self.html)
         self.assertIn("協作工作台", self.html)
 
     def test_contains_agent_catalog(self):
@@ -78,6 +79,7 @@ class SceneViewHTMLTest(unittest.TestCase):
         """Scene workspace must support local query execution and focus handoff."""
         self.assertIn("executeSceneWorkspaceQuery", self.html)
         self.assertIn("renderSceneWorkspaceThread", self.html)
+        self.assertIn("renderSceneWorkspaceStatus", self.html)
         self.assertIn("focusSceneAgentFromResponse", self.html)
 
     def test_contains_agent_node_css(self):
