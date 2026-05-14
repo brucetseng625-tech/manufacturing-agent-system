@@ -1260,7 +1260,7 @@ class AgentHandler(BaseHTTPRequestHandler):
         if any(content_lower.startswith(prefix) for prefix in approval_prefixes):
             result = handle_discord_approval_command({"author_id": author_id, "content": content})
             if result["status"] == "error":
-                self._send_json_response(403, "discord_blocked", result["message"])
+                self._send_json_response(403, {"status": "error", "error": "discord_blocked", "message": result["message"]})
             else:
                 self._send_json_response(200, {"status": "ok", "reply": result["message"]})
             return
@@ -1269,7 +1269,7 @@ class AgentHandler(BaseHTTPRequestHandler):
         result = handle_discord_message({"author_id": author_id, "content": content})
 
         if result["status"] == "error":
-            self._send_json_response(403, "discord_blocked", result["message"])
+            self._send_json_response(403, {"status": "error", "error": "discord_blocked", "message": result["message"]})
         else:
             self._send_json_response(200, {"status": "ok", "reply": result["message"]})
 
