@@ -237,13 +237,13 @@ body {
 
 /* Scene Header */
 .scene-header {
-  margin-bottom: 0.4rem; padding: 0.5rem 1rem;
+  margin-bottom: 0.45rem; padding: 0.6rem 1rem 0.55rem;
   background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(16,185,129,0.04) 100%);
   border: 1px solid var(--border); border-radius: 10px;
   display: flex; justify-content: space-between; align-items: center;
 }
-.scene-header .sh-title { font-size: 1rem; font-weight: 700; color: var(--accent-light); }
-.scene-header .sh-desc { font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.1rem; }
+.scene-header .sh-title { font-size: 1.05rem; font-weight: 800; color: #c7d2fe; letter-spacing: 0.01em; }
+.scene-header .sh-desc { font-size: 0.74rem; color: var(--text-secondary); margin-top: 0.14rem; }
 .scene-header .sh-badge {
   font-size: 0.65rem; padding: 0.18rem 0.5rem;
   background: rgba(99,102,241,0.2); color: #a5b4fc; border-radius: 8px;
@@ -252,9 +252,9 @@ body {
 
 /* Scene Container — compact, first-screen */
 .scene-container {
-  position: relative; min-height: 420px; padding: 0.75rem 1rem;
+  position: relative; min-height: 430px; padding: 0.8rem 1rem 0.9rem;
   background:
-    radial-gradient(ellipse 70% 50% at 50% 15%, rgba(99,102,241,0.05) 0%, transparent 70%),
+    radial-gradient(ellipse 70% 52% at 50% 14%, rgba(99,102,241,0.07) 0%, transparent 72%),
     linear-gradient(180deg, #0b0f1e 0%, #0d1117 50%, #111827 100%);
   border: 1px solid var(--border); border-radius: 14px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 6px 24px rgba(0,0,0,0.4);
@@ -272,43 +272,39 @@ body {
   background: linear-gradient(180deg, transparent, rgba(0,0,0,0.2));
   pointer-events: none;
 }
+.scene-container .scene-floor::after {
+  content: ''; position: absolute; inset: 7% 5% auto; height: 68%;
+  background: linear-gradient(180deg, rgba(99,102,241,0.025), transparent 32%);
+  clip-path: polygon(5% 0%, 95% 0%, 100% 100%, 0% 100%);
+  opacity: 0.8; pointer-events: none;
+}
 
 .scene-container .scene-zone {
-  position: relative; z-index: 1;
+  position: relative; z-index: 2;
 }
 
-/* ── Main Stage: Orchestrator top, 4 zones in single row below ── */
+/* ── Main Stage: command center + lower ops split ── */
 .scene-stage {
-  display: grid;
-  grid-template-columns: 1.3fr 1fr 1fr 1fr;
-  grid-template-rows: auto auto;
-  gap: 0.45rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
   padding: 0.2rem 0;
 }
-.zone-orchestrator-stage {
-  grid-column: 1 / -1;
-  grid-row: 1;
+.scene-lower-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.35fr) minmax(240px, 1.08fr);
+  gap: 0.55rem;
+  align-items: stretch;
 }
-.zone-risk-stage {
-  grid-column: 1;
-  grid-row: 2;
-}
-.zone-production-stage {
-  grid-column: 2;
-  grid-row: 2;
-}
-.zone-commercial-stage {
-  grid-column: 3;
-  grid-row: 2;
-}
-.zone-comm-stage {
-  grid-column: 4;
-  grid-row: 2;
+.scene-side-stack {
+  display: grid;
+  grid-template-rows: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 0.5rem;
 }
 
 /* ── Zone Cards — workbench platforms with 2.5D depth ── */
 .zone-card {
-  position: relative; padding: 0.75rem 1rem;
+  position: relative; padding: 0.72rem 0.9rem 0.78rem;
   background: rgba(18,24,42,0.88); backdrop-filter: blur(3px);
   border: 1px solid rgba(42,42,74,0.35); border-radius: 12px;
   border-left: 3px solid var(--border);
@@ -327,7 +323,7 @@ body {
 }
 .zone-card:hover {
   border-color: rgba(99,102,241,0.35);
-  box-shadow: 0 4px 16px rgba(99,102,241,0.1);
+  box-shadow: 0 6px 18px rgba(99,102,241,0.12);
 }
 
 /* Zone color themes */
@@ -366,30 +362,64 @@ body {
 /* Zone subtitle */
 .zone-subtitle {
   font-size: 0.65rem; color: var(--text-muted); margin-bottom: 0.35rem;
-  padding: 0.15rem 0.35rem;
+  padding: 0.15rem 0.38rem;
   background: rgba(0,0,0,0.12); border-radius: 3px;
   display: inline-block;
 }
 
-/* ── Orchestrator Command Center — compact horizontal ── */
+/* ── Orchestrator Command Center ── */
 .orchestrator-dashboard {
   display: grid;
-  grid-template-columns: 110px 1fr;
-  gap: 0.4rem;
+  grid-template-columns: 150px minmax(0, 1.3fr) 215px;
+  gap: 0.55rem;
   margin-top: 0.2rem;
+  align-items: stretch;
 }
 .orchestrator-main-node {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 0.75rem;
+  padding: 0.85rem 0.8rem;
   background: rgba(99,102,241,0.08); border-radius: 10px;
   border: 1px solid rgba(99,102,241,0.2);
+  min-height: 132px;
+}
+.orchestrator-briefing {
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 0.72rem 0.78rem;
+  border-radius: 10px;
+  background:
+    linear-gradient(150deg, rgba(99,102,241,0.08), rgba(17,24,39,0.84)),
+    rgba(15,23,42,0.82);
+  border: 1px solid rgba(99,102,241,0.12);
+  min-height: 132px;
+}
+.orchestrator-briefing .ob-label {
+  font-size: 0.62rem; color: #93c5fd; letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+.orchestrator-briefing .ob-title {
+  font-size: 0.95rem; font-weight: 700; color: #eef2ff; line-height: 1.2;
+}
+.orchestrator-briefing .ob-desc {
+  font-size: 0.72rem; color: var(--text-secondary); line-height: 1.45; margin-top: 0.25rem;
+}
+.orchestrator-route-strip {
+  display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.45rem;
+}
+.orchestrator-route-chip {
+  font-size: 0.62rem; padding: 0.18rem 0.42rem;
+  border-radius: 999px;
+  background: rgba(99,102,241,0.12);
+  color: #c7d2fe;
+  border: 1px solid rgba(99,102,241,0.16);
 }
 .orchestrator-status-row {
-  display: flex; flex-direction: column; gap: 0.35rem;
+  display: flex; flex-direction: column; gap: 0.42rem;
+  justify-content: center;
+  padding: 0.45rem 0.2rem 0.25rem 0.35rem;
 }
 .orch-status-item {
   display: flex; align-items: center; gap: 0.4rem;
-  font-size: 0.6rem; padding: 0.12rem 0.25rem;
+  font-size: 0.63rem; padding: 0.2rem 0.28rem;
   background: rgba(0,0,0,0.12); border-radius: 4px;
 }
 .orch-status-item .orch-dot {
@@ -401,14 +431,14 @@ body {
 
 /* ── Agent Row — compact ── */
 .agent-row {
-  display: flex; gap: 0.45rem; flex-wrap: wrap; justify-content: flex-start;
+  display: flex; gap: 0.48rem; flex-wrap: wrap; justify-content: flex-start;
   align-items: flex-start;
 }
 
 /* ── Agent Nodes ── */
 .agent-node {
   position: relative; display: flex; flex-direction: column; align-items: center;
-  width: 95px; padding: 0.5rem 0.35rem 0.45rem;
+  width: 108px; padding: 0.55rem 0.4rem 0.5rem;
   background: linear-gradient(165deg, rgba(30,30,58,0.95) 0%, rgba(18,24,42,0.98) 100%);
   border: 1px solid rgba(42,42,74,0.35); border-radius: 10px; cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-align: center;
@@ -421,7 +451,7 @@ body {
   z-index: -1; filter: blur(1px);
 }
 .agent-node:hover {
-  border-color: var(--accent-light); transform: translateY(-2px);
+  border-color: var(--accent-light); transform: translateY(-3px);
   box-shadow: 0 6px 18px rgba(99,102,241,0.2);
 }
 .agent-node.selected {
@@ -431,14 +461,14 @@ body {
 }
 
 .agent-node .agent-icon {
-  width: 34px; height: 34px; border-radius: 12px;
+  width: 42px; height: 42px; border-radius: 14px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.4rem; margin-bottom: 0.35rem;
+  font-size: 1.55rem; margin-bottom: 0.38rem;
   background: rgba(30,30,58,0.8); border: 1px solid rgba(42,42,74,0.3);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 2px 6px rgba(0,0,0,0.25);
 }
-.agent-node .agent-name { font-size: 0.72rem; font-weight: 600; margin-bottom: 0.2rem; color: var(--text-primary); line-height: 1.15; }
-.agent-node .agent-role { font-size: 0.58rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+.agent-node .agent-name { font-size: 0.77rem; font-weight: 700; margin-bottom: 0.2rem; color: var(--text-primary); line-height: 1.15; }
+.agent-node .agent-role { font-size: 0.6rem; color: var(--text-muted); margin-bottom: 0.28rem; }
 .agent-node .agent-status { font-size: 0.62rem; padding: 0.15rem 0.4rem; border-radius: 5px; font-weight: 500; }
 
 /* Status badges */
@@ -450,17 +480,18 @@ body {
 
 /* Orchestrator main node — largest, brightest */
 .agent-node.orchestrator {
-  width: 100px; padding: 0.55rem 0.4rem 0.5rem;
+  width: 118px; padding: 0.68rem 0.45rem 0.55rem;
   border-color: rgba(99,102,241,0.3);
   background: linear-gradient(165deg, rgba(99,102,241,0.12) 0%, rgba(18,24,42,0.98) 100%);
-  box-shadow: 0 3px 16px rgba(99,102,241,0.15), inset 0 1px 0 rgba(255,255,255,0.06);
+  box-shadow: 0 8px 24px rgba(99,102,241,0.16), inset 0 1px 0 rgba(255,255,255,0.06);
 }
 .agent-node.orchestrator .agent-icon {
-  width: 40px; height: 40px; font-size: 1.6rem;
+  width: 50px; height: 50px; font-size: 1.85rem;
   background: rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.25);
-  box-shadow: 0 0 12px rgba(99,102,241,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
+  box-shadow: 0 0 18px rgba(99,102,241,0.18), inset 0 1px 0 rgba(255,255,255,0.08);
 }
-.agent-node.orchestrator .agent-name { font-size: 0.78rem; }
+.agent-node.orchestrator .agent-name { font-size: 0.92rem; }
+.agent-node.orchestrator .agent-role { font-size: 0.64rem; }
 
 /* Pulse */
 .agent-node .agent-pulse {
@@ -489,34 +520,34 @@ body {
 .event-badge.evt-receipt { background: rgba(59,130,246,0.1); color: #93c5fd; border-color: rgba(59,130,246,0.18); }
 .event-badge.evt-alert { background: rgba(245,158,11,0.1); color: #fcd34d; border-color: rgba(245,158,11,0.18); }
 
-/* Scene legend — compact */
+/* Scene legend — compact top ribbon */
 .scene-legend {
-  margin-top: 0.5rem; padding: 0.45rem 0.65rem;
+  margin: 0 0 0.2rem; padding: 0.35rem 0.55rem;
   background: rgba(11,15,30,0.7); border: 1px solid rgba(42,42,74,0.3);
   border-radius: 8px; backdrop-filter: blur(4px);
 }
-.scene-legend .legend-title { font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.35rem; }
-.scene-legend .legend-section { font-size: 0.62rem; color: var(--text-muted); margin: 0.35rem 0 0.2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+.scene-legend .legend-title { font-size: 0.68rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.22rem; }
+.scene-legend .legend-section { font-size: 0.58rem; color: var(--text-muted); margin: 0.25rem 0 0.15rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
 .scene-legend .legend-row { display: flex; flex-wrap: wrap; gap: 0.6rem; }
-.scene-legend .legend-item { display: flex; align-items: center; gap: 0.3rem; font-size: 0.65rem; color: var(--text-muted); }
+.scene-legend .legend-item { display: flex; align-items: center; gap: 0.3rem; font-size: 0.6rem; color: var(--text-muted); }
 .scene-legend .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.06); }
 
 /* ── SVG Task Flow ── */
 .scene-taskflow {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  z-index: 2; pointer-events: none;
+  z-index: 1; pointer-events: none;
 }
 .scene-taskflow path { fill: none; stroke-width: 2; stroke-linecap: round; }
 .taskflow-path-idle { stroke: rgba(107,114,128,0.1); stroke-dasharray: 4 6; }
 .taskflow-path-recent {
-  stroke: rgba(99,102,241,0.25); stroke-dasharray: 6 4;
+  stroke: rgba(99,102,241,0.22); stroke-dasharray: 6 4;
   animation: flow-recent 2s linear infinite;
 }
 .taskflow-path-active {
-  stroke: rgba(16,185,129,0.5); stroke-width: 2.5;
+  stroke: rgba(16,185,129,0.42); stroke-width: 2.4;
   stroke-dasharray: 8 4;
   animation: flow-active 1.5s linear infinite;
-  filter: drop-shadow(0 0 3px rgba(16,185,129,0.3));
+  filter: drop-shadow(0 0 2px rgba(16,185,129,0.24));
 }
 @keyframes flow-recent { from { stroke-dashoffset: 20; } to { stroke-dashoffset: 0; } }
 @keyframes flow-active { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
@@ -545,6 +576,33 @@ body {
 .scene-inspector .si-field { font-size: 0.78rem; }
 .scene-inspector .si-field-label { color: var(--text-muted); margin-bottom: 0.1rem; }
 .scene-inspector .si-field-value { color: var(--text-primary); }
+
+.zone-commercial-stage .agent-row,
+.zone-comm-stage .agent-row {
+  gap: 0.38rem;
+}
+
+.zone-commercial-stage .agent-node,
+.zone-comm-stage .agent-node {
+  width: 100%;
+  max-width: none;
+}
+
+.zone-commercial-stage .agent-icon,
+.zone-comm-stage .agent-icon {
+  width: 38px;
+  height: 38px;
+  font-size: 1.4rem;
+}
+
+.zone-comm-stage .agent-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.zone-comm-stage .agent-row .agent-node:last-child {
+  grid-column: 1 / -1;
+}
 
 .si-section { margin-top: 0.65rem; padding-top: 0.65rem; border-top: 1px solid rgba(42,42,74,0.35); }
 .si-section-title { font-size: 0.72rem; font-weight: 700; color: var(--accent-light); margin-bottom: 0.3rem; }
@@ -1649,7 +1707,7 @@ async function renderScene() {
   ]);
 
   const skillsData = skillsRes && skillsRes.ok ? await skillsRes.json() : { items: [] };
-  const approvalsData = approvalsRes && approvalsRes.ok ? await approvalsData.json() : { items: [] };
+  const approvalsData = approvalsRes && approvalsRes.ok ? await approvalsRes.json() : { items: [] };
   const historyData = historyRes && historyRes.ok ? await historyRes.json() : { runs: [] };
   const guardrailsData = guardrailsRes && guardrailsRes.ok ? await guardrailsRes.json() : { enabled: false, operations: {} };
   const incidentData = incidentRes && incidentRes.ok ? await incidentRes.json() : {};
@@ -1739,7 +1797,14 @@ async function renderScene() {
     return relevantSkills.some(s => recentSkills.includes(s));
   }).length;
 
-  // Build HTML — compact 2-row grid layout
+  const routeSummaryChips = [
+    { label: '風險評估', state: runningCount > 0 ? 'active' : 'idle' },
+    { label: '生產計畫', state: recentSkills.some(s => ['schedule-conflict-check', 'capacity-rebalance', 'material-shortage-recovery'].includes(s)) ? 'active' : 'idle' },
+    { label: '商務分析', state: recentSkills.includes('quote-comparison-summary') ? 'active' : 'idle' },
+    { label: '通訊協調', state: recentSkills.some(s => ['sales-response-draft', 'internal-action-summary', 'supplier-followup-draft'].includes(s)) ? 'active' : 'idle' },
+  ];
+
+  // Build HTML — command center layout
   let html = `
     <div class="scene-header">
       <div>
@@ -1749,13 +1814,24 @@ async function renderScene() {
       <span class="sh-badge">🔒 Read-Only</span>
     </div>`;
 
-  html += '<div class="scene-stage">';
+  html += `
+    <div class="scene-legend">
+      <div class="legend-title">📖 狀態與事件說明</div>
+      <div class="legend-row">
+        <div class="legend-item"><span class="legend-dot" style="background:var(--text-muted);"></span>待機</div>
+        <div class="legend-item"><span class="legend-dot" style="background:var(--success);"></span>執行中</div>
+        <div class="legend-item"><span class="legend-dot" style="background:var(--warning);"></span>待審批</div>
+        <div class="legend-item"><span class="legend-dot" style="background:var(--error);"></span>已阻擋</div>
+        <div class="legend-item"><svg width="20" height="6"><line x1="0" y1="3" x2="20" y2="3" stroke="rgba(16,185,129,0.42)" stroke-width="2.4" stroke-dasharray="8 4"/></svg>主線流向</div>
+        <div class="legend-item"><svg width="20" height="6"><line x1="0" y1="3" x2="20" y2="3" stroke="rgba(99,102,241,0.22)" stroke-width="2" stroke-dasharray="6 4"/></svg>最近活動</div>
+        <div class="legend-item"><svg width="20" height="6"><line x1="0" y1="3" x2="20" y2="3" stroke="rgba(107,114,128,0.15)" stroke-width="2" stroke-dasharray="4 6"/></svg>待命路徑</div>
+      </div>
+    </div>`;
 
-  // Zone order for grid layout
-  const zoneOrder = ['orchestrator', 'risk', 'production', 'commercial', 'comm'];
-  for (const zoneId of zoneOrder) {
+  html += '<div class="scene-stage">';
+  const renderZoneCard = function(zoneId) {
     const agents = zones[zoneId];
-    if (!agents) continue;
+    if (!agents) return '';
     const zc = ZONE_CONFIG[zoneId];
     const zoneDesc = {
       orchestrator: '任務路由與團隊調度中樞',
@@ -1765,7 +1841,7 @@ async function renderScene() {
       comm: '客戶、供應商與內部溝通',
     }[zoneId] || '';
 
-    html += `<div class="zone-card zone-${zoneId} ${zc.stageClass}">
+    let zoneHtml = `<div class="zone-card zone-${zoneId} ${zc.stageClass}">
       <div class="zone-card-header">
         <span class="zc-icon">${zc.label.split(' ')[0]}</span>
         <span class="zc-label">${zc.label.split(' ').slice(1).join(' ')}</span>
@@ -1774,20 +1850,30 @@ async function renderScene() {
 
     // Orchestrator special layout — command center with dashboard
     if (zoneId === 'orchestrator') {
-      html += `<div class="orchestrator-dashboard">
+      zoneHtml += `<div class="orchestrator-dashboard">
         <div class="orchestrator-main-node">`;
 
       const orch = agents[0];
       const st = agentStates[orch.id];
       const pulseClass = st.status === 'running' ? 'pulse-running' : st.status === 'blocked' ? 'pulse-blocked' : st.status === 'approval' ? 'pulse-approval' : '';
 
-      html += `<div class="agent-node orchestrator" data-agent="${orch.id}" onclick="showAgentDetail('${orch.id}')">
+      zoneHtml += `<div class="agent-node orchestrator" data-agent="${orch.id}" onclick="showAgentDetail('${orch.id}')">
           <div class="agent-icon" style="background:${orch.bg};">${orch.icon}</div>
           <div class="agent-name">${orch.name}</div>
           <div class="agent-role">${orch.role}</div>
           <div class="agent-status status-${st.status}">${statusLabel(st.status)}</div>
           ${pulseClass ? `<div class="agent-pulse ${pulseClass}"></div>` : ''}
         </div>
+        </div>
+        <div class="orchestrator-briefing">
+          <div>
+            <div class="ob-label">Control Room</div>
+            <div class="ob-title">主控節點持續監看風險、排程、商務與協調四條主線</div>
+            <div class="ob-desc">所有派工與回傳都先經過主控整理，再分流到各職能工作站。當前畫面維持唯讀，只負責協作可視化與狀態判讀。</div>
+          </div>
+          <div class="orchestrator-route-strip">
+            ${routeSummaryChips.map(chip => `<span class="orchestrator-route-chip">${chip.state === 'active' ? '●' : '○'} ${chip.label}</span>`).join('')}
+          </div>
         </div>
         <div class="orchestrator-status-row">
           <div class="orch-status-item">
@@ -1819,7 +1905,7 @@ async function renderScene() {
       </div>`;
     } else {
       // Regular zone layout
-      html += `<div class="zone-subtitle">${zc.subtitle}</div>
+      zoneHtml += `<div class="zone-subtitle">${zc.subtitle}</div>
       <div class="agent-row">`;
 
       for (const agent of agents) {
@@ -1831,7 +1917,7 @@ async function renderScene() {
           badgesHtml = '<div class="agent-event-badges">' + st.events.map(e => `<span class="event-badge evt-${e.type}">${e.label}</span>`).join('') + '</div>';
         }
 
-        html += `<div class="agent-node" data-agent="${agent.id}" onclick="showAgentDetail('${agent.id}')">
+        zoneHtml += `<div class="agent-node" data-agent="${agent.id}" onclick="showAgentDetail('${agent.id}')">
           <div class="agent-icon" style="background:${agent.bg};">${agent.icon}</div>
           <div class="agent-name">${agent.name}</div>
           <div class="agent-role">${agent.role}</div>
@@ -1840,35 +1926,21 @@ async function renderScene() {
           ${pulseClass ? `<div class="agent-pulse ${pulseClass}"></div>` : ''}
         </div>`;
       }
-      html += '</div>';
+      zoneHtml += '</div>';
     }
 
-    html += '</div>'; // end zone-card
-  }
+    zoneHtml += '</div>';
+    return zoneHtml;
+  };
 
-  html += '</div>'; // end scene-stage
-
-  // Scene legend — compact
-  html += `
-    <div class="scene-legend">
-      <div class="legend-title">📖 狀態與事件說明</div>
-      <div class="legend-row">
-        <div class="legend-item"><span class="legend-dot" style="background:var(--text-muted);"></span>待機</div>
-        <div class="legend-item"><span class="legend-dot" style="background:var(--success);"></span>執行中</div>
-        <div class="legend-item"><span class="legend-dot" style="background:var(--warning);"></span>待審批</div>
-        <div class="legend-item"><span class="legend-dot" style="background:var(--error);"></span>已阻擋</div>
-        <div class="legend-item"><span class="event-badge evt-approval">待審批</span></div>
-        <div class="legend-item"><span class="event-badge evt-blocked">受阻</span></div>
-        <div class="legend-item"><span class="event-badge evt-receipt">執行紀錄</span></div>
-        <div class="legend-item"><span class="event-badge evt-alert">警報</span></div>
-      </div>
-      <div class="legend-section">任務流向</div>
-      <div class="legend-row">
-        <div class="legend-item"><svg width="20" height="6"><line x1="0" y1="3" x2="20" y2="3" stroke="rgba(16,185,129,0.5)" stroke-width="2.5" stroke-dasharray="8 4"/></svg>主線流向</div>
-        <div class="legend-item"><svg width="20" height="6"><line x1="0" y1="3" x2="20" y2="3" stroke="rgba(99,102,241,0.3)" stroke-width="2" stroke-dasharray="6 4"/></svg>最近活動</div>
-        <div class="legend-item"><svg width="20" height="6"><line x1="0" y1="3" x2="20" y2="3" stroke="rgba(107,114,128,0.15)" stroke-width="2" stroke-dasharray="4 6"/></svg>待命路徑</div>
-      </div>
-    </div>`;
+  html += renderZoneCard('orchestrator');
+  html += '<div class="scene-lower-stage">';
+  html += renderZoneCard('risk');
+  html += renderZoneCard('production');
+  html += '<div class="scene-side-stack">';
+  html += renderZoneCard('commercial');
+  html += renderZoneCard('comm');
+  html += '</div></div></div>';
 
   content.innerHTML = html;
 
@@ -1935,7 +2007,7 @@ function renderTaskFlowPaths(historyData, alertsData, approvalsData) {
   errorSkills.forEach(function(s) { var z = SKILL_TO_ZONE[s]; if (z && !activeZones[z]) activeZones[z] = 'recent'; });
   if (!activeZones['orchestrator']) activeZones['orchestrator'] = 'recent';
 
-  // Build zone center positions
+  // Build zone positions
   var zonePositions = {};
   TASK_FLOW_ROUTES.forEach(function(route) {
     ['from', 'to'].forEach(function(prop) {
@@ -1949,9 +2021,9 @@ function renderTaskFlowPaths(historyData, alertsData, approvalsData) {
             y: rect.top - containerRect.top + rect.height / 2,
             w: rect.width, h: rect.height,
             top: rect.top - containerRect.top,
-            bottom: rect.bottom - containerRect.bottom,
+            bottom: rect.bottom - containerRect.top,
             left: rect.left - containerRect.left,
-            right: rect.right - containerRect.right,
+            right: rect.right - containerRect.left,
           };
         }
       }
@@ -1986,27 +2058,65 @@ function renderTaskFlowPaths(historyData, alertsData, approvalsData) {
 
     var state = getRouteState(route);
 
-    // Compute curved path: from bottom of source to top of target (or side for adjacent)
+    // Compute curved path: prefer gutters and zone edges, not content centers
     var x1, y1, x2, y2, cp1x, cp1y, cp2x, cp2y;
 
-    if (Math.abs(fromPos.x - toPos.x) < 100) {
-      // Vertical: bottom of from to top of to
-      x1 = fromPos.x; y1 = fromPos.top + fromPos.h * 0.85;
-      x2 = toPos.x; y2 = toPos.top + toPos.h * 0.15;
-      var midY = (y1 + y2) / 2;
-      cp1x = x1; cp1y = midY; cp2x = x2; cp2y = midY;
-    } else if (toPos.x > fromPos.x) {
-      // Source is to the left: connect right of source to left of target
-      x1 = fromPos.right - fromPos.w * 0.15; y1 = fromPos.top + fromPos.h * 0.5;
-      x2 = toPos.left + toPos.w * 0.15; y2 = toPos.top + toPos.h * 0.5;
-      var midX = (x1 + x2) / 2;
-      cp1x = midX; cp1y = y1; cp2x = midX; cp2y = y2;
+    if (route.from === 'orchestrator') {
+      var outletMap = {
+        risk: 0.16,
+        production: 0.42,
+        commercial: 0.68,
+        comm: 0.88,
+      };
+      x1 = fromPos.left + fromPos.w * (outletMap[route.to] || 0.5);
+      y1 = fromPos.bottom - 10;
+      x2 = toPos.left + toPos.w * 0.5;
+      y2 = toPos.top + 10;
+      var laneY = y1 + Math.max(14, (y2 - y1) * 0.35);
+      cp1x = x1;
+      cp1y = laneY;
+      cp2x = x2;
+      cp2y = laneY;
+    } else if (route.from === 'risk' && route.to === 'production') {
+      x1 = fromPos.right - 8;
+      y1 = fromPos.top + fromPos.h * 0.38;
+      x2 = toPos.left + 8;
+      y2 = toPos.top + toPos.h * 0.35;
+      var gutterX = (x1 + x2) / 2;
+      cp1x = gutterX;
+      cp1y = y1 - 18;
+      cp2x = gutterX;
+      cp2y = y2 - 18;
+    } else if (route.from === 'production' && route.to === 'commercial') {
+      x1 = fromPos.right - 8;
+      y1 = fromPos.top + fromPos.h * 0.3;
+      x2 = toPos.left + 8;
+      y2 = toPos.top + toPos.h * 0.45;
+      var handoffX = (x1 + x2) / 2;
+      cp1x = handoffX;
+      cp1y = y1 - 10;
+      cp2x = handoffX;
+      cp2y = y2 - 10;
+    } else if (route.from === 'commercial' && route.to === 'comm') {
+      x1 = fromPos.x;
+      y1 = fromPos.bottom - 8;
+      x2 = toPos.x;
+      y2 = toPos.top + 8;
+      var stackY = (y1 + y2) / 2;
+      cp1x = x1;
+      cp1y = stackY;
+      cp2x = x2;
+      cp2y = stackY;
     } else {
-      // Source is to the right
-      x1 = fromPos.left + fromPos.w * 0.15; y1 = fromPos.top + fromPos.h * 0.5;
-      x2 = toPos.right - toPos.w * 0.15; y2 = toPos.top + toPos.h * 0.5;
-      var midX = (x1 + x2) / 2;
-      cp1x = midX; cp1y = y1; cp2x = midX; cp2y = y2;
+      x1 = fromPos.x;
+      y1 = fromPos.bottom - 8;
+      x2 = toPos.x;
+      y2 = toPos.top + 8;
+      var midY = (y1 + y2) / 2;
+      cp1x = x1;
+      cp1y = midY;
+      cp2x = x2;
+      cp2y = midY;
     }
 
     var d = 'M' + x1 + ' ' + y1 + ' C' + cp1x + ' ' + cp1y + ',' + cp2x + ' ' + cp2y + ',' + x2 + ' ' + y2;
@@ -2022,10 +2132,6 @@ function renderTaskFlowPaths(historyData, alertsData, approvalsData) {
   });
 
   svg.innerHTML = '<defs><filter id="glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>' + pathsHtml + dotHtml;
-}
-
-function statusLabel(s) {
-  return { idle: '待機', running: '執行中', blocked: '已阻擋', approval: '待審批', incident: '事故中' }[s] || s;
 }
 
 function statusLabel(s) {
