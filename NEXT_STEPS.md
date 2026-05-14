@@ -778,3 +778,9 @@ Requirements:
 - Update README and NEXT_STEPS.md if needed
 - Run tests and report results
 ```
+
+
+### Lightweight Workspace Integration (completed)
+- Added `sheets` data source mode backed by `GoogleSheetsProvider` for Google Sheets CSV exports.
+- Main workspace now supports `ERP 整合版` vs `輕量版（Sheets / LINE）` mode switching.
+- Lightweight mode routes workspace queries through the `sheets` provider without changing the scene or governance surfaces.

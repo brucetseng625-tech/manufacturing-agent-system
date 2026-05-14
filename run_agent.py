@@ -476,7 +476,7 @@ def print_supplier_followup_report(result):
 def main():
     parser = argparse.ArgumentParser(description="Manufacturing Agent CLI")
     parser.add_argument("--data-dir", default=None, help="Path to data directory (default: config runtime.default_data_dir)")
-    parser.add_argument("--data-source", default=get_config_value("runtime.default_data_source", "local"), choices=["local", "live", "auto"],
+    parser.add_argument("--data-source", default=get_config_value("runtime.default_data_source", "local"), choices=["local", "live", "auto", "sheets"],
                         help="Data source mode: local (files), live (MCP/ERP), auto (live with fallback)")
     parser.add_argument("--asana-task", default=None, help="Asana Task GID to post result comment")
     parser.add_argument("--history", action="store_true", help="Query run history instead of executing a new query")

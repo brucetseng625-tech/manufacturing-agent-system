@@ -28,6 +28,7 @@ class ConfigDefaultsTest(unittest.TestCase):
     def test_default_values(self):
         self.assertEqual(DEFAULT_CONFIG["server"]["port"], 8000)
         self.assertEqual(DEFAULT_CONFIG["runtime"]["default_data_source"], "local")
+        self.assertEqual(DEFAULT_CONFIG["runtime"]["workspace_mode"], "erp")
         self.assertEqual(DEFAULT_CONFIG["runtime"]["history_last"], 10)
 
 
@@ -111,3 +112,10 @@ class ConfigAccessTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ConfigSheetsModeTest(unittest.TestCase):
+    def test_validate_accepts_sheets_mode(self):
+        from config import validate_config
+        cfg = {"runtime": {"default_data_source": "sheets", "history_last": 10, "metrics_window_hours": 24}, "server": {"port": 8000}}
+        self.assertTrue(validate_config(cfg))

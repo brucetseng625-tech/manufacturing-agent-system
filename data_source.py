@@ -2,6 +2,7 @@
 import json
 import os
 import csv
+import io
 import time
 import threading
 from abc import ABC, abstractmethod
@@ -203,6 +204,29 @@ class LocalFileProvider(DataProvider):
 
     mode = "local"
 
+    @staticmethod
+    def _coerce_row_types(row):
+        row = dict(row)
+        if "quantity" in row and row["quantity"] not in (None, ""):
+            row["quantity"] = int(row["quantity"])
+        if "progress_percent" in row and row["progress_percent"] not in (None, ""):
+            row["progress_percent"] = int(row["progress_percent"])
+        if "required_qty" in row and row["required_qty"] not in (None, ""):
+            row["required_qty"] = int(row["required_qty"])
+        if "available_qty" in row and row["available_qty"] not in (None, ""):
+            row["available_qty"] = int(row["available_qty"])
+        if "load_percent" in row and row["load_percent"] not in (None, ""):
+            row["load_percent"] = int(row["load_percent"])
+        if "unit_price" in row and row["unit_price"] not in (None, ""):
+            row["unit_price"] = float(row["unit_price"])
+        if "lead_time_days" in row and row["lead_time_days"] not in (None, ""):
+            row["lead_time_days"] = int(row["lead_time_days"])
+        if "moq" in row and row["moq"] not in (None, ""):
+            row["moq"] = int(row["moq"])
+        if "quality_rating" in row and row["quality_rating"] not in (None, ""):
+            row["quality_rating"] = float(row["quality_rating"])
+        return row
+
     def name(self) -> str:
         return "local"
 
@@ -267,26 +291,7 @@ class LocalFileProvider(DataProvider):
             with open(csv_path, "r", encoding="utf-8") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    # Basic type conversion for common fields
-                    if "quantity" in row:
-                        row["quantity"] = int(row["quantity"])
-                    if "progress_percent" in row:
-                        row["progress_percent"] = int(row["progress_percent"])
-                    if "required_qty" in row:
-                        row["required_qty"] = int(row["required_qty"])
-                    if "available_qty" in row:
-                        row["available_qty"] = int(row["available_qty"])
-                    if "load_percent" in row:
-                        row["load_percent"] = int(row["load_percent"])
-                    if "unit_price" in row:
-                        row["unit_price"] = float(row["unit_price"])
-                    if "lead_time_days" in row:
-                        row["lead_time_days"] = int(row["lead_time_days"])
-                    if "moq" in row:
-                        row["moq"] = int(row["moq"])
-                    if "quality_rating" in row:
-                        row["quality_rating"] = float(row["quality_rating"])
-                    data.append(row)
+                    data.append(self._coerce_row_types(row))
             return data
 
         return []
@@ -304,6 +309,144 @@ class LocalFileProvider(DataProvider):
             "active_path": "local",
             "reason": "",
             "live_readiness": None,
+            "fallback_readiness": None,
+            "recommendations": [],
+        }
+
+
+class GoogleSheetsProvider(DataProvider):
+    """Read-only provider backed by Google Sheets CSV exports for lightweight mode."""
+
+    mode = "sheets"
+
+    def __init__(self, timeout=None, datasets=None):
+        self._timeout = timeout or 10
+        self._datasets = datasets or {}
+
+    @staticmethod
+    def _from_config():
+        datasets = get_config_value("google_sheets.datasets", {}) or {}
+        timeout = get_config_value("google_sheets.timeout_seconds", 10)
+        enabled = get_config_value("google_sheets.enabled", False)
+        if not enabled:
+            return None
+        return GoogleSheetsProvider(timeout=timeout, datasets=datasets)
+
+    def name(self) -> str:
+        return "google_sheets"
+
+    def capabilities(self) -> list:
+        return [
+            ProviderCapability.READ.value,
+            ProviderCapability.HEALTH_CHECK.value,
+        ]
+
+    def _is_enabled(self) -> bool:
+        return bool(get_config_value("google_sheets.enabled", False)) and bool(get_config_value("rollout.sheets.enabled", True))
+
+    def _dataset_config(self, base_name: str) -> dict:
+        return self._datasets.get(base_name, {}) if isinstance(self._datasets, dict) else {}
+
+    def _dataset_url(self, base_name: str) -> str:
+        dataset = self._dataset_config(base_name)
+        if not dataset:
+            return ""
+        csv_url = dataset.get("csv_url", "")
+        if csv_url:
+            return csv_url
+        sheet_id = dataset.get("sheet_id", "")
+        gid = str(dataset.get("gid", "0"))
+        if sheet_id:
+            return f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}"
+        return ""
+
+    def readiness(self, data_dir: str = None) -> str:
+        if not self._is_enabled():
+            return ProviderReadiness.DISABLED.value
+        return ProviderReadiness.READY.value if self._datasets else ProviderReadiness.NOT_CONFIGURED.value
+
+    def is_available(self, data_dir: str) -> bool:
+        return self._is_enabled() and bool(self._datasets)
+
+    def load(self, data_dir: str, filename: str) -> list:
+        import urllib.request
+        import urllib.error
+
+        if not self._is_enabled():
+            raise RuntimeError("Google Sheets provider disabled — set google_sheets.enabled=true")
+
+        base_name = os.path.splitext(filename)[0]
+        url = self._dataset_url(base_name)
+        if not url:
+            raise RuntimeError(f"No Google Sheets dataset configured for {base_name}")
+
+        try:
+            req = urllib.request.Request(url)
+            with urllib.request.urlopen(req, timeout=self._timeout) as resp:
+                body = resp.read().decode("utf-8")
+        except urllib.error.HTTPError as e:
+            raise RuntimeError(f"HTTP {e.code} from {url}: {e.reason}") from e
+        except urllib.error.URLError as e:
+            raise RuntimeError(f"Failed to reach {url}: {e.reason}") from e
+
+        reader = csv.DictReader(io.StringIO(body))
+        return [LocalFileProvider._coerce_row_types(row) for row in reader]
+
+    def health_check(self, data_dir: str = None) -> dict:
+        if not self._is_enabled():
+            return {
+                "supported": True,
+                "status": "disabled",
+                "details": {"message": "Google Sheets provider disabled"},
+            }
+        datasets = sorted(self._datasets.keys()) if isinstance(self._datasets, dict) else []
+        if not datasets:
+            return {
+                "supported": True,
+                "status": "not_configured",
+                "details": {"message": "No Google Sheets datasets configured", "configured": False},
+            }
+        sample = datasets[0]
+        url = self._dataset_url(sample)
+        return {
+            "supported": True,
+            "status": "ok" if url else "not_configured",
+            "details": {
+                "configured": bool(url),
+                "dataset_count": len(datasets),
+                "sample_dataset": sample,
+                "sample_url": url[:120] if url else "",
+            },
+        }
+
+    def degradation_status(self, data_dir: str = None) -> dict:
+        datasets = sorted(self._datasets.keys()) if isinstance(self._datasets, dict) else []
+        if not self._is_enabled():
+            return {
+                "is_degraded": True,
+                "mode": "sheets",
+                "active_path": "none",
+                "reason": "Google Sheets provider disabled",
+                "live_readiness": "disabled",
+                "fallback_readiness": None,
+                "recommendations": ["Set google_sheets.enabled=true and rollout.sheets.enabled=true"],
+            }
+        if not datasets:
+            return {
+                "is_degraded": True,
+                "mode": "sheets",
+                "active_path": "none",
+                "reason": "No Google Sheets datasets configured",
+                "live_readiness": "not_configured",
+                "fallback_readiness": None,
+                "recommendations": ["Configure google_sheets.datasets with csv_url or sheet_id + gid"],
+            }
+        return {
+            "is_degraded": False,
+            "mode": "sheets",
+            "active_path": "google_sheets",
+            "reason": "",
+            "live_readiness": "ready",
             "fallback_readiness": None,
             "recommendations": [],
         }
@@ -654,10 +797,6 @@ class AutoFailoverProvider(DataProvider):
         }
 
 
-# Valid data source modes
-VALID_MODES = ("local", "live", "auto")
-
-
 class HttpReadonlyProvider(DataProvider):
     """Read-only HTTP provider that fetches JSON from a configurable base URL.
 
@@ -894,6 +1033,7 @@ class HttpReadonlyProvider(DataProvider):
 # Default provider (local)
 _default_provider = LocalFileProvider()
 _default_provider_mode = "local"
+VALID_MODES = ("local", "live", "auto", "sheets")
 
 
 def get_data_source() -> DataProvider:
@@ -917,7 +1057,7 @@ def set_default_provider(mode: str) -> DataProvider:
     This is the mechanism for runtime provider selection.
 
     Args:
-        mode: 'local', 'live', or 'auto'
+        mode: 'local', 'live', 'auto', or 'sheets'
 
     Returns:
         The newly created provider instance.
@@ -940,7 +1080,7 @@ def create_provider(mode: str, live_provider: DataProvider = None,
     """Create a provider for the given mode.
 
     Args:
-        mode: 'local', 'live', or 'auto'
+        mode: 'local', 'live', 'auto', or 'sheets'
         live_provider: Optional custom LiveDataProvider instance.
                       If not provided, auto-detects HttpReadonlyProvider
                       from config, or falls back to skeleton LiveDataProvider.
@@ -954,6 +1094,7 @@ def create_provider(mode: str, live_provider: DataProvider = None,
         raise ValueError(f"Invalid data source mode: {mode}. Must be one of {VALID_MODES}")
 
     local = LocalFileProvider()
+    sheets = GoogleSheetsProvider._from_config() or GoogleSheetsProvider()
 
     # Auto-detect live provider: HttpReadonlyProvider if configured, else skeleton
     if live_provider is None:
@@ -966,6 +1107,8 @@ def create_provider(mode: str, live_provider: DataProvider = None,
         return local
     elif mode == "live":
         return live
+    elif mode == "sheets":
+        return sheets
     else:  # auto
         return AutoFailoverProvider(live, local, cb_threshold, cb_recovery)
 

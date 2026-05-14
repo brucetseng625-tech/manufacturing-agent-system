@@ -209,3 +209,24 @@ class SceneViewHTMLTest(unittest.TestCase):
         """Detail panel must derive reason from approval or errors."""
         self.assertIn("recentHistory.filter", self.html)
         self.assertIn("error_type", self.html)
+
+
+class WorkspaceModeHTMLTest(unittest.TestCase):
+    def setUp(self):
+        dashboard_path = os.path.join(os.path.dirname(__file__), "..", "static", "dashboard.html")
+        with open(dashboard_path, "r", encoding="utf-8") as f:
+            self.html = f.read()
+
+    def test_contains_workspace_mode_toggle(self):
+        self.assertIn("ERP 整合版", self.html)
+        self.assertIn("輕量版（Sheets / LINE）", self.html)
+        self.assertIn("setWorkspaceMode('erp')", self.html)
+        self.assertIn("setWorkspaceMode('lightweight')", self.html)
+
+    def test_workspace_mode_mentions_sheets_provider(self):
+        self.assertIn("queryDataSource: 'sheets'", self.html)
+        self.assertIn("Google Sheets / 輕量資料", self.html)
+
+    def test_provider_selection_contains_sheets(self):
+        self.assertIn("{ id: 'sheets'", self.html)
+        self.assertIn("Google Sheets CSV 匯出資料", self.html)

@@ -37,6 +37,7 @@ DEFAULT_CONFIG = {
     "runtime": {
         "default_data_dir": "mock_data",
         "default_data_source": "local",
+        "workspace_mode": "erp",
         "history_last": 10,
         "metrics_window_hours": 24,
     },
@@ -58,6 +59,9 @@ DEFAULT_CONFIG = {
             "enabled": True,
         },
         "auto": {
+            "enabled": True,
+        },
+        "sheets": {
             "enabled": True,
         },
     },
@@ -87,6 +91,7 @@ _ENV_OVERRIDES = {
     "MAS_ROLLOUT_LOCAL_ENABLED": ("rollout", "local", "enabled", bool),
     "MAS_ROLLOUT_LIVE_ENABLED": ("rollout", "live", "enabled", bool),
     "MAS_ROLLOUT_AUTO_ENABLED": ("rollout", "auto", "enabled", bool),
+    "MAS_ROLLOUT_SHEETS_ENABLED": ("rollout", "sheets", "enabled", bool),
 }
 
 
@@ -117,8 +122,8 @@ def validate_config(config):
     server = config.get("server", {})
 
     data_source = runtime.get("default_data_source", "local")
-    if data_source not in ("local", "live", "auto"):
-        raise ValueError("runtime.default_data_source must be one of: local, live, auto")
+    if data_source not in ("local", "live", "auto", "sheets"):
+        raise ValueError("runtime.default_data_source must be one of: local, live, auto, sheets")
 
     port = server.get("port", 8000)
     if not isinstance(port, int) or port <= 0 or port > 65535:

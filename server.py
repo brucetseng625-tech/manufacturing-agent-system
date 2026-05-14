@@ -119,7 +119,7 @@ class ManagedHTTPServer(HTTPServer):
         _close_audit_log()
 
 DEFAULT_PORT = 8000
-VALID_DATA_SOURCES = ("local", "live", "auto")
+VALID_DATA_SOURCES = ("local", "live", "auto", "sheets")
 
 # Endpoints that require authentication when a token is configured
 _PROTECTED_PATHS = {"/run", "/batch", "/config/reload", "/policy/reload"}

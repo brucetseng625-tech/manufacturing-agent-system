@@ -7,6 +7,7 @@ from data_source import (
     DataProvider,
     LocalFileProvider,
     LiveDataProvider,
+    GoogleSheetsProvider,
     AutoFailoverProvider,
     get_data_source,
     set_data_source,
@@ -19,6 +20,7 @@ from data_source import (
     get_system_status,
 )
 from data_loader import load_json_or_csv
+from config import get_config, set_config
 
 
 class LocalFileProviderTest(unittest.TestCase):
@@ -101,6 +103,57 @@ class CustomLiveDataProvider(LiveDataProvider):
         return self._available
 
 
+class GoogleSheetsProviderTest(unittest.TestCase):
+    def setUp(self):
+        import socketserver
+        from http.server import BaseHTTPRequestHandler, HTTPServer
+        self._old_cfg = get_config(raw=True)
+
+        csv_payload = b"order_id,customer,quantity\nGS-001,Lightweight Co,7\n"
+
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                self.send_response(200)
+                self.send_header("Content-Type", "text/csv")
+                self.end_headers()
+                self.wfile.write(csv_payload)
+            def log_message(self, format, *args):
+                return
+
+        self.server = HTTPServer(("127.0.0.1", 0), Handler)
+        self.port = self.server.server_address[1]
+        import threading, time
+        self.thread = threading.Thread(target=self.server.serve_forever)
+        self.thread.daemon = True
+        self.thread.start()
+        time.sleep(0.05)
+
+        cfg = get_config(raw=True)
+        cfg.setdefault('google_sheets', {})
+        cfg['google_sheets']['enabled'] = True
+        cfg['google_sheets']['timeout_seconds'] = 5
+        cfg['google_sheets']['datasets'] = {
+            'orders': {'csv_url': f'http://127.0.0.1:{self.port}/orders.csv'}
+        }
+        cfg.setdefault('rollout', {}).setdefault('sheets', {})['enabled'] = True
+        set_config(cfg)
+        self.provider = GoogleSheetsProvider._from_config()
+
+    def tearDown(self):
+        self.server.shutdown()
+        self.server.server_close()
+        self.thread.join(timeout=1)
+        set_config(self._old_cfg)
+
+    def test_load_csv_from_google_sheets_dataset(self):
+        data = self.provider.load('/tmp', 'orders.json')
+        self.assertEqual(data[0]['order_id'], 'GS-001')
+        self.assertEqual(data[0]['quantity'], 7)
+
+    def test_name(self):
+        self.assertEqual(self.provider.name(), 'google_sheets')
+
+
 class AutoFailoverProviderTest(unittest.TestCase):
     """Tests for AutoFailoverProvider — live first, fallback to local."""
 
@@ -178,12 +231,16 @@ class DataSourceManagerTest(unittest.TestCase):
         provider = create_provider("auto")
         self.assertIsInstance(provider, AutoFailoverProvider)
 
+    def test_create_sheets_provider(self):
+        provider = create_provider("sheets")
+        self.assertIsInstance(provider, GoogleSheetsProvider)
+
     def test_invalid_mode_raises(self):
         with self.assertRaises(ValueError):
             create_provider("invalid")
 
     def test_valid_modes(self):
-        self.assertEqual(set(VALID_MODES), {"local", "live", "auto"})
+        self.assertEqual(set(VALID_MODES), {"local", "live", "auto", "sheets"})
 
     def test_set_and_get_data_source(self):
         custom = CustomLiveDataProvider()
@@ -354,6 +411,11 @@ class DefaultProviderSelectionTest(unittest.TestCase):
         provider = set_default_provider("live")
         self.assertEqual(provider.name(), "live")
         self.assertEqual(get_default_provider_mode(), "live")
+
+    def test_set_default_provider_sheets(self):
+        provider = set_default_provider("sheets")
+        self.assertEqual(provider.name(), "google_sheets")
+        self.assertEqual(get_default_provider_mode(), "sheets")
 
     def test_set_default_provider_invalid(self):
         with self.assertRaises(ValueError):

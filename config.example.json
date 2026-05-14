@@ -5,6 +5,7 @@
   "runtime": {
     "default_data_dir": "mock_data",
     "default_data_source": "local",
+    "workspace_mode": "erp",
     "history_last": 10,
     "metrics_window_hours": 24
   },
@@ -86,6 +87,30 @@
     },
     "auto": {
       "enabled": true
+    },
+    "sheets": {
+      "enabled": true
+    }
+  },
+  "google_sheets": {
+    "enabled": false,
+    "timeout_seconds": 10,
+    "datasets": {
+      "orders": {
+        "csv_url": "",
+        "sheet_id": "",
+        "gid": "0"
+      },
+      "materials": {
+        "csv_url": "",
+        "sheet_id": "",
+        "gid": "0"
+      },
+      "work_orders": {
+        "csv_url": "",
+        "sheet_id": "",
+        "gid": "0"
+      }
     }
   },
   "alerts": {

@@ -264,6 +264,13 @@ body {
   margin-top: 0.15rem;
   line-height: 1.5;
 }
+.workspace-mode-shell { display:flex; gap:0.65rem; align-items:center; margin-top:0.85rem; flex-wrap:wrap; }
+.workspace-mode-label { font-size:0.72rem; font-weight:700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.workspace-mode-toggle { display:flex; gap:0.5rem; flex-wrap:wrap; }
+.workspace-mode-chip { border:1px solid rgba(99,102,241,0.24); background:rgba(17,24,39,0.65); color:var(--text-secondary); border-radius:999px; padding:0.45rem 0.8rem; font-size:0.82rem; font-weight:600; cursor:pointer; transition:all 0.18s ease; }
+.workspace-mode-chip.active { color:#fff; background:linear-gradient(135deg, rgba(99,102,241,0.92), rgba(79,70,229,0.78)); border-color:rgba(129,140,248,0.58); box-shadow:0 10px 24px rgba(79,70,229,0.25); }
+.workspace-mode-chip:hover { border-color: rgba(129,140,248,0.55); color: var(--text); }
+.workspace-mode-note { font-size:0.8rem; color:var(--text-muted); }
 .scene-mode-badge {
   font-size: 0.62rem;
   padding: 0.2rem 0.55rem;
@@ -911,7 +918,15 @@ body {
           <div class="scene-sidepanel-header">
             <div>
               <div class="scene-sidepanel-title">協作工作台</div>
-              <div class="scene-sidepanel-desc">左側專注提問、脈絡與最近互動；右側專注主控分流、職能協作與阻塞原因。</div>
+              <div id="scene-sidepanel-desc" class="scene-sidepanel-desc">左側專注提問、脈絡與最近互動；右側專注主控分流、職能協作與阻塞原因。</div>
+              <div class="workspace-mode-shell">
+                <span class="workspace-mode-label">工作模式</span>
+                <div class="workspace-mode-toggle">
+                  <button type="button" class="workspace-mode-chip active" id="workspace-mode-erp" onclick="setWorkspaceMode('erp')">ERP 整合版</button>
+                  <button type="button" class="workspace-mode-chip" id="workspace-mode-lightweight" onclick="setWorkspaceMode('lightweight')">輕量版（Sheets / LINE）</button>
+                </div>
+                <span id="workspace-mode-note" class="workspace-mode-note">目前以 ERP / 內部資料系統作為主要資料來源。</span>
+              </div>
             </div>
             <span class="scene-mode-badge">Read-Only Workspace</span>
           </div>
@@ -925,10 +940,7 @@ body {
           <div class="scene-sidepanel-section">
             <div class="scene-sidepanel-label">快速查詢</div>
             <div class="scene-quick-actions">
-              <button class="scene-quick-btn" onclick="setSceneQuery('ORD-2002 有沒有交期風險？')"><strong>交期風險</strong><span>先看風險與下一步</span></button>
-              <button class="scene-quick-btn" onclick="setSceneQuery('ORD-2003 缺料怎麼恢復？')"><strong>缺料恢復</strong><span>追物料阻礙與方案</span></button>
-              <button class="scene-quick-btn" onclick="setSceneQuery('ORD-2004 排程是否衝突？')"><strong>排程衝突</strong><span>看卡點是否在生產區</span></button>
-              <button class="scene-quick-btn" onclick="setSceneQuery('幫我比較目前報價與交付風險')"><strong>商務分析</strong><span>把商務與交付放在一起看</span></button>
+              <div id="scene-quick-actions-content" class="scene-quick-actions"></div>
             </div>
             <div class="scene-composer">
               <input type="text" id="scene-query-input" class="scene-query-input" placeholder="例如：ORD-2002 交期風險與下一步是什麼？" />
@@ -1113,7 +1125,7 @@ async function executeQuery() {
     const res = await fetch('/run', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query })
+      body: JSON.stringify({ query, ...(getWorkspaceModeConfig().queryDataSource ? { data_source: getWorkspaceModeConfig().queryDataSource } : {}) })
     });
     const data = await res.json();
 
@@ -1183,6 +1195,37 @@ async function executeQuery() {
   }
 }
 
+const WORKSPACE_MODE_CONFIG = {
+  erp: {
+    label: 'ERP 整合版',
+    note: '目前以 ERP / 內部資料系統作為主要資料來源。',
+    desc: '左側專注提問、脈絡與最近互動；右側專注主控分流、職能協作與阻塞原因。',
+    placeholder: '例如：ORD-2002 交期風險與下一步是什麼？',
+    quickActions: [
+      { title: '交期風險', subtitle: '先看風險與下一步', query: 'ORD-2002 有沒有交期風險？' },
+      { title: '缺料恢復', subtitle: '追物料阻礙與方案', query: 'ORD-2003 缺料怎麼恢復？' },
+      { title: '排程衝突', subtitle: '看卡點是否在生產區', query: 'ORD-2004 排程是否衝突？' },
+      { title: '商務分析', subtitle: '把商務與交付放在一起看', query: '幫我比較目前報價與交付風險' },
+    ],
+    queryDataSource: null,
+    sourceLabel: 'ERP / 內部資料',
+  },
+  lightweight: {
+    label: '輕量版',
+    note: '目前以 Google Sheets / LINE / 表單等輕量資料入口為主。',
+    desc: '左側先收單、追單與提醒；右側用同一套主控分流與場景總覽理解輕量營運流程。',
+    placeholder: '例如：今天有哪些待出貨？或 哪些客戶還沒回覆？',
+    quickActions: [
+      { title: '待出貨清單', subtitle: '從 Sheets 找今天要出貨的單', query: '今天有哪些待出貨訂單？' },
+      { title: '客戶未回覆', subtitle: '整理需要跟進的客戶', query: '哪些客戶或訂單還沒回覆？' },
+      { title: '低庫存提醒', subtitle: '先找缺料與危險庫存', query: '目前哪些料件低於安全庫存？' },
+      { title: '訂單整理', subtitle: '把新收單資料整理成待辦', query: '請整理今天新收到的訂單與後續動作' },
+    ],
+    queryDataSource: 'sheets',
+    sourceLabel: 'Google Sheets / 輕量資料',
+  }
+};
+
 const SCENE_WORKSPACE_STATE = {
   messages: [
     {
@@ -1194,7 +1237,63 @@ const SCENE_WORKSPACE_STATE = {
   currentFocus: '製造主控',
   currentFocusStatus: '待機',
   lastRoute: '尚未查詢',
+  mode: 'erp',
 };
+
+function getWorkspaceModeConfig() {
+  return WORKSPACE_MODE_CONFIG[SCENE_WORKSPACE_STATE.mode] || WORKSPACE_MODE_CONFIG.erp;
+}
+
+function escapeHtmlAttr(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
+}
+
+function renderWorkspaceQuickActions() {
+  const container = document.getElementById('scene-quick-actions-content');
+  if (!container) return;
+  const cfg = getWorkspaceModeConfig();
+  container.innerHTML = cfg.quickActions.map(action => `
+    <button class="scene-quick-btn" data-query="${escapeHtmlAttr(action.query)}" onclick="setSceneQuery(this.dataset.query)"><strong>${action.title}</strong><span>${action.subtitle}</span></button>
+  `).join('');
+}
+
+function syncWorkspaceModeUI() {
+  const cfg = getWorkspaceModeConfig();
+  const erpBtn = document.getElementById('workspace-mode-erp');
+  const lightBtn = document.getElementById('workspace-mode-lightweight');
+  if (erpBtn) erpBtn.classList.toggle('active', SCENE_WORKSPACE_STATE.mode === 'erp');
+  if (lightBtn) lightBtn.classList.toggle('active', SCENE_WORKSPACE_STATE.mode === 'lightweight');
+  const note = document.getElementById('workspace-mode-note');
+  const desc = document.getElementById('scene-sidepanel-desc');
+  const input = document.getElementById('scene-query-input');
+  if (note) note.textContent = cfg.note;
+  if (desc) desc.textContent = cfg.desc;
+  if (input) input.placeholder = cfg.placeholder;
+  renderWorkspaceQuickActions();
+  renderSceneWorkspaceStatus();
+}
+
+function setWorkspaceMode(mode) {
+  if (!WORKSPACE_MODE_CONFIG[mode]) return;
+  SCENE_WORKSPACE_STATE.mode = mode;
+  try { localStorage.setItem('mas.workspaceMode', mode); } catch (e) {}
+  syncWorkspaceModeUI();
+}
+
+function restoreWorkspaceMode() {
+  try {
+    const saved = localStorage.getItem('mas.workspaceMode');
+    if (saved && WORKSPACE_MODE_CONFIG[saved]) {
+      SCENE_WORKSPACE_STATE.mode = saved;
+    }
+  } catch (e) {}
+  syncWorkspaceModeUI();
+}
 
 function setSceneQuery(text) {
   const input = document.getElementById('scene-query-input');
@@ -1239,6 +1338,11 @@ function renderSceneWorkspaceStatus() {
       <div class="scene-status-card-title">最近派工</div>
       <div class="scene-status-card-value">${SCENE_WORKSPACE_STATE.lastRoute}</div>
       <div class="scene-status-card-copy">查詢後會把焦點帶回對應 Agent 區域</div>
+    </div>
+    <div class="scene-status-card">
+      <div class="scene-status-card-title">資料入口</div>
+      <div class="scene-status-card-value">${getWorkspaceModeConfig().sourceLabel}</div>
+      <div class="scene-status-card-copy">依模式切換不同資料接入與提示內容</div>
     </div>
     <div class="scene-status-card">
       <div class="scene-status-card-title">操作模式</div>
@@ -1331,7 +1435,7 @@ async function executeSceneWorkspaceQuery() {
     const res = await fetch('/run', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query })
+      body: JSON.stringify({ query, ...(getWorkspaceModeConfig().queryDataSource ? { data_source: getWorkspaceModeConfig().queryDataSource } : {}) })
     });
     const data = await res.json();
     SCENE_WORKSPACE_STATE.messages.push({
@@ -1753,7 +1857,8 @@ function renderProviderSelectionCard(s) {
   const currentMode = s.provider.default_mode || 'local';
   const modes = [
     { id: 'local', label: '本機', desc: '使用本地 JSON/CSV 檔案', icon: '📁' },
-    { id: 'http', label: '遠端', desc: '遠端 HTTP JSON 端點', icon: '🌐' },
+    { id: 'sheets', label: 'Sheets', desc: 'Google Sheets CSV 匯出資料', icon: '📄' },
+    { id: 'live', label: '遠端', desc: '遠端 HTTP JSON 端點', icon: '🌐' },
     { id: 'auto', label: '自動', desc: '遠端優先，失敗自動切換本機', icon: '🔄' },
   ];
 
@@ -1761,13 +1866,13 @@ function renderProviderSelectionCard(s) {
     <div class="card" style="grid-column: span 2;">
       <div class="card-header">
         <span class="card-title">資料來源切換</span>
-        <span class="badge" style="background:var(--accent);color:#fff;">${currentMode === 'local' ? '本機' : currentMode === 'http' ? '遠端' : '自動'}</span>
+        <span class="badge" style="background:var(--accent);color:#fff;">${currentMode === 'local' ? '本機' : currentMode === 'sheets' ? 'Sheets' : currentMode === 'live' ? '遠端' : '自動'}</span>
       </div>
       <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">
         切換預設資料來源模式，變更立即生效。若啟用了保護機制，需審批權杖。
         <span style="color:var(--warning);">⚠ 需要審批權杖（若保護機制已啟用）。</span>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;margin-bottom:1rem;">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;margin-bottom:1rem;">
         ${modes.map(m => `
           <label class="mode-option ${currentMode === m.id ? 'active' : ''}" style="display:flex;align-items:flex-start;gap:0.5rem;padding:0.75rem;background:${currentMode === m.id ? 'var(--bg-input)' : 'transparent'};border:1px solid ${currentMode === m.id ? 'var(--accent)' : 'var(--border)'};border-radius:8px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='${currentMode === m.id ? 'var(--accent)' : 'var(--border)'}'">
             <input type="radio" name="provider-mode" value="${m.id}" ${currentMode === m.id ? 'checked' : ''} style="margin-top:0.2rem;accent-color:var(--accent);">
@@ -2144,7 +2249,7 @@ async function renderScene() {
   if (!content) return;
   content.innerHTML = '<div class="loading">載入場景中…</div>';
   renderSceneWorkspaceThread();
-  renderSceneWorkspaceStatus();
+  restoreWorkspaceMode();
 
   const [skillsRes, approvalsRes, historyRes, guardrailsRes, incidentRes, receiptsRes, timelineRes, alertsRes] = await Promise.all([
     fetch('/skills').catch(() => null),

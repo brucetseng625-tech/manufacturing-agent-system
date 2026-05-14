@@ -333,6 +333,9 @@ def main():
             check("Dashboard: has Ops view section",
                   "營運治理" in html,
                   "Ops view section present")
+            check("Workspace mode toggle",
+                  "ERP 整合版" in html and "輕量版（Sheets / LINE）" in html,
+                  "workspace mode toggle present")
             check("Dashboard: calls loadOps",
                   "loadOps" in html,
                   "loadOps function present")

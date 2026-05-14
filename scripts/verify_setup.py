@@ -319,6 +319,13 @@ def main():
           "guardrails config section present")
 
     # P10-1: HttpReadonlyProvider
+    check("Lightweight: GoogleSheetsProvider class in data_source.py",
+          "class GoogleSheetsProvider" in open(os.path.join(base, "data_source.py")).read(),
+          "GoogleSheetsProvider class present")
+    check("Workspace: mode toggle present in dashboard",
+          "ERP 整合版" in open(os.path.join(base, "static", "dashboard.html")).read() and "輕量版（Sheets / LINE）" in open(os.path.join(base, "static", "dashboard.html")).read(),
+          "workspace mode toggle present")
+
     check("P10: HttpReadonlyProvider class in data_source.py",
           "class HttpReadonlyProvider" in open(os.path.join(base, "data_source.py")).read(),
           "HttpReadonlyProvider class present")
