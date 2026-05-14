@@ -49,7 +49,7 @@ body {
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   padding: 0.75rem 1.25rem;
   cursor: pointer;
   color: var(--text-secondary);
@@ -112,7 +112,7 @@ body {
   background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 0.75rem 1rem;
+  padding: 0.55rem 0.75rem;
   color: var(--text-primary);
   font-size: 1rem;
   outline: none;
@@ -237,7 +237,7 @@ body {
 
 /* Scene Header */
 .scene-header {
-  margin-bottom: 0.6rem; padding: 0.75rem 1.25rem;
+  margin-bottom: 0.4rem; padding: 0.5rem 1rem;
   background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(16,185,129,0.04) 100%);
   border: 1px solid var(--border); border-radius: 10px;
   display: flex; justify-content: space-between; align-items: center;
@@ -252,7 +252,7 @@ body {
 
 /* Scene Container — compact, first-screen */
 .scene-container {
-  position: relative; min-height: 600px; padding: 1rem 1.2rem;
+  position: relative; min-height: 420px; padding: 0.75rem 1rem;
   background:
     radial-gradient(ellipse 70% 50% at 50% 15%, rgba(99,102,241,0.05) 0%, transparent 70%),
     linear-gradient(180deg, #0b0f1e 0%, #0d1117 50%, #111827 100%);
@@ -277,13 +277,13 @@ body {
   position: relative; z-index: 1;
 }
 
-/* ── Main Stage: Orchestrator top, 4 zones in 2x2 grid below ── */
+/* ── Main Stage: Orchestrator top, 4 zones in single row below ── */
 .scene-stage {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto auto;
-  gap: 0.75rem;
-  padding: 0.25rem 0;
+  grid-template-columns: 1.3fr 1fr 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 0.45rem;
+  padding: 0.2rem 0;
 }
 .zone-orchestrator-stage {
   grid-column: 1 / -1;
@@ -298,12 +298,12 @@ body {
   grid-row: 2;
 }
 .zone-commercial-stage {
-  grid-column: 1;
-  grid-row: 3;
+  grid-column: 3;
+  grid-row: 2;
 }
 .zone-comm-stage {
-  grid-column: 2;
-  grid-row: 3;
+  grid-column: 4;
+  grid-row: 2;
 }
 
 /* ── Zone Cards — workbench platforms with 2.5D depth ── */
@@ -356,7 +356,7 @@ body {
 /* Zone header */
 .zone-card-header {
   display: flex; align-items: center; gap: 0.45rem;
-  margin-bottom: 0.5rem; padding-bottom: 0.4rem;
+  margin-bottom: 0.35rem; padding-bottom: 0.3rem;
   border-bottom: 1px solid rgba(42,42,74,0.25);
 }
 .zone-card-header .zc-icon { font-size: 1rem; }
@@ -365,18 +365,18 @@ body {
 
 /* Zone subtitle */
 .zone-subtitle {
-  font-size: 0.65rem; color: var(--text-muted); margin-bottom: 0.5rem;
-  padding: 0.2rem 0.4rem;
+  font-size: 0.65rem; color: var(--text-muted); margin-bottom: 0.35rem;
+  padding: 0.15rem 0.35rem;
   background: rgba(0,0,0,0.12); border-radius: 3px;
   display: inline-block;
 }
 
-/* ── Orchestrator Command Center — fills the zone with info ── */
+/* ── Orchestrator Command Center — compact horizontal ── */
 .orchestrator-dashboard {
   display: grid;
-  grid-template-columns: 160px 1fr;
-  gap: 0.75rem;
-  margin-top: 0.25rem;
+  grid-template-columns: 110px 1fr;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
 }
 .orchestrator-main-node {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -389,7 +389,7 @@ body {
 }
 .orch-status-item {
   display: flex; align-items: center; gap: 0.4rem;
-  font-size: 0.7rem; padding: 0.2rem 0.4rem;
+  font-size: 0.6rem; padding: 0.12rem 0.25rem;
   background: rgba(0,0,0,0.12); border-radius: 4px;
 }
 .orch-status-item .orch-dot {
@@ -401,14 +401,14 @@ body {
 
 /* ── Agent Row — compact ── */
 .agent-row {
-  display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: flex-start;
+  display: flex; gap: 0.45rem; flex-wrap: wrap; justify-content: flex-start;
   align-items: flex-start;
 }
 
 /* ── Agent Nodes ── */
 .agent-node {
   position: relative; display: flex; flex-direction: column; align-items: center;
-  width: 120px; padding: 0.75rem 0.5rem 0.6rem;
+  width: 95px; padding: 0.5rem 0.35rem 0.45rem;
   background: linear-gradient(165deg, rgba(30,30,58,0.95) 0%, rgba(18,24,42,0.98) 100%);
   border: 1px solid rgba(42,42,74,0.35); border-radius: 10px; cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-align: center;
@@ -431,7 +431,7 @@ body {
 }
 
 .agent-node .agent-icon {
-  width: 44px; height: 44px; border-radius: 12px;
+  width: 34px; height: 34px; border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
   font-size: 1.4rem; margin-bottom: 0.35rem;
   background: rgba(30,30,58,0.8); border: 1px solid rgba(42,42,74,0.3);
@@ -450,13 +450,13 @@ body {
 
 /* Orchestrator main node — largest, brightest */
 .agent-node.orchestrator {
-  width: 140px; padding: 0.9rem 0.6rem 0.8rem;
+  width: 100px; padding: 0.55rem 0.4rem 0.5rem;
   border-color: rgba(99,102,241,0.3);
   background: linear-gradient(165deg, rgba(99,102,241,0.12) 0%, rgba(18,24,42,0.98) 100%);
   box-shadow: 0 3px 16px rgba(99,102,241,0.15), inset 0 1px 0 rgba(255,255,255,0.06);
 }
 .agent-node.orchestrator .agent-icon {
-  width: 52px; height: 52px; font-size: 1.6rem;
+  width: 40px; height: 40px; font-size: 1.6rem;
   background: rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.25);
   box-shadow: 0 0 12px rgba(99,102,241,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
 }
@@ -491,7 +491,7 @@ body {
 
 /* Scene legend — compact */
 .scene-legend {
-  margin-top: 0.75rem; padding: 0.6rem 0.8rem;
+  margin-top: 0.5rem; padding: 0.45rem 0.65rem;
   background: rgba(11,15,30,0.7); border: 1px solid rgba(42,42,74,0.3);
   border-radius: 8px; backdrop-filter: blur(4px);
 }
