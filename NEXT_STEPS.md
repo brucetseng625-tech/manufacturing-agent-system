@@ -10,7 +10,7 @@ Latest verified feature commit on `main`:
 
 Important handoff note:
 - `main` may move to a docs-only sync commit after the latest verified feature commit above. Always confirm exact `HEAD` with `git rev-parse HEAD` before continuing.
-- Full unit test status at handoff: `919 / 919 passed`
+- Full unit test status at handoff: `925 / 925 passed` (+6 from P17-2 Discord bot)
 - Smoke test status at handoff: `112 / 112 passed`
 - Setup verification status at handoff: `204 / 204 passed`
 - Working tree at handoff: clean (after P16-3 commit)
@@ -573,7 +573,18 @@ Goal: Enable external channel access (Discord/LINE) for operator queries, notifi
 - MVP scope: Notification-first + Query-only
 - P17-2 can begin
 
-### P17-2 Discord Notification & Query Bot (pending)
+### P17-2 Discord Notification and Query Bot (completed)
+
+- `integrations/discord_bot.py`: send_discord_notification, handle_discord_message, format_explainable_response
+- `POST /webhook/discord` endpoint: receives messages, validates user allowlist, routes as dry_run queries
+- Notification path: Uses existing alert.py webhook logic, extended to format alerts as Discord embeds
+- Query path: Validates user ID -> calls route_query(dry_run=True) -> formats explainable response -> replies
+- Explainability: reason/next_action/decision_state mapped to Discord-friendly text blocks with emoji
+- Identity mapping: config-based allowed_user_ids list
+- Audit chain: all queries logged with channel='discord'
+- Updated config.example.json with discord section
+- 6 new unit tests
+- Commit: pending
 
 ## Start Here
 
