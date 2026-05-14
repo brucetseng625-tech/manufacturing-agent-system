@@ -94,7 +94,7 @@ class SceneViewHTMLTest(unittest.TestCase):
 
     def test_scene_fetches_history(self):
         """Scene view must fetch /history for recent activity."""
-        self.assertIn("'/history?last=20'", self.html)
+        self.assertIn("'/history?last=50'", self.html)
 
     def test_scene_fetches_guardrails(self):
         """Scene view must fetch /guardrails for guard state."""
@@ -108,7 +108,7 @@ class SceneViewHTMLTest(unittest.TestCase):
         """Inspector panel must display skill, status, approvals, and history."""
         self.assertIn("技能識別", self.html)
         self.assertIn("目前狀態", self.html)
-        self.assertIn("待審批關聯", self.html)
+        self.assertIn("待審批項目", self.html)
         self.assertIn("最近執行紀錄", self.html)
 
     def test_scene_is_read_only(self):
@@ -127,3 +127,65 @@ class SceneViewHTMLTest(unittest.TestCase):
     def test_scene_nav_triggers_render(self):
         """Clicking scene nav must trigger renderScene()."""
         self.assertIn("if (view === 'scene') renderScene()", self.html)
+
+    def test_scene_fetches_incident_report(self):
+        """Scene view must fetch /incident/report for incident state."""
+        self.assertIn("'/incident/report'", self.html)
+
+    def test_scene_fetches_automation_receipts(self):
+        """Scene view must fetch /automation/receipts for receipt signals."""
+        self.assertIn("'/automation/receipts", self.html)
+
+    def test_scene_fetches_timeline(self):
+        """Scene view must fetch /timeline for event projection."""
+        self.assertIn("'/timeline?last=30'", self.html)
+
+    def test_scene_fetches_alerts(self):
+        """Scene view must fetch /alerts for firing alerts."""
+        self.assertIn("'/alerts?status=firing'", self.html)
+
+    def test_scene_has_event_badges(self):
+        """Scene must render event badges on agent nodes."""
+        self.assertIn("agent-event-badges", self.html)
+        self.assertIn("evt-approval", self.html)
+        self.assertIn("evt-blocked", self.html)
+        self.assertIn("evt-incident", self.html)
+        self.assertIn("evt-receipt", self.html)
+        self.assertIn("evt-alert", self.html)
+
+    def test_scene_has_legend(self):
+        """Scene must include a legend explaining status and event markers."""
+        self.assertIn("scene-legend", self.html)
+        self.assertIn("狀態與事件說明", self.html)
+
+    def test_detail_panel_has_explainability(self):
+        """Detail panel must show reason/next_action (P15-3 integration)."""
+        self.assertIn("si-reason-block", self.html)
+        self.assertIn("si-next-action", self.html)
+        self.assertIn("目前無阻擋說明", self.html)
+
+    def test_detail_panel_has_section_dividers(self):
+        """Detail panel must use si-section for organized information blocks."""
+        self.assertIn("si-section", self.html)
+        self.assertIn("待審批項目", self.html)
+        self.assertIn("最近執行紀錄", self.html)
+
+    def test_detail_panel_shows_receipts(self):
+        """Detail panel must display automation receipts."""
+        self.assertIn("自動化執行紀錄", self.html)
+        self.assertIn("relatedReceipts", self.html)
+
+    def test_detail_panel_shows_timeline(self):
+        """Detail panel must display related timeline events."""
+        self.assertIn("相關時間軸事件", self.html)
+        self.assertIn("relatedTimeline", self.html)
+
+    def test_detail_panel_shows_incident(self):
+        """Detail panel must display incident report summary when relevant."""
+        self.assertIn("事故報告摘要", self.html)
+        self.assertIn("incident_summary", self.html)
+
+    def test_detail_panel_derives_reason(self):
+        """Detail panel must derive reason from approval or errors."""
+        self.assertIn("recentHistory.filter", self.html)
+        self.assertIn("error_type", self.html)

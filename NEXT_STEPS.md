@@ -11,7 +11,7 @@ Latest verified feature commit on `main`:
 
 Important handoff note:
 - `main` may move to a docs-only sync commit after the latest verified feature commit above. Always confirm exact `HEAD` with `git rev-parse HEAD` before continuing.
-- Full unit test status at handoff: `907 / 907 passed` (+20 from P16-1 `SceneViewHTMLTest`)
+- Full unit test status at handoff: `919 / 919 passed` (+12 from P16-2 scene detail enhancements)
 - Smoke test status at handoff: `112 / 112 passed` (verified below)
 - Setup verification status at handoff: `204 / 204 passed` (verified below)
 - Working tree at handoff: clean (after P15-3 commit)
@@ -520,10 +520,26 @@ Goal: Replace engineering-card UI with an intuitive factory-floor scene view for
 - Status badges: 待機, 執行中, 待審批, 已阻擋 — derived from /approvals, /history, /guardrails
 - Click-to-inspect detail panel with skill ID, status, related approvals, recent history
 - Scene-floor grid overlay + pulse animations for active agents
-- 20 unit tests in `tests/test_scene_view.py`
+- 20 unit tests in `tests/test_scene_view.py` (P16-1 baseline)
 - Read-only: no mutation operations from scene view
-- Data sources: `/skills` (agent catalog), `/approvals` (pending state), `/history` (recent activity), `/guardrails` (guard state)
-- Derived states: `running` from recent history match, `approval` from pending ops match
+- Commit: `d009d24`
+
+### P16-2 Scene Detail & Event Projection (completed)
+
+- `static/dashboard.html` enhanced scene view with multi-source event projection
+- Expanded data sources: `/incident/report`, `/automation/receipts`, `/timeline`, `/alerts`
+- Per-agent event badges: approval_required, blocked, incident, receipt, alert
+- Scene legend (狀態與事件說明) showing all status colors and event marker meanings
+- Detail panel enhanced with:
+  - Explainability section (reason + next_action, derived from approvals/errors/guardrails)
+  - Approval details with risk level and timestamp
+  - Automation receipts display
+  - Incident report summary when relevant
+  - Related timeline events
+- Conservative approach: "目前無阻擋說明", "目前無待審批" when no data
+- 12 additional unit tests in `tests/test_scene_view.py` (P16-2 enhancements)
+- Total scene tests: 32/32
+- Zero new API endpoints — all data from existing endpoints
 - Commit: pending
 
 ## Start Here

@@ -307,6 +307,41 @@ body {
 /* Orchestrator special style */
 .agent-node.orchestrator { width: 160px; border-color: var(--accent); background: rgba(99,102,241,0.08); }
 .agent-node.orchestrator .agent-icon { background: rgba(99,102,241,0.2); color: var(--accent-light); }
+
+/* Event badges on agent nodes — P16-2 */
+.agent-event-badges {
+  display: flex; gap: 0.25rem; flex-wrap: wrap; justify-content: center;
+  margin-top: 0.35rem; min-height: 1.2rem;
+}
+.event-badge {
+  font-size: 0.6rem; padding: 0.1rem 0.35rem; border-radius: 3px; font-weight: 600;
+  white-space: nowrap;
+}
+.event-badge.evt-approval { background: rgba(245,158,11,0.3); color: #fbbf24; }
+.event-badge.evt-blocked { background: rgba(239,68,68,0.3); color: #f87171; }
+.event-badge.evt-incident { background: rgba(239,68,68,0.4); color: #fca5a5; border: 1px solid rgba(239,68,68,0.5); }
+.event-badge.evt-receipt { background: rgba(59,130,246,0.2); color: #93c5fd; }
+.event-badge.evt-alert { background: rgba(245,158,11,0.25); color: #fcd34d; }
+
+/* Scene legend — P16-2 */
+.scene-legend {
+  margin-top: 1rem; padding: 0.75rem 1rem; background: rgba(22,33,62,0.8);
+  border: 1px solid var(--border); border-radius: 8px;
+}
+.scene-legend .legend-title { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; }
+.scene-legend .legend-row { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.scene-legend .legend-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; color: var(--text-muted); }
+.scene-legend .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* Detail panel section dividers — P16-2 */
+.si-section { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
+.si-section-title { font-size: 0.8rem; font-weight: 600; color: var(--accent-light); margin-bottom: 0.4rem; }
+.si-reason-block { padding: 0.5rem 0.75rem; background: rgba(239,68,68,0.08); border-left: 3px solid var(--error); border-radius: 4px; margin-top: 0.35rem; }
+.si-reason-block .si-reason-label { font-size: 0.75rem; color: var(--error); font-weight: 600; }
+.si-reason-block .si-reason-text { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem; }
+.si-next-action { padding: 0.5rem 0.75rem; background: rgba(16,185,129,0.08); border-left: 3px solid var(--success); border-radius: 4px; margin-top: 0.35rem; }
+.si-next-action .si-next-label { font-size: 0.75rem; color: var(--success); font-weight: 600; }
+.si-next-action .si-next-text { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem; }
 </style>
 </head>
 <body>
@@ -1388,42 +1423,99 @@ async function renderScene() {
   if (!content) return;
   content.innerHTML = '<div class="loading">載入場景中…</div>';
 
-  // Fetch data in parallel for state derivation
-  const [skillsRes, approvalsRes, historyRes, guardrailsRes] = await Promise.all([
+  // Fetch data in parallel — P16-2 expanded data sources
+  const [skillsRes, approvalsRes, historyRes, guardrailsRes, incidentRes, receiptsRes, timelineRes, alertsRes] = await Promise.all([
     fetch('/skills').catch(() => null),
     fetch('/approvals?status=pending&limit=50').catch(() => null),
-    fetch('/history?last=20').catch(() => null),
+    fetch('/history?last=50').catch(() => null),
     fetch('/guardrails').catch(() => null),
+    fetch('/incident/report').catch(() => null),
+    fetch('/automation/receipts?last=20').catch(() => null),
+    fetch('/timeline?last=30').catch(() => null),
+    fetch('/alerts?status=firing').catch(() => null),
   ]);
 
   const skillsData = skillsRes && skillsRes.ok ? await skillsRes.json() : { items: [] };
   const approvalsData = approvalsRes && approvalsRes.ok ? await approvalsRes.json() : { items: [] };
   const historyData = historyRes && historyRes.ok ? await historyRes.json() : { runs: [] };
   const guardrailsData = guardrailsRes && guardrailsRes.ok ? await guardrailsRes.json() : { enabled: false, operations: {} };
+  const incidentData = incidentRes && incidentRes.ok ? await incidentRes.json() : {};
+  const receiptsData = receiptsRes && receiptsRes.ok ? await receiptsRes.json() : { items: [] };
+  const timelineData = timelineRes && timelineRes.ok ? await timelineRes.json() : { events: [] };
+  const alertsData = alertsRes && alertsRes.ok ? await alertsRes.json() : { alerts: [] };
 
-  // Derive agent states from API data
+  // Derive per-agent event states — P16-2
   const pendingOps = (approvalsData.items || []).map(a => a.operation);
   const recentSkills = (historyData.runs || []).filter(r => r.status === 'success').map(r => r.skill);
-  const guardrailEnabled = guardrailsData.enabled;
+  const recentSkillsAll = (historyData.runs || []).map(r => ({ skill: r.skill, status: r.status, timestamp: r.timestamp, error_type: r.error_type }));
+  const firingAlerts = (alertsData.alerts || []).filter(a => a.status === 'firing');
 
   const agentStates = {};
   for (const agent of AGENT_CATALOG) {
     let status = 'idle';
     let detail = '待機中';
+    const events = [];
 
     if (agent.id === 'orchestrator') {
-      // Orchestrator: running if any recent activity
       if (recentSkills.length > 0) { status = 'running'; detail = '系統運行中'; }
+      // Check if any alerts are firing → orchestrator shows alert
+      if (firingAlerts.length > 0) {
+        events.push({ type: 'alert', label: `${firingAlerts.length} 警報`, count: firingAlerts.length });
+      }
     } else if (agent.skill) {
-      // Check if this skill is involved in a pending approval
-      if (pendingOps.some(op => op && (op.includes(agent.id.split('-')[0]) || op.includes(agent.skill.split('-')[0])))) {
+      // Check pending approvals
+      const relatedApproval = approvalsData.items?.find(a => {
+        const op = a.operation || '';
+        return op.includes(agent.id.split('-')[0]) || op.includes(agent.skill.split('-')[0]);
+      });
+      if (relatedApproval) {
         status = 'approval'; detail = '等待審批';
-      } else if (recentSkills.includes(agent.skill)) {
-        status = 'running'; detail = '執行中';
+        events.push({ type: 'approval', label: '待審批', approval: relatedApproval });
+      }
+
+      // Check recent history for blocked/error
+      const recentForSkill = recentSkillsAll.filter(r => r.skill === agent.skill);
+      const hasErrors = recentForSkill.some(r => r.status === 'error');
+      const hasSuccess = recentForSkill.some(r => r.status === 'success');
+
+      if (hasErrors && !hasSuccess) {
+        if (status !== 'approval') { status = 'blocked'; detail = '執行受阻'; }
+        events.push({ type: 'blocked', label: '受阻' });
+      } else if (hasSuccess) {
+        if (status !== 'approval') { status = 'running'; detail = '執行中'; }
+      }
+
+      // Check guardrail denied
+      if (guardrailsData.enabled) {
+        const guardrailOps = guardrailsData.operations || {};
+        const relatedGuardrail = Object.entries(guardrailOps).find(([k, v]) =>
+          k.includes(agent.id.split('-')[0]) && v.denied
+        );
+        if (relatedGuardrail) {
+          if (status !== 'approval') { status = 'blocked'; detail = '已被規則阻擋'; }
+          events.push({ type: 'blocked', label: '規則阻擋' });
+        }
+      }
+
+      // Check incident report for related incidents
+      const incidentSummary = incidentData.summary || '';
+      if (incidentSummary && (incidentSummary.includes(agent.skill) || incidentSummary.includes(agent.name))) {
+        events.push({ type: 'incident', label: '事故相關' });
+        if (status === 'idle') { status = 'incident'; detail = '事故涉及'; }
+      }
+
+      // Check automation receipts
+      const relatedReceipts = (receiptsData.items || []).filter(r => {
+        const src = (r.source || '').toLowerCase();
+        const op = (r.operation || '').toLowerCase();
+        return src.includes(agent.id) || op.includes(agent.skill?.split('-')[0] || '');
+      });
+      if (relatedReceipts.length > 0) {
+        events.push({ type: 'receipt', label: `${relatedReceipts.length} 執行紀錄` });
       }
     }
 
-    agentStates[agent.id] = { status, detail, pendingOps: pendingOps, recentSkills: recentSkills, guardrailEnabled };
+    agentStates[agent.id] = { status, detail, events, approval: events.find(e => e.type === 'approval')?.approval || null };
   }
 
   // Build scene HTML by zones
@@ -1440,19 +1532,55 @@ async function renderScene() {
     for (const agent of agents) {
       const st = agentStates[agent.id];
       const isOrchestrator = agent.id === 'orchestrator';
-      const pulseClass = st.status === 'running' ? 'pulse-running' : st.status === 'approval' ? 'pulse-approval' : '';
+      const pulseClass = st.status === 'running' ? 'pulse-running' : st.status === 'blocked' || st.status === 'incident' ? 'pulse-blocked' : st.status === 'approval' ? 'pulse-approval' : '';
+
+      // Event badges
+      let badgesHtml = '';
+      if (st.events && st.events.length > 0) {
+        badgesHtml = '<div class="agent-event-badges">' + st.events.map(e => `<span class="event-badge evt-${e.type}">${e.label}</span>`).join('') + '</div>';
+      }
+
       html += `<div class="agent-node ${isOrchestrator ? 'orchestrator' : ''}" data-agent="${agent.id}" onclick="showAgentDetail('${agent.id}')">
         <div class="agent-icon" style="background:${agent.bg};">${agent.icon}</div>
         <div class="agent-name">${agent.name}</div>
         <div class="agent-status status-${st.status}">${statusLabel(st.status)}</div>
+        ${badgesHtml}
         ${pulseClass ? `<div class="agent-pulse ${pulseClass}"></div>` : ''}
       </div>`;
     }
     html += '</div></div>';
   }
 
+  // Scene legend — P16-2
+  html += `
+    <div class="scene-legend">
+      <div class="legend-title">📖 狀態與事件說明</div>
+      <div class="legend-row">
+        <div class="legend-item"><span class="legend-dot" style="background:var(--text-muted);"></span>待機 — 無近期活動</div>
+        <div class="legend-item"><span class="legend-dot" style="background:var(--success);"></span>執行中 — 最近有成功紀錄</div>
+        <div class="legend-item"><span class="legend-dot" style="background:var(--warning);"></span>待審批 — 需要 Operator 核准</div>
+        <div class="legend-item"><span class="legend-dot" style="background:var(--error);"></span>已阻擋 — 被規則阻擋或執行失敗</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#f87171;"></span>事故中 — 涉及系統事故</div>
+        <div class="legend-item"><span class="event-badge evt-approval">待審批</span>有待處理審批</div>
+        <div class="legend-item"><span class="event-badge evt-blocked">受阻</span>執行受阻或規則阻擋</div>
+        <div class="legend-item"><span class="event-badge evt-incident">事故相關</span>與事故報告相關</div>
+        <div class="legend-item"><span class="event-badge evt-receipt">執行紀錄</span>有自動化執行紀錄</div>
+        <div class="legend-item"><span class="event-badge evt-alert">警報</span>有活躍系統警報</div>
+      </div>
+    </div>`;
+
   content.innerHTML = html;
-  window.__sceneState = { agents: AGENT_CATALOG, states: agentStates, approvals: approvalsData.items || [], history: historyData.runs || [] };
+  window.__sceneState = {
+    agents: AGENT_CATALOG,
+    states: agentStates,
+    approvals: approvalsData.items || [],
+    history: historyData.runs || [],
+    incident: incidentData,
+    receipts: receiptsData.items || [],
+    timeline: timelineData.events || [],
+    alerts: alertsData.alerts || [],
+    guardrails: guardrailsData,
+  };
 }
 
 function statusLabel(s) {
@@ -1469,7 +1597,7 @@ function showAgentDetail(agentId) {
   const agent = AGENT_CATALOG.find(a => a.id === agentId);
   if (!agent) return;
 
-  const st = window.__sceneState?.states?.[agentId] || { status: 'idle', detail: 'N/A' };
+  const st = window.__sceneState?.states?.[agentId] || { status: 'idle', detail: 'N/A', events: [] };
   const inspector = document.getElementById('scene-inspector');
 
   // Find related approvals
@@ -1479,7 +1607,48 @@ function showAgentDetail(agentId) {
   });
 
   // Find recent history for this skill
-  const recentHistory = (window.__sceneState?.history || []).filter(r => r.skill === agent.skill).slice(0, 3);
+  const recentHistory = (window.__sceneState?.history || []).filter(r => r.skill === agent.skill).slice(0, 5);
+
+  // Find related receipts
+  const relatedReceipts = (window.__sceneState?.receipts || []).filter(r => {
+    const src = (r.source || '').toLowerCase();
+    const op = (r.operation || '').toLowerCase();
+    return src.includes(agent.id) || op.includes(agent.skill?.split('-')[0] || '');
+  }).slice(0, 3);
+
+  // Find related timeline events
+  const relatedTimeline = (window.__sceneState?.timeline || []).filter(e => {
+    const summary = (e.summary || '').toLowerCase();
+    return summary.includes(agent.id) || (agent.skill && summary.includes(agent.skill.split('-')[0]));
+  }).slice(0, 3);
+
+  // Derive explainability from approval/recent errors
+  let reason = null;
+  let nextAction = null;
+  if (relatedApprovals.length > 0) {
+    const a = relatedApprovals[0];
+    reason = a.guardrail_config?.require_approval ? '此操作需要 Operator 審批權杖才能執行' : '此操作已被保護機制拒絕';
+    nextAction = '前往「運營管理」的待審批項目進行核准或退回';
+  } else {
+    const errors = recentHistory.filter(r => r.status === 'error');
+    if (errors.length > 0) {
+      reason = errors[0].error_type ? `最近執行失敗：${errors[0].error_type}` : '最近執行失敗';
+      nextAction = '檢查歷史記錄中的錯誤詳細資訊，或查看事故報告';
+    }
+  }
+
+  // Check guardrail denied
+  const guardrails = window.__sceneState?.guardrails || {};
+  if (guardrails.enabled && agent.skill) {
+    const guardrailOps = guardrails.operations || {};
+    const deniedGuardrail = Object.entries(guardrailOps).find(([k, v]) =>
+      k.includes(agent.id.split('-')[0]) && v.denied
+    );
+    if (deniedGuardrail) {
+      reason = `操作 '${deniedGuardrail[0]}' 已被防護規則明確拒絕`;
+      nextAction = '請聯繫系統管理員修改 guardrails 設定';
+    }
+  }
 
   let html = `
     <div class="si-header">
@@ -1488,19 +1657,79 @@ function showAgentDetail(agentId) {
         <div class="si-title">${agent.name}</div>
         <div class="si-subtitle">${agent.desc}</div>
       </div>
-      <span class="badge ${st.status === 'running' ? 'badge-success' : st.status === 'idle' ? '' : 'badge-warning'}" style="margin-left:auto;">${statusLabel(st.status)}</span>
+      <span class="badge ${st.status === 'running' ? 'badge-success' : st.status === 'idle' ? '' : st.status === 'blocked' || st.status === 'incident' ? 'badge-error' : 'badge-warning'}" style="margin-left:auto;">${statusLabel(st.status)}</span>
     </div>
     <div class="si-grid">
       <div class="si-field"><div class="si-field-label">技能識別</div><div class="si-field-value"><code style="background:var(--bg-input);padding:0.1rem 0.4rem;border-radius:4px;">${agent.skill || '主控節點'}</code></div></div>
       <div class="si-field"><div class="si-field-label">目前狀態</div><div class="si-field-value">${st.detail}</div></div>
     </div>`;
 
-  if (agent.skill) {
-    html += `
-    <div class="si-grid" style="margin-top:0.75rem;">
-      <div class="si-field"><div class="si-field-label">待審批關聯</div><div class="si-field-value">${relatedApprovals.length > 0 ? relatedApprovals.map(a => `<span class="badge badge-warning">${a.operation || 'N/A'}</span>`).join(' ') : '無'}</div></div>
-      <div class="si-field"><div class="si-field-label">最近執行紀錄</div><div class="si-field-value">${recentHistory.length > 0 ? recentHistory.map(r => `<span style="font-size:0.8rem;color:var(--text-muted);">${r.timestamp ? new Date(r.timestamp).toLocaleString() : 'N/A'} — ${r.status === 'success' ? '成功' : '失敗'}</span>`).join('<br>') : '無執行紀錄'}</div></div>
+  // Event badges summary
+  if (st.events && st.events.length > 0) {
+    html += `<div class="si-section"><div class="si-section-title">📌 目前事件</div><div style="display:flex;gap:0.4rem;flex-wrap:wrap;">` +
+      st.events.map(e => `<span class="event-badge evt-${e.type}">${e.label}</span>`).join('') + `</div></div>`;
+  }
+
+  // Explainability — reason + next_action (P15-3/P15-4 integration)
+  if (reason) {
+    html += `<div class="si-section">
+      <div class="si-section-title">🔍 決策說明</div>
+      <div class="si-reason-block"><div class="si-reason-label">原因</div><div class="si-reason-text">${reason}</div></div>
+      ${nextAction ? `<div class="si-next-action"><div class="si-next-label">下一步建議</div><div class="si-next-text">${nextAction}</div></div>` : ''}
     </div>`;
+  } else if (agent.skill) {
+    html += `<div class="si-section"><div class="si-section-title">🔍 決策說明</div><div style="font-size:0.8rem;color:var(--text-muted);">目前無阻擋說明</div></div>`;
+  }
+
+  // Approval details
+  if (relatedApprovals.length > 0) {
+    html += `<div class="si-section"><div class="si-section-title">⏳ 待審批項目 (${relatedApprovals.length})</div>` +
+      relatedApprovals.map(a => `<div style="font-size:0.8rem;padding:0.35rem 0;border-bottom:1px solid var(--border);">
+        <div><code style="background:var(--bg-input);padding:0.1rem 0.3rem;border-radius:3px;">${a.operation || 'N/A'}</code></div>
+        <div style="color:var(--text-muted);margin-top:0.15rem;">${a.created_at ? new Date(a.created_at).toLocaleString() : 'N/A'} — 風險等級: ${{ low: '低', medium: '中', high: '高', critical: '嚴重' }[a.risk_level || 'low'] || a.risk_level}</div>
+      </div>`).join('') + `</div>`;
+  } else if (agent.skill) {
+    html += `<div class="si-section"><div class="si-section-title">⏳ 待審批項目</div><div style="font-size:0.8rem;color:var(--text-muted);">目前無待審批</div></div>`;
+  }
+
+  // Recent history
+  if (recentHistory.length > 0) {
+    html += `<div class="si-section"><div class="si-section-title">📋 最近執行紀錄 (${recentHistory.length})</div>` +
+      recentHistory.map(r => `<div style="font-size:0.8rem;padding:0.35rem 0;border-bottom:1px solid var(--border);">
+        <span class="badge ${r.status === 'success' ? 'badge-success' : 'badge-error'}" style="margin-right:0.3rem;">${r.status === 'success' ? '成功' : '失敗'}</span>
+        <span style="color:var(--text-muted);">${r.timestamp ? new Date(r.timestamp).toLocaleString() : 'N/A'}</span>
+        ${r.error_type ? `<br><span style="color:var(--error);font-size:0.75rem;">錯誤: ${r.error_type}</span>` : ''}
+      </div>`).join('') + `</div>`;
+  } else if (agent.skill) {
+    html += `<div class="si-section"><div class="si-section-title">📋 最近執行紀錄</div><div style="font-size:0.8rem;color:var(--text-muted);">無執行紀錄</div></div>`;
+  }
+
+  // Automation receipts
+  if (relatedReceipts.length > 0) {
+    html += `<div class="si-section"><div class="si-section-title">🤖 自動化執行紀錄 (${relatedReceipts.length})</div>` +
+      relatedReceipts.map(r => `<div style="font-size:0.8rem;padding:0.35rem 0;border-bottom:1px solid var(--border);">
+        <span style="color:var(--text-secondary);">${r.operation || r.source || 'N/A'}</span>
+        <span class="badge ${r.status === 'success' ? 'badge-success' : 'badge-warning'}" style="margin-left:0.3rem;">${r.status || 'unknown'}</span>
+        ${r.retried ? '<span style="color:var(--warning);font-size:0.7rem;margin-left:0.3rem;">重試</span>' : ''}
+      </div>`).join('') + `</div>`;
+  }
+
+  // Incident
+  const incident = window.__sceneState?.incident || {};
+  if (incident.summary || incident.incident_summary) {
+    const incSummary = incident.summary || incident.incident_summary || '';
+    if (incSummary && (incSummary.includes(agent.skill) || incSummary.includes(agent.name) || agent.id === 'orchestrator')) {
+      html += `<div class="si-section"><div class="si-section-title">🚨 事故報告摘要</div><div style="font-size:0.8rem;color:var(--text-secondary);white-space:pre-wrap;">${incSummary}</div></div>`;
+    }
+  }
+
+  // Timeline events
+  if (relatedTimeline.length > 0) {
+    html += `<div class="si-section"><div class="si-section-title">📅 相關時間軸事件</div>` +
+      relatedTimeline.map(e => `<div style="font-size:0.8rem;padding:0.35rem 0;border-bottom:1px solid var(--border);">
+        <span style="color:var(--text-muted);">${e.timestamp ? new Date(e.timestamp).toLocaleString() : 'N/A'}</span>
+        <br><span style="color:var(--text-secondary);">${e.summary || 'N/A'}</span>
+      </div>`).join('') + `</div>`;
   }
 
   inspector.innerHTML = html;
