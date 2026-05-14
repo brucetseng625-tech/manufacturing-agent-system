@@ -3,10 +3,10 @@
 Last updated: 2026-05-14
 
 Latest `HEAD` on `main`:
-- `a7ba509` `feat(P16): scene view visual redesign — grid layout, 2.5D depth, enhanced agent nodes`
+- `432050c` `feat(P16): scene view redesign — compact first-screen control room layout`
 
 Latest verified feature commit on `main`:
-- `a7ba509` `feat(P16): scene view visual redesign — grid layout, 2.5D depth, enhanced agent nodes`
+- `432050c` `feat(P16): scene view redesign — compact first-screen control room layout`
 
 Important handoff note:
 - `main` may move to a docs-only sync commit after the latest verified feature commit above. Always confirm exact `HEAD` with `git rev-parse HEAD` before continuing.
@@ -588,16 +588,18 @@ Goal: Replace engineering-card UI with an intuitive factory-floor scene view for
 
 ### P16 Scene View Visual Redesign (completed)
 
-- `static/dashboard.html`: Complete visual redesign from 'tilted cards' to spatially meaningful Agent Team collaboration control room
-- 3-layer layout: Scene Header (product-page style) → Main Stage (CSS Grid) → Inspector Panel (preserved)
-- Main Stage grid: orchestrator top-center (full span), risk/production side-by-side (row 2), commercial bottom-left (row 3), comm full-bottom (row 4)
-- Zone cards with 2.5D platform depth: `::before` top highlight + `::after` base shadow, semantic color themes (indigo/red/blue/amber/green)
-- Zone header + subtitle per station describing function
-- Agent nodes: larger 140px cards with icon/name/role/status layers; orchestrator at 175px with glow effect
-- Pulse animations, event badges, and SVG task flow paths preserved
-- Fully read-only, zero backend changes, zero new APIs
+- `static/dashboard.html`: Complete redesign — compact first-screen control room layout
+- Orchestrator command center with live stats (running, blocked, approvals, active routes)
+- 2x2 grid below orchestrator: Risk (left) + Production (right) / Commercial (left) + Comm (right)
+- All 5 zones visible in first screen — no scrolling needed for main narrative
+- 2.5D platform depth via ::before top highlight + ::after base shadow
+- Semantic zone colors: orchestrator=indigo, risk=red, production=blue, commercial=amber, comm=green
+- Agent nodes: icon + name + role + status at every zone
+- SVG task flow from orchestrator to each zone as primary narrative
+- Compact legend at bottom
+- Fully read-only, zero backend changes
 - Tests: 948/948 passed
-- Commit: `a7ba509`
+- Commit: `432050c`
 
 ## P17 Channel Integrations & External Operator Entry
 
