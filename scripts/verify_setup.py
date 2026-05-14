@@ -226,9 +226,9 @@ def main():
         dashboard_html = open(dashboard_path).read()
         check("Dashboard: has Ops nav item",
               'data-view="ops"' in dashboard_html,
-              "運營管理 navigation item present")
+              "營運治理 navigation item present")
         check("Dashboard: has Ops view section",
-              "運營管理" in dashboard_html,
+              "營運治理" in dashboard_html,
               "Ops view section present")
         check("Dashboard: has loadOps function",
               "loadOps" in dashboard_html,

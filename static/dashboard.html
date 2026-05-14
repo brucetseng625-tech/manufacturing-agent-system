@@ -879,143 +879,39 @@ body {
 <div class="app">
   <nav class="sidebar">
     <h1>智造中控台 <span>Dashboard</span></h1>
-    <div class="nav-item active" data-view="query">
-      <span class="nav-icon">▶</span><span class="nav-text">查詢工作台</span>
+    <div class="nav-item active" data-view="workspace">
+      <span class="nav-icon">🏠</span><span class="nav-text">主工作台</span>
     </div>
     <div class="nav-item" data-view="ops">
-      <span class="nav-icon">🔧</span><span class="nav-text">運營管理</span>
+      <span class="nav-icon">🛡️</span><span class="nav-text">營運治理</span>
     </div>
     <div class="nav-item" data-view="timeline">
-      <span class="nav-icon">📅</span><span class="nav-text">時間軸</span>
+      <span class="nav-icon">📅</span><span class="nav-text">事件時間軸</span>
     </div>
     <div class="nav-item" data-view="history">
-      <span class="nav-icon">📋</span><span class="nav-text">歷史記錄</span>
+      <span class="nav-icon">📋</span><span class="nav-text">執行紀錄</span>
     </div>
     <div class="nav-item" data-view="skills">
-      <span class="nav-icon">◆</span><span class="nav-text">技能與團隊</span>
+      <span class="nav-icon">◆</span><span class="nav-text">技能與流程</span>
     </div>
     <div class="nav-item" data-view="stats">
-      <span class="nav-icon">📊</span><span class="nav-text">統計資料</span>
-    </div>
-    <div class="nav-item" data-view="scene">
-      <span class="nav-icon">🏭</span><span class="nav-text">場景視圖</span>
+      <span class="nav-icon">📊</span><span class="nav-text">使用統計</span>
     </div>
   </nav>
 
   <main class="main">
-    <!-- Query View (default / operator-first) -->
-    <section id="view-query" class="view active">
+    <!-- Workspace View -->
+    <section id="view-workspace" class="view active">
       <div class="view-header">
-        <h2>查詢工作台</h2>
-        <p>輸入訂單編號或描述需求，AI 自動分析交期風險、缺料狀況、排程衝突等問題</p>
-      </div>
-      <div class="query-box">
-        <input type="text" id="query-input" class="query-input" placeholder="例如：ORD-1001 能不能準時出？" />
-        <button id="query-btn" class="btn" onclick="executeQuery()">送出查詢</button>
-        <button class="btn" style="background:var(--bg-input);border:1px solid var(--border);" onclick="document.getElementById('query-input').value='';document.getElementById('query-result').innerHTML='';">清空</button>
-      </div>
-      <div style="margin-bottom:1rem;font-size:0.85rem;color:var(--text-muted);">
-        快速範例：
-        <span style="cursor:pointer;color:var(--accent-light);margin-right:0.5rem;" onclick="document.getElementById('query-input').value='ORD-2001 交期如何？';executeQuery()">正常單測試</span>
-        <span style="cursor:pointer;color:var(--accent-light);margin-right:0.5rem;" onclick="document.getElementById('query-input').value='ORD-2002 有沒有風險？';executeQuery()">交期風險</span>
-        <span style="cursor:pointer;color:var(--accent-light);margin-right:0.5rem;" onclick="document.getElementById('query-input').value='ORD-2003 缺料怎麼辦？';executeQuery()">缺料查詢</span>
-        <span style="cursor:pointer;color:var(--accent-light);margin-right:0.5rem;" onclick="document.getElementById('query-input').value='ORD-2004 排程有衝突嗎？';executeQuery()">排程衝突</span>
-      </div>
-      <div id="query-result"></div>
-    </section>
-
-    <!-- Ops View -->
-    <section id="view-ops" class="view">
-      <div class="view-header">
-        <h2>運營管理</h2>
-        <p>系統健康狀態、警報、待審批、自動化紀錄與事件管理 — 每天開工前先看這裡</p>
-      </div>
-      <div id="ops-grid" class="grid"><div class="loading">載入運營資料中…</div></div>
-    </section>
-
-    <!-- Timeline View -->
-    <section id="view-timeline" class="view">
-      <div class="view-header">
-        <h2>事件時間軸</h2>
-        <p>系統執行、警報與 HTTP 存取的統一事件流，方便追蹤異常與復原</p>
-      </div>
-      <div class="filters">
-        <select id="timeline-type" class="filter-select" onchange="loadTimeline()">
-          <option value="">全部類型</option>
-          <option value="run">執行</option>
-          <option value="alert">警報</option>
-          <option value="access">存取</option>
-        </select>
-        <select id="timeline-limit" class="filter-select" onchange="loadTimeline()">
-          <option value="10">最近 10 筆</option>
-          <option value="20">最近 20 筆</option>
-          <option value="50" selected>最近 50 筆</option>
-          <option value="100">最近 100 筆</option>
-        </select>
-      </div>
-      <div id="timeline-summary" class="card" style="display:none;"></div>
-      <div id="timeline-content"><div class="loading">載入時間軸中…</div></div>
-    </section>
-
-    <!-- History View -->
-    <section id="view-history" class="view">
-      <div class="view-header">
-        <h2>歷史記錄</h2>
-        <p>最近的 AI 查詢執行紀錄，可依照狀態、技能或來源篩選</p>
-      </div>
-      <div class="filters">
-        <select id="filter-status" class="filter-select" onchange="loadHistory()">
-          <option value="">全部狀態</option>
-          <option value="success">成功</option>
-          <option value="error">失敗</option>
-        </select>
-        <input type="text" id="filter-skill" class="filter-input" placeholder="篩選技能…" oninput="loadHistory()" />
-        <select id="filter-channel" class="filter-select" onchange="loadHistory()">
-          <option value="">全部來源</option>
-          <option value="cli">命令列</option>
-          <option value="http">HTTP</option>
-        </select>
-        <select id="filter-limit" class="filter-select" onchange="loadHistory()">
-          <option value="10">最近 10 筆</option>
-          <option value="25">最近 25 筆</option>
-          <option value="50">最近 50 筆</option>
-        </select>
-      </div>
-      <div id="history-content"><div class="loading">載入歷史記錄中…</div></div>
-    </section>
-
-    <!-- Skills View -->
-    <section id="view-skills" class="view">
-      <div class="view-header">
-        <h2>技能與團隊</h2>
-        <p>AI 可用的分析技能與團隊工作流程 — 進階設定用</p>
-      </div>
-      <div id="skills-grid" class="grid"><div class="loading">載入技能列表中…</div></div>
-    </section>
-
-    <!-- Stats View -->
-    <section id="view-stats" class="view">
-      <div class="view-header">
-        <h2>統計資料</h2>
-        <p>系統使用量與技能分布 — 了解哪些功能最常用</p>
-      </div>
-      <div class="grid" id="stats-grid">
-        <div class="card"><div class="loading">載入統計資料中…</div></div>
-      </div>
-    </section>
-
-    <!-- Scene View — P16-1 -->
-    <section id="view-scene" class="view">
-      <div class="view-header">
-        <h2>場景視圖</h2>
-        <p>Agent 團隊狀態總覽 — 直覺理解各職能節點健康狀態與阻塞原因</p>
+        <h2>主工作台</h2>
+        <p>把提問、協作分流、節點原因與下一步放在同一個工作台，先看主控如何協調，再決定後續處理。</p>
       </div>
       <div class="scene-workspace">
         <aside class="scene-sidepanel">
           <div class="scene-sidepanel-header">
             <div>
               <div class="scene-sidepanel-title">協作工作台</div>
-              <div class="scene-sidepanel-desc">在同一畫面完成查詢、看派工、點節點追原因。左側負責提問與脈絡，右側負責場景總覽。</div>
+              <div class="scene-sidepanel-desc">左側專注提問、脈絡與最近互動；右側專注主控分流、職能協作與阻塞原因。</div>
             </div>
             <span class="scene-mode-badge">Read-Only Workspace</span>
           </div>
@@ -1050,12 +946,91 @@ body {
         <div class="scene-workstage">
           <div class="scene-container" id="scene-container">
             <div class="scene-floor"></div>
-            <!-- P16-5: SVG Task Flow overlay -->
             <svg class="scene-taskflow" id="scene-taskflow" xmlns="http://www.w3.org/2000/svg"></svg>
             <div class="scene-zone" id="scene-content"><div class="loading">載入場景中…</div></div>
           </div>
           <div id="scene-inspector" class="scene-inspector"></div>
         </div>
+      </div>
+    </section>
+
+    <!-- Ops View -->
+    <section id="view-ops" class="view">
+      <div class="view-header">
+        <h2>營運治理</h2>
+        <p>查看系統健康、待審批、警報、事件閉環與治理狀態。這裡負責風險放行，不負責日常提問。</p>
+      </div>
+      <div id="ops-grid" class="grid"><div class="loading">載入運營資料中…</div></div>
+    </section>
+
+    <!-- Timeline View -->
+    <section id="view-timeline" class="view">
+      <div class="view-header">
+        <h2>事件時間軸</h2>
+        <p>系統執行、警報與 HTTP 存取的統一事件流，方便追蹤異常與復原</p>
+      </div>
+      <div class="filters">
+        <select id="timeline-type" class="filter-select" onchange="loadTimeline()">
+          <option value="">全部類型</option>
+          <option value="run">執行</option>
+          <option value="alert">警報</option>
+          <option value="access">存取</option>
+        </select>
+        <select id="timeline-limit" class="filter-select" onchange="loadTimeline()">
+          <option value="10">最近 10 筆</option>
+          <option value="20">最近 20 筆</option>
+          <option value="50" selected>最近 50 筆</option>
+          <option value="100">最近 100 筆</option>
+        </select>
+      </div>
+      <div id="timeline-summary" class="card" style="display:none;"></div>
+      <div id="timeline-content"><div class="loading">載入時間軸中…</div></div>
+    </section>
+
+    <!-- History View -->
+    <section id="view-history" class="view">
+      <div class="view-header">
+        <h2>執行紀錄</h2>
+        <p>查看查詢、團隊流程與外部通道的執行結果，適合追查單筆任務處理過程。</p>
+      </div>
+      <div class="filters">
+        <select id="filter-status" class="filter-select" onchange="loadHistory()">
+          <option value="">全部狀態</option>
+          <option value="success">成功</option>
+          <option value="error">失敗</option>
+        </select>
+        <input type="text" id="filter-skill" class="filter-input" placeholder="篩選技能…" oninput="loadHistory()" />
+        <select id="filter-channel" class="filter-select" onchange="loadHistory()">
+          <option value="">全部來源</option>
+          <option value="cli">命令列</option>
+          <option value="http">HTTP</option>
+        </select>
+        <select id="filter-limit" class="filter-select" onchange="loadHistory()">
+          <option value="10">最近 10 筆</option>
+          <option value="25">最近 25 筆</option>
+          <option value="50">最近 50 筆</option>
+        </select>
+      </div>
+      <div id="history-content"><div class="loading">載入執行紀錄中…</div></div>
+    </section>
+
+    <!-- Skills View -->
+    <section id="view-skills" class="view">
+      <div class="view-header">
+        <h2>技能與流程</h2>
+        <p>查看 AI 可用的分析技能與協作流程，這是理解系統能力的進階頁，而不是主要操作入口。</p>
+      </div>
+      <div id="skills-grid" class="grid"><div class="loading">載入技能列表中…</div></div>
+    </section>
+
+    <!-- Stats View -->
+    <section id="view-stats" class="view">
+      <div class="view-header">
+        <h2>使用統計</h2>
+        <p>查看使用量、技能分布與團隊採用情況，屬於管理觀察頁面。</p>
+      </div>
+      <div class="grid" id="stats-grid">
+        <div class="card"><div class="loading">載入使用統計中…</div></div>
       </div>
     </section>
 
@@ -1071,19 +1046,16 @@ document.querySelectorAll('.nav-item').forEach(item => {
     item.classList.add('active');
     const view = item.dataset.view;
     document.getElementById(`view-${view}`).classList.add('active');
+    if (view === 'workspace') renderScene();
     if (view === 'skills') loadSkills();
     if (view === 'history') loadHistory();
     if (view === 'stats') loadStats();
     if (view === 'ops') loadOps();
     if (view === 'timeline') loadTimeline();
-    if (view === 'scene') renderScene();
   });
 });
 
 // Enter key support
-document.getElementById('query-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') executeQuery();
-});
 document.addEventListener('keydown', e => {
   if (e.target && e.target.id === 'scene-query-input' && e.key === 'Enter') {
     executeSceneWorkspaceQuery();
@@ -1432,7 +1404,7 @@ async function loadHistory() {
   const channel = document.getElementById('filter-channel').value;
   const limit = document.getElementById('filter-limit').value;
 
-  content.innerHTML = '<div class="loading">載入歷史記錄中…</div>';
+  content.innerHTML = '<div class="loading">載入執行紀錄中…</div>';
 
   try {
     let url = `/history?last=${limit}`;
@@ -1472,14 +1444,14 @@ async function loadHistory() {
     html += '</tbody></table>';
     content.innerHTML = html;
   } catch (e) {
-    content.innerHTML = `<div class="error-state">載入歷史記錄失敗：${e.message}</div>`;
+    content.innerHTML = `<div class="error-state">載入執行紀錄失敗：${e.message}</div>`;
   }
 }
 
 // Stats View
 async function loadStats() {
   const grid = document.getElementById('stats-grid');
-  grid.innerHTML = '<div class="loading">載入統計資料中…</div>';
+  grid.innerHTML = '<div class="loading">載入使用統計中…</div>';
 
   try {
     const res = await fetch('/metrics');
@@ -1534,7 +1506,7 @@ async function loadStats() {
     `;
     grid.innerHTML = html;
   } catch (e) {
-    grid.innerHTML = `<div class="error-state">載入統計資料失敗：${e.message}</div>`;
+    grid.innerHTML = `<div class="error-state">載入使用統計失敗：${e.message}</div>`;
   }
 }
 
@@ -2672,12 +2644,12 @@ function showAgentDetail(agentId) {
   if (relatedApprovals.length > 0) {
     const a = relatedApprovals[0];
     reason = a.guardrail_config?.require_approval ? '此操作需要 Operator 審批權杖才能執行' : '此操作已被保護機制拒絕';
-    nextAction = '前往「運營管理」的待審批項目進行核准或退回';
+    nextAction = '前往「營運治理」的待審批項目進行核准或退回';
   } else {
     const errors = recentHistory.filter(r => r.status === 'error');
     if (errors.length > 0) {
       reason = errors[0].error_type ? `最近執行失敗：${errors[0].error_type}` : '最近執行失敗';
-      nextAction = '檢查歷史記錄中的錯誤詳細資訊，或查看事故報告';
+      nextAction = '檢查執行紀錄中的錯誤詳細資訊，或查看事故報告';
     }
   }
 

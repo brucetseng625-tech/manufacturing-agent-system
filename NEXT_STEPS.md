@@ -619,6 +619,23 @@ Goal: Replace engineering-card UI with an intuitive factory-floor scene view for
 - No backend changes, no new APIs, no changes to Discord/P17
 - Tests: 951/951 passed
 
+### Workspace IA Realignment (completed)
+
+- `查詢工作台` + `場景視圖` merged into a single default entry: `主工作台`
+- Left navigation renamed and reordered to reduce overlap:
+  - `主工作台`
+  - `營運治理`
+  - `事件時間軸`
+  - `執行紀錄`
+  - `技能與流程`
+  - `使用統計`
+- `主工作台` now carries the shared operator entry:
+  - query / conversation
+  - scene overview
+  - node context
+  - explainability handoff
+- `營運治理` is reserved for approvals, alerts, incident, receipts, and system governance rather than day-to-day query work
+
 ## P17 Channel Integrations & External Operator Entry
 
 Goal: Enable external channel access (Discord/LINE) for operator queries, notifications, and approvals.

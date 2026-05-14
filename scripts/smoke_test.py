@@ -331,7 +331,7 @@ def main():
                   "data-view=\"ops\"" in html,
                   "Ops navigation item present")
             check("Dashboard: has Ops view section",
-                  "運營管理" in html,
+                  "營運治理" in html,
                   "Ops view section present")
             check("Dashboard: calls loadOps",
                   "loadOps" in html,

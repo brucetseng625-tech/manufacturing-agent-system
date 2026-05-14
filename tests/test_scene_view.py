@@ -1,4 +1,4 @@
-"""Tests for P16-1 Read-Only Agent Team Scene View."""
+"""Tests for main workspace scene view."""
 
 import json
 import os
@@ -15,14 +15,14 @@ class SceneViewHTMLTest(unittest.TestCase):
         with open(dashboard_path, "r", encoding="utf-8") as f:
             self.html = f.read()
 
-    def test_contains_scene_nav_item(self):
-        """Dashboard must contain 場景視圖 nav item."""
-        self.assertIn("場景視圖", self.html)
-        self.assertIn('data-view="scene"', self.html)
+    def test_contains_workspace_nav_item(self):
+        """Dashboard must expose 主工作台 as the primary merged entry."""
+        self.assertIn("主工作台", self.html)
+        self.assertIn('data-view="workspace"', self.html)
 
-    def test_contains_scene_view_section(self):
-        """Dashboard must contain view-scene section."""
-        self.assertIn('id="view-scene"', self.html)
+    def test_contains_workspace_view_section(self):
+        """Dashboard must contain the merged workspace section."""
+        self.assertIn('id="view-workspace"', self.html)
         self.assertIn("scene-container", self.html)
 
     def test_contains_scene_floor(self):
@@ -44,7 +44,7 @@ class SceneViewHTMLTest(unittest.TestCase):
         self.assertIn("scene-workstage", self.html)
 
     def test_contains_scene_thread_and_context_panel(self):
-        """Scene workspace must include thread and node context surfaces."""
+        """Merged workspace must include thread and node context surfaces."""
         self.assertIn('id="scene-thread"', self.html)
         self.assertIn('id="scene-context-panel"', self.html)
         self.assertIn('id="scene-workspace-status"', self.html)
@@ -144,9 +144,9 @@ class SceneViewHTMLTest(unittest.TestCase):
         self.assertNotIn("doReject", scene_section)
         self.assertNotIn("doSelectProvider", scene_section)
 
-    def test_scene_nav_triggers_render(self):
-        """Clicking scene nav must trigger renderScene()."""
-        self.assertIn("if (view === 'scene') renderScene()", self.html)
+    def test_workspace_nav_triggers_render(self):
+        """Clicking workspace nav must trigger renderScene()."""
+        self.assertIn("if (view === 'workspace') renderScene()", self.html)
 
     def test_scene_fetches_incident_report(self):
         """Scene view must fetch /incident/report for incident state."""
