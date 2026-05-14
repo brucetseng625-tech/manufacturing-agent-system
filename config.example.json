@@ -94,6 +94,11 @@
     "cooldown_seconds": 300,
     "auto_resolve_seconds": 0
   },
+  "discord": {
+    "webhook_url": "",
+    "allowed_user_ids": [],
+    "channel_id": ""
+  },
   "guardrails": {
     "enabled": false,
     "approval_token": "",

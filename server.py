@@ -32,6 +32,7 @@ from guardrails import check_guardrail, get_guardrails_status, get_guardrail
 from execution_receipts import record_receipt, query_receipts, get_receipts_summary, reset_receipts
 from pilot_checklist import get_checklist, get_checklist_summary
 from incident_closure import get_closure, query_closures, upsert_closure, reset_closures
+from integrations.discord_bot import send_discord_notification, handle_discord_message
 from rollout_profile import get_rollout_profile, get_rollout_status, check_rollout, reload_rollout_profile
 
 
@@ -1227,19 +1228,38 @@ class AgentHandler(BaseHTTPRequestHandler):
         self._send_json_response(200, result)
 
     def _handle_approvals_reset(self):
-        """Handle POST /approvals/reset — clear approval queue."""
+        """Handle POST /approvals/reset — clear all approval queue state."""
+        reset_queue()
+        self._send_json_response(200, {"success": True, "message": "Approval queue cleared"})
+
+    def _handle_discord_webhook(self):
+        """Handle POST /webhook/discord — Receive Discord messages and process as queries."""
         try:
             content_length = int(self.headers.get("Content-Length", 0))
             if content_length > 0:
-                self.rfile.read(content_length)
-        except Exception:
-            pass
+                body = json.loads(self.rfile.read(content_length).decode("utf-8"))
+            else:
+                self._send_error_response(400, "missing_body", "Request body is required")
+                return
+        except (json.JSONDecodeError, ValueError) as e:
+            self._send_error_response(400, "invalid_json", f"Invalid JSON: {e}")
+            return
 
-        reset_queue()
-        self._send_json_response(200, {
-            "success": True,
-            "message": "Approval queue cleared",
-        })
+        # Discord sends various events; we only care about message creation
+        # Simple payload expected: { "content": "...", "author_id": "123" }
+        # Or full Discord payload: { "content": "...", "author": { "id": "123" } }
+        author_id = body.get("author_id")
+        if not author_id and "author" in body:
+            author_id = body["author"].get("id")
+
+        content = body.get("content", "")
+
+        result = handle_discord_message({"author_id": author_id, "content": content})
+
+        if result["status"] == "error":
+            self._send_json_response(403, "discord_blocked", result["message"])
+        else:
+            self._send_json_response(200, {"status": "ok", "reply": result["message"]})
 
     def _handle_history(self, parsed_path):
         """Handle GET /history with optional query parameters for filtering."""
@@ -1351,6 +1371,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_approval_reject(approval_id)
         elif path == "/approvals/reset":
             self._handle_approvals_reset()
+        elif path == "/webhook/discord":
+            self._handle_discord_webhook()
         else:
             self._drain_request_body()
             self._send_error_response(404, "not_found", "Endpoint not found")
