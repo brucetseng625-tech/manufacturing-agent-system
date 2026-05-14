@@ -10,7 +10,7 @@ Latest verified feature commit on `main`:
 
 Important handoff note:
 - `main` may move to a docs-only sync commit after the latest verified feature commit above. Always confirm exact `HEAD` with `git rev-parse HEAD` before continuing.
-- Full unit test status at handoff: `940 / 940 passed` (+15 from P17-3 Discord approval bot)
+- Full unit test status at handoff: `948 / 948 passed` (+8 from P17-4 Discord approval retry visibility)
 - Smoke test status at handoff: `112 / 112 passed`
 - Setup verification status at handoff: `204 / 204 passed`
 - Working tree at handoff: clean (after P16-3 commit)
@@ -598,6 +598,23 @@ Goal: Enable external channel access (Discord/LINE) for operator queries, notifi
 - Explainability: Approval results formatted with next_action hints (e.g., approve-and-retry)
 - 15 new unit tests (8 formatting + 7 command routing)
 - Total unit test count: 940/940 passed
+
+### P17-4 Discord Approval Retry Visibility (completed)
+
+- `integrations/discord_bot.py`: Enhanced `format_approval_item_detail` and `format_approval_action_result` with replay visibility
+- Approval detail (`approval <id>`) now shows:
+  - `request_preview`: method, path, body_summary from existing serialize_item_for_api
+  - `replay_ready`: whether approve-and-retry can execute the original request
+  - `retry_result`: if already retried, shows success/failure with HTTP status code
+  - If approved but not yet retried: shows "尚未執行 — 需透過 approve-and-retry 觸發"
+- Approval action result (`approve <id>`) now shows:
+  - Original request method and path when replay_ready
+  - Clear "支援重試: 是/否" status
+  - Next-step explanation: "核准已完成，原始請求尚未自動執行"
+  - Key distinction: "審批 ≠ 執行。核准僅解除封鎖，不會自動觸發原始操作"
+- 8 new unit tests (DiscordApprovalReplayVisibilityTest)
+- Updated existing tests to accommodate new item parameter in format_approval_action_result
+- Total unit test count: 948/948 passed
 
 ## Start Here
 

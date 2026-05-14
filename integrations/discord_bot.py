@@ -269,6 +269,36 @@ def format_approval_item_detail(item):
             keys = ", ".join(sorted(body.keys()))[:80]
             response += f"   欄位: `{keys}`\n"
 
+    # P17-4: Replay visibility from request_preview
+    request_preview = item.get("request_preview")
+    if request_preview:
+        replay_ready = request_preview.get("replay_ready", False)
+        body_summary = request_preview.get("body_summary", "")
+        preview_method = request_preview.get("method", "")
+        preview_path = request_preview.get("path", "")
+
+        if not original_request:
+            response += f"\n📝 **原始請求**: `{preview_method} {preview_path}`\n"
+            if body_summary:
+                response += f"   摘要: {body_summary}\n"
+
+        if replay_ready:
+            response += f"\n🔄 **可重試**: 是 — 審批後可透過 approve-and-retry 重新執行原始請求\n"
+        else:
+            response += f"\n🔄 **可重試**: 否 — 原始請求資訊不足，審批後無法自動重試\n"
+
+    # P17-4: Retry result visibility
+    retry_result = item.get("retry_result")
+    if retry_result:
+        retry_status = retry_result.get("status_code", "N/A")
+        retry_success = retry_result.get("success", False)
+        if retry_success:
+            response += f"\n📤 **重試結果**: ✅ 執行成功 (HTTP {retry_status})\n"
+        else:
+            response += f"\n📤 **重試結果**: ❌ 執行失敗 (HTTP {retry_status})\n"
+    elif status == "approved" and request_preview and request_preview.get("replay_ready"):
+        response += f"\n📤 **重試結果**: 尚未執行 — 審批後需透過 approve-and-retry 觸發\n"
+
     if status == "approved":
         response += f"\n✅ **已審批** by: {item.get('approved_by', '?')}\n"
         if item.get("approved_at"):
@@ -284,12 +314,13 @@ def format_approval_item_detail(item):
     return response
 
 
-def format_approval_action_result(action, result):
+def format_approval_action_result(action, result, item=None):
     """Format the result of an approval action for Discord.
 
     Args:
         action: "approved" or "rejected"
         result: Result dict from approve_item() or reject_item()
+        item: Optional full approval item dict for replay visibility context.
 
     Returns:
         Formatted string for Discord message content.
@@ -311,7 +342,26 @@ def format_approval_action_result(action, result):
     if action == "approved":
         response = f"✅ **已審批** `{item_id}`\n\n"
         response += f"🏷️ 操作: `{operation}`\n"
-        response += f"👉 **下一步**: 原始請求可透過 approve-and-retry 重新執行"
+
+        # P17-4: Clearer handoff explanation
+        replay_ready = False
+        original_method = ""
+        original_path = ""
+        if item:
+            request_preview = item.get("request_preview")
+            if request_preview:
+                replay_ready = request_preview.get("replay_ready", False)
+                original_method = request_preview.get("method", "")
+                original_path = request_preview.get("path", "")
+
+        if replay_ready:
+            response += f"📝 原始請求: `{original_method} {original_path}`\n"
+            response += f"🔄 **支援重試**: 是 — 可透過 Dashboard approve-and-retry 重新執行\n"
+            response += f"👉 **下一步**: 核准已完成，原始請求尚未自動執行。需透過 Dashboard 或 API 觸發 approve-and-retry 以完成重試。\n"
+            response += f"\n⚠️ **提醒**: 審批 ≠ 執行。核准僅解除封鎖，不會自動觸發原始操作。"
+        else:
+            response += f"🔄 **支援重試**: 否 — 原始請求資訊不足\n"
+            response += f"👉 **下一步**: 核准已完成，此操作無可自動重試的原始請求。"
     else:
         reason = result.get("rejection_reason", "")
         response = f"❌ **已拒絕** `{item_id}`\n\n"
@@ -413,9 +463,14 @@ def handle_discord_approval_command(message_payload):
         item_id = parts[1]
         approved_by = f"discord:{author_id}"
 
+        # P17-4: Fetch item before approval to get request_preview for handoff explanation
+        item_before = get_item(item_id)
+        if item_before:
+            item_before = serialize_item_for_api(item_before)
+
         result = approve_item(item_id, approved_by=approved_by)
 
-        formatted = format_approval_action_result("approved", result)
+        formatted = format_approval_action_result("approved", result, item=item_before)
 
         audit_entry = append_audit_entry(
             "discord_approval_approved",

@@ -148,13 +148,45 @@ class DiscordApprovalFormattingTest(unittest.TestCase):
         self.assertIn("POST /policy/reload", output)
         self.assertIn("操作提示", output)
 
-    def test_format_approval_action_result_approved(self):
-        """Should format successful approval result."""
+    def test_format_approval_action_result_approved_without_item(self):
+        """Should format approval without replay context when no item provided."""
         result = {"id": "approval-3", "operation": "config:reload", "status": "approved"}
         output = format_approval_action_result("approved", result)
         self.assertIn("已審批", output)
         self.assertIn("approval-3", output)
-        self.assertIn("approve-and-retry", output)
+        # Without item context, should say replay not supported
+        self.assertIn("資訊不足", output)
+
+    def test_format_approval_action_result_approved_with_replay_ready(self):
+        """Should show replay-ready handoff explanation when item has request_preview."""
+        result = {"id": "approval-3", "operation": "config:reload", "status": "approved"}
+        item = {
+            "id": "approval-3",
+            "operation": "config:reload",
+            "status": "pending",
+            "request_preview": {"method": "POST", "path": "/config/reload", "body_summary": "config_path=config.json", "replay_ready": True},
+        }
+        output = format_approval_action_result("approved", result, item=item)
+        self.assertIn("已審批", output)
+        self.assertIn("POST /config/reload", output)
+        self.assertIn("支援重試", output)
+        self.assertIn("核准僅解除封鎖", output)
+        self.assertIn("審批 ≠ 執行", output)
+
+    def test_format_approval_action_result_approved_not_replay_ready(self):
+        """Should explain replay not available when request_preview says so."""
+        result = {"id": "approval-4", "operation": "provider:select", "status": "approved"}
+        item = {
+            "id": "approval-4",
+            "operation": "provider:select",
+            "status": "pending",
+            "request_preview": {"method": "", "path": "", "body_summary": "no body", "replay_ready": False},
+        }
+        output = format_approval_action_result("approved", result, item=item)
+        self.assertIn("已審批", output)
+        self.assertIn("支援重試", output)
+        self.assertIn("否", output)
+        self.assertIn("無可自動重試", output)
 
     def test_format_approval_action_result_rejected_with_reason(self):
         """Should format rejection result with reason."""
@@ -215,17 +247,28 @@ class DiscordApprovalCommandTest(unittest.TestCase):
     def test_approval_detail_command(self, mock_get, mock_get_config):
         """Should return detail for a specific approval item."""
         mock_get_config.return_value = []
-        mock_get.return_value = {"id": "approval-2", "operation": "policy:reload", "status": "pending", "created_at": "2026-05-14T10:00:00Z", "source_ip": "127.0.0.1", "details": {}, "original_request": None}
+        mock_get.return_value = {
+            "id": "approval-2", "operation": "policy:reload", "status": "pending",
+            "created_at": "2026-05-14T10:00:00Z", "source_ip": "127.0.0.1",
+            "details": {}, "original_request": None,
+            "request_preview": {"method": "POST", "path": "/policy/reload", "body_summary": "no body", "replay_ready": True},
+        }
         result = handle_discord_approval_command({"author_id": "123", "content": "approval approval-2"})
         self.assertEqual(result["status"], "success")
         self.assertIn("approval-2", result["message"])
         mock_get.assert_called_once_with("approval-2")
 
     @patch("integrations.discord_bot.get_config_value")
+    @patch("integrations.discord_bot.get_item")
     @patch("integrations.discord_bot.approve_item")
-    def test_approve_command(self, mock_approve, mock_get_config):
-        """Should approve an item and return confirmation."""
+    def test_approve_command(self, mock_approve, mock_get_item, mock_get_config):
+        """Should approve an item and return confirmation with replay context."""
         mock_get_config.return_value = []
+        mock_get_item.return_value = {
+            "id": "approval-3", "operation": "config:reload", "status": "pending",
+            "original_request": {"method": "POST", "path": "/config/reload", "body": {}},
+            "request_preview": {"method": "POST", "path": "/config/reload", "body_summary": "no body", "replay_ready": True},
+        }
         mock_approve.return_value = {"id": "approval-3", "operation": "config:reload", "status": "approved"}
         result = handle_discord_approval_command({"author_id": "123", "content": "approve approval-3"})
         self.assertEqual(result["status"], "success")
@@ -250,3 +293,88 @@ class DiscordApprovalCommandTest(unittest.TestCase):
         result = handle_discord_approval_command({"author_id": "123", "content": "approval foo bar baz"})
         self.assertIn("未知的審批指令", result["message"])
         self.assertIn("approval list", result["message"])
+
+
+class DiscordApprovalReplayVisibilityTest(unittest.TestCase):
+    """Test P17-4 replay visibility in approval detail and action results."""
+
+    def test_detail_shows_replay_ready_true(self):
+        """Should show replay-ready status when request_preview says so."""
+        item = {
+            "id": "approval-10", "operation": "config:reload", "status": "pending",
+            "created_at": "2026-05-14T12:00:00Z", "source_ip": "127.0.0.1",
+            "details": {"endpoint": "/config/reload"},
+            "original_request": None,
+            "request_preview": {"method": "POST", "path": "/config/reload", "body_summary": "config_path=config.json", "replay_ready": True},
+        }
+        output = format_approval_item_detail(item)
+        self.assertIn("可重試", output)
+        self.assertIn("是", output)
+        self.assertIn("approve-and-retry", output)
+
+    def test_detail_shows_replay_ready_false(self):
+        """Should show replay-not-available when request_preview says so."""
+        item = {
+            "id": "approval-11", "operation": "provider:select", "status": "pending",
+            "created_at": "2026-05-14T12:00:00Z", "source_ip": "127.0.0.1",
+            "details": {},
+            "original_request": None,
+            "request_preview": {"method": "", "path": "", "body_summary": "no body", "replay_ready": False},
+        }
+        output = format_approval_item_detail(item)
+        self.assertIn("可重試", output)
+        self.assertIn("否", output)
+        self.assertIn("無法自動重試", output)
+
+    def test_detail_shows_retry_result_success(self):
+        """Should show successful retry result when retry_result exists."""
+        item = {
+            "id": "approval-12", "operation": "config:reload", "status": "approved",
+            "created_at": "2026-05-14T12:00:00Z", "source_ip": "127.0.0.1",
+            "details": {}, "original_request": None,
+            "request_preview": {"method": "POST", "path": "/config/reload", "body_summary": "no body", "replay_ready": True},
+            "retry_result": {"status_code": 200, "success": True, "body": {"success": True}},
+        }
+        output = format_approval_item_detail(item)
+        self.assertIn("重試結果", output)
+        self.assertIn("執行成功", output)
+        self.assertIn("200", output)
+
+    def test_detail_shows_retry_result_failure(self):
+        """Should show failed retry result when retry_result exists with error."""
+        item = {
+            "id": "approval-13", "operation": "policy:reload", "status": "approved",
+            "created_at": "2026-05-14T12:00:00Z", "source_ip": "127.0.0.1",
+            "details": {}, "original_request": None,
+            "request_preview": {"method": "POST", "path": "/policy/reload", "body_summary": "no body", "replay_ready": True},
+            "retry_result": {"status_code": 500, "success": False, "body": {"error": "internal"}},
+        }
+        output = format_approval_item_detail(item)
+        self.assertIn("重試結果", output)
+        self.assertIn("執行失敗", output)
+        self.assertIn("500", output)
+
+    def test_detail_approved_replay_ready_no_retry_yet(self):
+        """Should show 'not yet executed' for approved item with replay_ready but no retry_result."""
+        item = {
+            "id": "approval-14", "operation": "config:reload", "status": "approved",
+            "created_at": "2026-05-14T12:00:00Z", "source_ip": "127.0.0.1",
+            "details": {}, "original_request": None,
+            "request_preview": {"method": "POST", "path": "/config/reload", "body_summary": "no body", "replay_ready": True},
+            "retry_result": None,
+        }
+        output = format_approval_item_detail(item)
+        self.assertIn("重試結果", output)
+        self.assertIn("尚未執行", output)
+
+    def test_approval_handoff_shows_approve_not_equals_execute(self):
+        """Approve result should clearly state approval != execution."""
+        result = {"id": "approval-20", "operation": "config:reload", "status": "approved"}
+        item = {
+            "id": "approval-20", "operation": "config:reload", "status": "pending",
+            "request_preview": {"method": "POST", "path": "/config/reload", "body_summary": "no body", "replay_ready": True},
+        }
+        output = format_approval_action_result("approved", result, item=item)
+        self.assertIn("審批 ≠ 執行", output)
+        self.assertIn("核准僅解除封鎖", output)
+        self.assertIn("尚未自動執行", output)
