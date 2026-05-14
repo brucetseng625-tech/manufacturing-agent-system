@@ -32,7 +32,7 @@ from guardrails import check_guardrail, get_guardrails_status, get_guardrail
 from execution_receipts import record_receipt, query_receipts, get_receipts_summary, reset_receipts
 from pilot_checklist import get_checklist, get_checklist_summary
 from incident_closure import get_closure, query_closures, upsert_closure, reset_closures
-from integrations.discord_bot import send_discord_notification, handle_discord_message
+from integrations.discord_bot import send_discord_notification, handle_discord_message, handle_discord_approval_command
 from rollout_profile import get_rollout_profile, get_rollout_status, check_rollout, reload_rollout_profile
 
 
@@ -1233,7 +1233,7 @@ class AgentHandler(BaseHTTPRequestHandler):
         self._send_json_response(200, {"success": True, "message": "Approval queue cleared"})
 
     def _handle_discord_webhook(self):
-        """Handle POST /webhook/discord — Receive Discord messages and process as queries."""
+        """Handle POST /webhook/discord — Receive Discord messages and process as queries or approval commands."""
         try:
             content_length = int(self.headers.get("Content-Length", 0))
             if content_length > 0:
@@ -1254,6 +1254,18 @@ class AgentHandler(BaseHTTPRequestHandler):
 
         content = body.get("content", "")
 
+        # P17-3: Check if this is an approval command
+        content_lower = content.strip().lower()
+        approval_prefixes = ("approval", "approve ", "reject ")
+        if any(content_lower.startswith(prefix) for prefix in approval_prefixes):
+            result = handle_discord_approval_command({"author_id": author_id, "content": content})
+            if result["status"] == "error":
+                self._send_json_response(403, "discord_blocked", result["message"])
+            else:
+                self._send_json_response(200, {"status": "ok", "reply": result["message"]})
+            return
+
+        # Default: treat as a query
         result = handle_discord_message({"author_id": author_id, "content": content})
 
         if result["status"] == "error":
@@ -1283,8 +1295,8 @@ class AgentHandler(BaseHTTPRequestHandler):
                 return
 
             channel = params.get("channel", [None])[0]
-            if channel is not None and channel not in ("cli", "http"):
-                self._send_error_response(400, "invalid_parameter", "'channel' must be 'cli' or 'http'")
+            if channel is not None and channel not in ("cli", "http", "discord"):
+                self._send_error_response(400, "invalid_parameter", "'channel' must be 'cli', 'http', or 'discord'")
                 return
 
             intent = params.get("intent", [None])[0]

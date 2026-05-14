@@ -10,7 +10,7 @@ Latest verified feature commit on `main`:
 
 Important handoff note:
 - `main` may move to a docs-only sync commit after the latest verified feature commit above. Always confirm exact `HEAD` with `git rev-parse HEAD` before continuing.
-- Full unit test status at handoff: `925 / 925 passed` (+6 from P17-2 Discord bot)
+- Full unit test status at handoff: `940 / 940 passed` (+15 from P17-3 Discord approval bot)
 - Smoke test status at handoff: `112 / 112 passed`
 - Setup verification status at handoff: `204 / 204 passed`
 - Working tree at handoff: clean (after P16-3 commit)
@@ -584,7 +584,20 @@ Goal: Enable external channel access (Discord/LINE) for operator queries, notifi
 - Audit chain: all queries logged with channel='discord'
 - Updated config.example.json with discord section
 - 6 new unit tests
-- Commit: pending
+- Commits: `a5f8d89` (feature) + `49c7f67` (docs)
+
+### P17-3 Discord Approval-Assisted Flow (completed)
+
+- `integrations/discord_bot.py`: format_approval_list, format_approval_item_detail, format_approval_action_result, handle_discord_approval_command
+- `POST /webhook/discord` now routes approval commands (approval list, approval <id>, approve <id>, reject <id> [reason])
+- Approval list: Shows pending/approved/rejected items with operation, endpoint, and risk level
+- Approval detail: Shows full item info including original request preview and action hints
+- Approve/Reject: Calls existing approve_item/reject_item with Discord identity mapping (operator=discord:{author_id})
+- All approval actions logged to audit chain with channel='discord' and discord: identity prefix
+- Security: Same allowlist-based authorization as queries
+- Explainability: Approval results formatted with next_action hints (e.g., approve-and-retry)
+- 15 new unit tests (8 formatting + 7 command routing)
+- Total unit test count: 940/940 passed
 
 ## Start Here
 
