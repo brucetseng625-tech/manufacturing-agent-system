@@ -230,130 +230,205 @@ body {
 .decision-inspector .di-value.di-pending { color: var(--warning); }
 .decision-inspector .di-value.di-gated { color: var(--warning); }
 
-/* Scene View — P16-1/P16-3/P16-4 */
+/* ═══════════════════════════════════════════════════════════
+   Scene View — P16 Visual Redesign
+   製造業 Agent 協作控制室場景
+   ═══════════════════════════════════════════════════════════ */
+
+/* Scene Header — product-page style */
 .scene-header {
-  margin-bottom: 1.25rem; padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(16,185,129,0.05) 100%);
-  border: 1px solid var(--border); border-radius: 10px;
+  margin-bottom: 1rem; padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(16,185,129,0.04) 100%);
+  border: 1px solid var(--border); border-radius: 12px;
   display: flex; justify-content: space-between; align-items: center;
 }
-.scene-header .sh-title { font-size: 1rem; font-weight: 700; color: var(--accent-light); }
-.scene-header .sh-desc { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem; }
-.scene-header .sh-badge { font-size: 0.7rem; padding: 0.25rem 0.6rem; background: var(--accent); color: #fff; border-radius: 12px; font-weight: 600; }
+.scene-header .sh-title { font-size: 1.1rem; font-weight: 700; color: var(--accent-light); }
+.scene-header .sh-desc { font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.15rem; }
+.scene-header .sh-badge {
+  font-size: 0.68rem; padding: 0.2rem 0.55rem;
+  background: rgba(99,102,241,0.25); color: #a5b4fc; border-radius: 10px;
+  font-weight: 600; letter-spacing: 0.04em;
+}
 
-/* P16-4: Isometric Scene Layout */
+/* ── Scene Container ── */
 .scene-container {
-  position: relative; min-height: 750px;
-  background: linear-gradient(180deg, #0a0e1a 0%, #0d1117 40%, #111827 100%);
-  border: 1px solid var(--border); border-radius: 14px; overflow: visible;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 24px rgba(0,0,0,0.4);
+  position: relative; min-height: 850px; padding: 1.25rem;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 20%, rgba(99,102,241,0.06) 0%, transparent 70%),
+    linear-gradient(180deg, #0b0f1e 0%, #0d1117 50%, #111827 100%);
+  border: 1px solid var(--border); border-radius: 16px;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.04), 0 8px 32px rgba(0,0,0,0.5);
+  overflow: visible;
 }
 .scene-container .scene-floor {
-  position: absolute; inset: 0;
+  position: absolute; inset: 0; border-radius: 16px;
   background:
-    radial-gradient(ellipse at 50% 30%, rgba(99,102,241,0.06) 0%, transparent 60%),
-    repeating-linear-gradient(0deg, rgba(99,102,241,0.03) 0px, rgba(99,102,241,0.03) 1px, transparent 1px, transparent 40px),
-    repeating-linear-gradient(90deg, rgba(99,102,241,0.03) 0px, rgba(99,102,241,0.03) 1px, transparent 1px, transparent 40px);
+    repeating-linear-gradient(0deg, rgba(99,102,241,0.02) 0px, rgba(99,102,241,0.02) 1px, transparent 1px, transparent 50px),
+    repeating-linear-gradient(90deg, rgba(99,102,241,0.02) 0px, rgba(99,102,241,0.02) 1px, transparent 1px, transparent 50px);
   pointer-events: none;
 }
-/* Isometric perspective layer — P16-4 */
 .scene-container .scene-floor::before {
-  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 55%;
-  background: linear-gradient(180deg, transparent 0%, rgba(99,102,241,0.04) 100%);
-  clip-path: polygon(5% 0%, 95% 0%, 100% 100%, 0% 100%);
-}
-/* Depth shadow at bottom — P16-4 */
-.scene-container .scene-floor::after {
-  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 60px;
-  background: linear-gradient(180deg, transparent, rgba(0,0,0,0.3));
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40%;
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,0.25));
   pointer-events: none;
 }
 
+/* ── Scene Zone wrapper ── */
 .scene-container .scene-zone {
-  position: relative; z-index: 1; padding: 1rem 1.25rem;
+  position: relative; z-index: 1;
 }
 
-/* Zone cards — room/workspace platforms with 2.5D depth — P16-4 */
+/* ── Main Stage Grid Layout ── */
+.scene-stage {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 1fr;
+  grid-template-rows: auto auto auto auto;
+  gap: 1rem 1.25rem;
+  padding: 0.5rem 0;
+}
+.zone-orchestrator-stage { grid-column: 1 / -1; grid-row: 1; }
+.zone-risk-stage { grid-column: 1; grid-row: 2; }
+.zone-production-stage { grid-column: 3; grid-row: 2; }
+.zone-commercial-stage { grid-column: 1; grid-row: 3; }
+.zone-comm-stage { grid-column: 1 / -1; grid-row: 4; }
+
+/* ── Zone Cards — workbench platforms with 2.5D depth ── */
 .zone-card {
-  position: relative; margin-bottom: 1.25rem; padding: 1rem 1.1rem;
-  background: rgba(22,33,62,0.5); backdrop-filter: blur(2px);
-  border: 1px solid rgba(42,42,74,0.5); border-radius: 14px;
-  border-left: 5px solid var(--border);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.04) inset;
+  position: relative; padding: 1rem 1.2rem;
+  background: rgba(18,24,42,0.85); backdrop-filter: blur(3px);
+  border: 1px solid rgba(42,42,74,0.4); border-radius: 14px;
+  border-left: 4px solid var(--border);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  transform-origin: center top;
 }
-/* Platform edge highlight — P16-4 */
 .zone-card::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
   border-radius: 14px 14px 0 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  background: linear-gradient(90deg, transparent 5%, rgba(255,255,255,0.06) 50%, transparent 95%);
 }
-/* Platform base shadow — P16-4 */
 .zone-card::after {
-  content: ''; position: absolute; bottom: -4px; left: 4px; right: -4px; height: 8px;
-  background: rgba(0,0,0,0.25); border-radius: 0 0 12px 12px;
-  z-index: -1; filter: blur(2px);
+  content: ''; position: absolute;
+  bottom: -6px; left: 6px; right: -6px; height: 12px;
+  background: rgba(0,0,0,0.3); border-radius: 0 0 10px 10px;
+  z-index: -1; filter: blur(3px);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .zone-card:hover {
-  border-color: rgba(99,102,241,0.5); transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(99,102,241,0.15), 0 1px 0 rgba(255,255,255,0.06) inset;
+  border-color: rgba(99,102,241,0.4);
+  box-shadow: 0 6px 20px rgba(99,102,241,0.12), 0 1px 0 rgba(255,255,255,0.04) inset;
 }
-.zone-card.zone-orchestrator { border-left-color: #6366f1; background: linear-gradient(145deg, rgba(99,102,241,0.1) 0%, rgba(22,33,62,0.5) 100%); }
-.zone-card.zone-risk { border-left-color: #ef4444; background: linear-gradient(145deg, rgba(239,68,68,0.08) 0%, rgba(22,33,62,0.5) 100%); }
-.zone-card.zone-production { border-left-color: #f59e0b; background: linear-gradient(145deg, rgba(245,158,11,0.08) 0%, rgba(22,33,62,0.5) 100%); }
-.zone-card.zone-commercial { border-left-color: #10b981; background: linear-gradient(145deg, rgba(16,185,129,0.08) 0%, rgba(22,33,62,0.5) 100%); }
-.zone-card.zone-comm { border-left-color: #a855f7; background: linear-gradient(145deg, rgba(168,85,247,0.08) 0%, rgba(22,33,62,0.5) 100%); }
+.zone-card:hover::after {
+  bottom: -8px; left: 8px; right: -8px; height: 16px;
+  background: rgba(0,0,0,0.35);
+}
 
+/* Zone color themes — semantic */
+.zone-card.zone-orchestrator {
+  border-left-color: #6366f1;
+  background: linear-gradient(160deg, rgba(99,102,241,0.12) 0%, rgba(18,24,42,0.85) 100%);
+  box-shadow: 0 6px 24px rgba(99,102,241,0.15), 0 1px 0 rgba(255,255,255,0.04) inset;
+}
+.zone-card.zone-risk {
+  border-left-color: #ef4444;
+  background: linear-gradient(160deg, rgba(239,68,68,0.08) 0%, rgba(18,24,42,0.85) 100%);
+}
+.zone-card.zone-production {
+  border-left-color: #3b82f6;
+  background: linear-gradient(160deg, rgba(59,130,246,0.08) 0%, rgba(18,24,42,0.85) 100%);
+}
+.zone-card.zone-commercial {
+  border-left-color: #d97706;
+  background: linear-gradient(160deg, rgba(217,119,6,0.08) 0%, rgba(18,24,42,0.85) 100%);
+}
+.zone-card.zone-comm {
+  border-left-color: #10b981;
+  background: linear-gradient(160deg, rgba(16,185,129,0.08) 0%, rgba(18,24,42,0.85) 100%);
+}
+
+/* Zone header */
 .zone-card-header {
-  display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.85rem;
-  padding-bottom: 0.6rem; border-bottom: 1px solid rgba(42,42,74,0.4);
+  display: flex; align-items: center; gap: 0.5rem;
+  margin-bottom: 0.75rem; padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(42,42,74,0.3);
 }
-.zone-card-header .zc-icon { font-size: 1.3rem; }
-.zone-card-header .zc-label { font-size: 0.9rem; font-weight: 700; letter-spacing: 0.05em; }
-.zone-card-header .zc-desc { font-size: 0.7rem; color: var(--text-muted); margin-left: auto; }
+.zone-card-header .zc-icon { font-size: 1.2rem; }
+.zone-card-header .zc-label { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.04em; }
+.zone-card-header .zc-desc { font-size: 0.68rem; color: var(--text-muted); margin-left: auto; }
 
+/* Zone subtitle */
+.zone-subtitle {
+  font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(0,0,0,0.15); border-radius: 4px;
+  display: inline-block;
+}
+
+/* ── Agent Row ── */
 .agent-row {
-  display: flex; gap: 1rem; flex-wrap: wrap; justify-content: flex-start;
+  display: flex; gap: 0.85rem; flex-wrap: wrap; justify-content: flex-start;
+  align-items: flex-start;
 }
 
-/* Agent nodes — elevated 3D cards — P16-4 */
+/* ── Agent Nodes ── */
 .agent-node {
   position: relative; display: flex; flex-direction: column; align-items: center;
-  width: 130px; padding: 1rem 0.7rem;
-  background: linear-gradient(165deg, rgba(30,30,58,0.95) 0%, rgba(22,33,62,0.98) 100%);
-  border: 1px solid rgba(42,42,74,0.5); border-radius: 14px; cursor: pointer;
+  width: 140px; padding: 1rem 0.6rem 0.8rem;
+  background: linear-gradient(170deg, rgba(30,30,58,0.95) 0%, rgba(18,24,42,0.98) 100%);
+  border: 1px solid rgba(42,42,74,0.4); border-radius: 12px; cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-align: center;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06);
+  box-shadow: 0 3px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
 }
-/* Node base shadow — P16-4 */
 .agent-node::after {
-  content: ''; position: absolute; bottom: -3px; left: 3px; right: -3px; height: 6px;
-  background: rgba(0,0,0,0.2); border-radius: 0 0 12px 12px; z-index: -1; filter: blur(1px);
+  content: ''; position: absolute;
+  bottom: -4px; left: 4px; right: -4px; height: 8px;
+  background: rgba(0,0,0,0.25); border-radius: 0 0 10px 10px;
+  z-index: -1; filter: blur(1px);
 }
 .agent-node:hover {
-  border-color: var(--accent); transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 8px 24px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+  border-color: var(--accent-light); transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(99,102,241,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.agent-node:hover::after {
+  bottom: -5px; left: 5px; right: -5px; height: 10px;
 }
 .agent-node.selected {
-  border-color: var(--accent-light); background: rgba(99,102,241,0.15);
-  box-shadow: 0 0 24px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.12);
+  border-color: var(--accent-light);
+  background: linear-gradient(170deg, rgba(99,102,241,0.18) 0%, rgba(18,24,42,0.98) 100%);
+  box-shadow: 0 0 20px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
 }
-.agent-node .agent-icon {
-  width: 50px; height: 50px; border-radius: 14px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.5rem; margin-bottom: 0.6rem;
-  background: rgba(30,30,58,0.8); border: 1px solid rgba(42,42,74,0.4);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 6px rgba(0,0,0,0.3);
-}
-.agent-node .agent-name { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-primary); }
-.agent-node .agent-status { font-size: 0.7rem; padding: 0.2rem 0.55rem; border-radius: 6px; font-weight: 500; }
-.agent-status.status-idle { background: rgba(107,114,128,0.15); color: #9ca3af; border: 1px solid rgba(107,114,128,0.2); }
-.agent-status.status-running { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
-.agent-status.status-blocked { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
-.agent-status.status-approval { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
-.agent-status.status-incident { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.4); }
 
+.agent-node .agent-icon {
+  width: 56px; height: 56px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem; margin-bottom: 0.5rem;
+  background: rgba(30,30,58,0.8); border: 1px solid rgba(42,42,74,0.3);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 2px 8px rgba(0,0,0,0.3);
+}
+.agent-node .agent-name { font-size: 0.78rem; font-weight: 600; margin-bottom: 0.3rem; color: var(--text-primary); line-height: 1.2; }
+.agent-node .agent-role { font-size: 0.62rem; color: var(--text-muted); margin-bottom: 0.35rem; }
+.agent-node .agent-status { font-size: 0.68rem; padding: 0.18rem 0.5rem; border-radius: 6px; font-weight: 500; }
+
+/* Status badges — unified */
+.agent-status.status-idle { background: rgba(107,114,128,0.12); color: #9ca3af; border: 1px solid rgba(107,114,128,0.18); }
+.agent-status.status-running { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+.agent-status.status-blocked { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+.agent-status.status-approval { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+.agent-status.status-incident { background: rgba(239,68,68,0.18); color: #fca5a5; border: 1px solid rgba(239,68,68,0.35); }
+
+/* Orchestrator — largest, brightest */
+.agent-node.orchestrator {
+  width: 175px; padding: 1.2rem 0.7rem 1rem;
+  border-color: rgba(99,102,241,0.35);
+  background: linear-gradient(170deg, rgba(99,102,241,0.15) 0%, rgba(18,24,42,0.98) 100%);
+  box-shadow: 0 4px 20px rgba(99,102,241,0.2), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.agent-node.orchestrator .agent-icon {
+  width: 64px; height: 64px; font-size: 1.8rem;
+  background: rgba(99,102,241,0.18); border-color: rgba(99,102,241,0.3);
+  box-shadow: 0 0 16px rgba(99,102,241,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+.agent-node.orchestrator .agent-name { font-size: 0.85rem; }
+
+/* Pulse */
 .agent-node .agent-pulse {
   position: absolute; top: -2px; right: -2px; width: 12px; height: 12px;
   border-radius: 50%; border: 2px solid; background: var(--bg-primary);
@@ -365,106 +440,86 @@ body {
 @keyframes pulse-red { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); } 50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); } }
 @keyframes pulse-yellow { 0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); } 50% { box-shadow: 0 0 0 6px rgba(245,158,11,0); } }
 
-/* Event badges on agent nodes — P16-2 */
+/* Event badges */
 .agent-event-badges {
-  display: flex; gap: 0.25rem; flex-wrap: wrap; justify-content: center;
-  margin-top: 0.4rem; min-height: 1.2rem;
+  display: flex; gap: 0.2rem; flex-wrap: wrap; justify-content: center;
+  margin-top: 0.35rem; min-height: 1.1rem;
 }
 .event-badge {
-  font-size: 0.6rem; padding: 0.15rem 0.4rem; border-radius: 4px; font-weight: 600;
+  font-size: 0.58rem; padding: 0.12rem 0.35rem; border-radius: 4px; font-weight: 600;
   white-space: nowrap; border: 1px solid transparent;
 }
-.event-badge.evt-approval { background: rgba(245,158,11,0.2); color: #fbbf24; border-color: rgba(245,158,11,0.3); }
-.event-badge.evt-blocked { background: rgba(239,68,68,0.2); color: #f87171; border-color: rgba(239,68,68,0.3); }
-.event-badge.evt-incident { background: rgba(239,68,68,0.25); color: #fca5a5; border: 1px solid rgba(239,68,68,0.4); }
-.event-badge.evt-receipt { background: rgba(59,130,246,0.15); color: #93c5fd; border-color: rgba(59,130,246,0.25); }
-.event-badge.evt-alert { background: rgba(245,158,11,0.15); color: #fcd34d; border-color: rgba(245,158,11,0.25); }
+.event-badge.evt-approval { background: rgba(245,158,11,0.18); color: #fbbf24; border-color: rgba(245,158,11,0.25); }
+.event-badge.evt-blocked { background: rgba(239,68,68,0.18); color: #f87171; border-color: rgba(239,68,68,0.25); }
+.event-badge.evt-incident { background: rgba(239,68,68,0.22); color: #fca5a5; border: 1px solid rgba(239,68,68,0.35); }
+.event-badge.evt-receipt { background: rgba(59,130,246,0.12); color: #93c5fd; border-color: rgba(59,130,246,0.2); }
+.event-badge.evt-alert { background: rgba(245,158,11,0.12); color: #fcd34d; border-color: rgba(245,158,11,0.2); }
 
-/* Scene legend — P16-2 enhanced */
+/* Scene legend */
 .scene-legend {
-  margin-top: 1.25rem; padding: 0.85rem 1.1rem;
-  background: rgba(15,17,26,0.85); border: 1px solid rgba(42,42,74,0.5);
+  margin-top: 1rem; padding: 0.8rem 1rem;
+  background: rgba(11,15,30,0.8); border: 1px solid rgba(42,42,74,0.4);
   border-radius: 10px; backdrop-filter: blur(4px);
 }
-.scene-legend .legend-title { font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.6rem; }
-.scene-legend .legend-section { font-size: 0.7rem; color: var(--text-muted); margin: 0.5rem 0 0.35rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
-.scene-legend .legend-row { display: flex; flex-wrap: wrap; gap: 0.85rem; }
-.scene-legend .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: var(--text-muted); }
-.scene-legend .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
+.scene-legend .legend-title { font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.5rem; }
+.scene-legend .legend-section { font-size: 0.68rem; color: var(--text-muted); margin: 0.45rem 0 0.3rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+.scene-legend .legend-row { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.scene-legend .legend-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; color: var(--text-muted); }
+.scene-legend .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.08); }
 
-/* Scene detail panel — P16-2 */
-/* (See .scene-inspector below after P16-5 SVG styles) */
-
-/* P16-5: SVG Task Flow Animation overlay */
+/* ── SVG Task Flow ── */
 .scene-taskflow {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   z-index: 2; pointer-events: none;
 }
-.scene-taskflow path {
-  fill: none; stroke-width: 2; stroke-linecap: round;
-}
-/* Route state classes */
-.taskflow-path-idle {
-  stroke: rgba(107,114,128,0.15); stroke-dasharray: 4 6;
-}
+.scene-taskflow path { fill: none; stroke-width: 2; stroke-linecap: round; }
+.taskflow-path-idle { stroke: rgba(107,114,128,0.12); stroke-dasharray: 4 6; }
 .taskflow-path-recent {
-  stroke: rgba(99,102,241,0.35); stroke-dasharray: 6 4;
+  stroke: rgba(99,102,241,0.3); stroke-dasharray: 6 4;
   animation: flow-recent 2s linear infinite;
 }
 .taskflow-path-active {
-  stroke: rgba(16,185,129,0.6); stroke-width: 2.5;
+  stroke: rgba(16,185,129,0.55); stroke-width: 2.5;
   stroke-dasharray: 8 4;
   animation: flow-active 1.5s linear infinite;
-  filter: drop-shadow(0 0 3px rgba(16,185,129,0.4));
+  filter: drop-shadow(0 0 3px rgba(16,185,129,0.35));
 }
-@keyframes flow-recent {
-  from { stroke-dashoffset: 20; }
-  to { stroke-dashoffset: 0; }
-}
-@keyframes flow-active {
-  from { stroke-dashoffset: 24; }
-  to { stroke-dashoffset: 0; }
-}
-/* Flowing dot on active paths */
-.taskflow-dot {
-  fill: rgba(16,185,129,0.9);
-  filter: drop-shadow(0 0 4px rgba(16,185,129,0.6));
-}
+@keyframes flow-recent { from { stroke-dashoffset: 20; } to { stroke-dashoffset: 0; } }
+@keyframes flow-active { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
+.taskflow-dot { fill: rgba(16,185,129,0.85); filter: drop-shadow(0 0 4px rgba(16,185,129,0.5)); }
 .taskflow-dot-dot { animation: dot-pulse 1.5s ease-in-out infinite; }
-@keyframes dot-pulse {
-  0%, 100% { r: 3; opacity: 0.9; }
-  50% { r: 4.5; opacity: 1; }
-}
+@keyframes dot-pulse { 0%,100% { r: 3; opacity: 0.9; } 50% { r: 4.5; opacity: 1; } }
 
-/* Scene detail panel — P16-2 */
+/* ── Scene Inspector ── */
 .scene-inspector {
-  margin-top: 1rem; padding: 1.1rem; background: linear-gradient(160deg, rgba(30,30,58,0.9) 0%, rgba(22,33,62,0.95) 100%);
+  margin-top: 1rem; padding: 1.2rem;
+  background: linear-gradient(160deg, rgba(30,30,58,0.92) 0%, rgba(18,24,42,0.96) 100%);
   border: 1px solid var(--border); border-radius: 12px; display: none;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.35);
 }
 .scene-inspector.show { display: block; }
 .scene-inspector .si-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
-.scene-inspector .si-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; background: rgba(30,30,58,0.8); border: 1px solid rgba(42,42,74,0.5); }
-.scene-inspector .si-title { font-size: 1.1rem; font-weight: 700; }
-.scene-inspector .si-subtitle { font-size: 0.85rem; color: var(--text-secondary); }
+.scene-inspector .si-icon {
+  width: 56px; height: 56px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; background: rgba(30,30,58,0.8);
+  border: 1px solid rgba(42,42,74,0.4);
+}
+.scene-inspector .si-title { font-size: 1.05rem; font-weight: 700; }
+.scene-inspector .si-subtitle { font-size: 0.82rem; color: var(--text-secondary); }
 .scene-inspector .si-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.75rem; }
-.scene-inspector .si-field { font-size: 0.85rem; }
-.scene-inspector .si-field-label { color: var(--text-muted); margin-bottom: 0.15rem; }
+.scene-inspector .si-field { font-size: 0.82rem; }
+.scene-inspector .si-field-label { color: var(--text-muted); margin-bottom: 0.12rem; }
 .scene-inspector .si-field-value { color: var(--text-primary); }
 
-/* Detail panel section dividers — P16-2 */
-.si-section { margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px solid rgba(42,42,74,0.5); }
-.si-section-title { font-size: 0.8rem; font-weight: 700; color: var(--accent-light); margin-bottom: 0.45rem; }
-.si-reason-block { padding: 0.55rem 0.8rem; background: rgba(239,68,68,0.06); border-left: 3px solid var(--error); border-radius: 6px; margin-top: 0.4rem; }
-.si-reason-block .si-reason-label { font-size: 0.75rem; color: #f87171; font-weight: 600; }
-.si-reason-block .si-reason-text { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem; }
-.si-next-action { padding: 0.55rem 0.8rem; background: rgba(16,185,129,0.06); border-left: 3px solid var(--success); border-radius: 6px; margin-top: 0.4rem; }
-.si-next-action .si-next-label { font-size: 0.75rem; color: #34d399; font-weight: 600; }
-.si-next-action .si-next-text { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem; }
-
-/* Orchestrator special style */
-.agent-node.orchestrator { width: 170px; border-color: rgba(99,102,241,0.4); background: linear-gradient(160deg, rgba(99,102,241,0.12) 0%, rgba(22,33,62,0.95) 100%); }
-.agent-node.orchestrator .agent-icon { background: rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.3); color: var(--accent-light); }
+.si-section { margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid rgba(42,42,74,0.4); }
+.si-section-title { font-size: 0.78rem; font-weight: 700; color: var(--accent-light); margin-bottom: 0.4rem; }
+.si-reason-block { padding: 0.5rem 0.75rem; background: rgba(239,68,68,0.05); border-left: 3px solid var(--error); border-radius: 6px; margin-top: 0.35rem; }
+.si-reason-block .si-reason-label { font-size: 0.72rem; color: #f87171; font-weight: 600; }
+.si-reason-block .si-reason-text { font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.15rem; }
+.si-next-action { padding: 0.5rem 0.75rem; background: rgba(16,185,129,0.05); border-left: 3px solid var(--success); border-radius: 6px; margin-top: 0.35rem; }
+.si-next-action .si-next-label { font-size: 0.72rem; color: #34d399; font-weight: 600; }
+.si-next-action .si-next-text { font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.15rem; }
 </style>
 </head>
 <body>
@@ -1523,24 +1578,24 @@ function showApprovalResult(type, message) {
 // ── Scene View — P16-1 ──────────────────────────────────────────────────
 
 const AGENT_CATALOG = [
-  { id: 'orchestrator', name: '製造主控', skill: null, zone: 'orchestrator', icon: '🎛️', bg: 'rgba(99,102,241,0.2)', desc: '系統主控 Agent，統籌所有任務路由與團隊調度' },
-  { id: 'delivery-risk', name: '交期分析', skill: 'delivery-risk-analysis', zone: 'risk', icon: '⚠️', bg: 'rgba(239,68,68,0.2)', desc: '評估訂單交期風險，分析缺料與排程衝突' },
-  { id: 'expedite', name: '加急方案', skill: 'expedite-options', zone: 'risk', icon: '🚀', bg: 'rgba(245,158,11,0.2)', desc: '針對高風險訂單提供加急選項與成本分析' },
-  { id: 'schedule', name: '排程檢查', skill: 'schedule-conflict-check', zone: 'production', icon: '📅', bg: 'rgba(245,158,11,0.2)', desc: '檢查多訂單間的排程衝突與機台負載' },
-  { id: 'capacity', name: '產能重分配', skill: 'capacity-rebalance', zone: 'production', icon: '⚙️', bg: 'rgba(245,158,11,0.2)', desc: '機台負載平衡與產能重新分配' },
-  { id: 'shortage', name: '缺料恢復', skill: 'material-shortage-recovery', zone: 'production', icon: '📦', bg: 'rgba(245,158,11,0.2)', desc: '物料短缺情境下的補貨策略' },
-  { id: 'quote', name: '報價比較', skill: 'quote-comparison-summary', zone: 'commercial', icon: '💰', bg: 'rgba(16,185,129,0.2)', desc: '供應商報價比較與評分' },
-  { id: 'sales', name: '客戶回覆', skill: 'sales-response-draft', zone: 'comm', icon: '✉️', bg: 'rgba(168,85,247,0.2)', desc: '自動生成客戶回覆與通知郵件草稿' },
-  { id: 'internal', name: '內部行動', skill: 'internal-action-summary', zone: 'comm', icon: '📋', bg: 'rgba(168,85,247,0.2)', desc: '內部協調行動摘要與升級建議' },
-  { id: 'supplier', name: '供應商跟進', skill: 'supplier-followup-draft', zone: 'comm', icon: '🤝', bg: 'rgba(168,85,247,0.2)', desc: '生成供應商跟進信件草稿' },
+  { id: 'orchestrator', name: '製造主控', skill: null, zone: 'orchestrator', icon: '🎛️', bg: 'rgba(99,102,241,0.2)', desc: '系統主控 Agent，統籌所有任務路由與團隊調度', role: '指揮中樞' },
+  { id: 'delivery-risk', name: '交期分析', skill: 'delivery-risk-analysis', zone: 'risk', icon: '⚠️', bg: 'rgba(239,68,68,0.2)', desc: '評估訂單交期風險，分析缺料與排程衝突', role: '風險監控' },
+  { id: 'expedite', name: '加急方案', skill: 'expedite-options', zone: 'risk', icon: '🚀', bg: 'rgba(245,158,11,0.2)', desc: '針對高風險訂單提供加急選項與成本分析', role: '應變規劃' },
+  { id: 'schedule', name: '排程檢查', skill: 'schedule-conflict-check', zone: 'production', icon: '📅', bg: 'rgba(59,130,246,0.2)', desc: '檢查多訂單間的排程衝突與機台負載', role: '排程管理' },
+  { id: 'capacity', name: '產能重分配', skill: 'capacity-rebalance', zone: 'production', icon: '⚙️', bg: 'rgba(59,130,246,0.2)', desc: '機台負載平衡與產能重新分配', role: '資源調度' },
+  { id: 'shortage', name: '缺料恢復', skill: 'material-shortage-recovery', zone: 'production', icon: '📦', bg: 'rgba(59,130,246,0.2)', desc: '物料短缺情境下的補貨策略', role: '物料管控' },
+  { id: 'quote', name: '報價比較', skill: 'quote-comparison-summary', zone: 'commercial', icon: '💰', bg: 'rgba(217,119,6,0.2)', desc: '供應商報價比較與評分', role: '商務分析' },
+  { id: 'sales', name: '客戶回覆', skill: 'sales-response-draft', zone: 'comm', icon: '✉️', bg: 'rgba(16,185,129,0.2)', desc: '自動生成客戶回覆與通知郵件草稿', role: '客戶溝通' },
+  { id: 'internal', name: '內部行動', skill: 'internal-action-summary', zone: 'comm', icon: '📋', bg: 'rgba(16,185,129,0.2)', desc: '內部協調行動摘要與升級建議', role: '內部協調' },
+  { id: 'supplier', name: '供應商跟進', skill: 'supplier-followup-draft', zone: 'comm', icon: '🤝', bg: 'rgba(16,185,129,0.2)', desc: '生成供應商跟進信件草稿', role: '供應商管理' },
 ];
 
 const ZONE_CONFIG = {
-  orchestrator: { label: '🎛️ 主控區', cssClass: 'zone-orchestrator' },
-  risk:         { label: '⚠️ 風險評估區', cssClass: 'zone-risk' },
-  production:   { label: '🏭 生產計畫區', cssClass: 'zone-production' },
-  commercial:   { label: '💰 商務區', cssClass: 'zone-commercial' },
-  comm:         { label: '✉️ 通訊協調區', cssClass: 'zone-comm' },
+  orchestrator: { label: '🎛️ 主控區', cssClass: 'zone-orchestrator', stageClass: 'zone-orchestrator-stage', subtitle: '任務路由與團隊調度中樞' },
+  risk:         { label: '⚠️ 風險評估區', cssClass: 'zone-risk', stageClass: 'zone-risk-stage', subtitle: '交期風險與加急方案' },
+  production:   { label: '🏭 生產計畫區', cssClass: 'zone-production', stageClass: 'zone-production-stage', subtitle: '排程、產能與物料管控' },
+  commercial:   { label: '💰 商務區', cssClass: 'zone-commercial', stageClass: 'zone-commercial-stage', subtitle: '報價比較與商務分析' },
+  comm:         { label: '✉️ 通訊協調區', cssClass: 'zone-comm', stageClass: 'zone-comm-stage', subtitle: '客戶、供應商與內部溝通' },
 };
 
 async function renderScene() {
@@ -1548,7 +1603,6 @@ async function renderScene() {
   if (!content) return;
   content.innerHTML = '<div class="loading">載入場景中…</div>';
 
-  // Fetch data in parallel — P16-2 expanded data sources
   const [skillsRes, approvalsRes, historyRes, guardrailsRes, incidentRes, receiptsRes, timelineRes, alertsRes] = await Promise.all([
     fetch('/skills').catch(() => null),
     fetch('/approvals?status=pending&limit=50').catch(() => null),
@@ -1561,15 +1615,14 @@ async function renderScene() {
   ]);
 
   const skillsData = skillsRes && skillsRes.ok ? await skillsRes.json() : { items: [] };
-  const approvalsData = approvalsRes && approvalsRes.ok ? await approvalsRes.json() : { items: [] };
+  const approvalsData = approvalsRes && approvalsRes.ok ? await approvalsData.json() : { items: [] };
   const historyData = historyRes && historyRes.ok ? await historyRes.json() : { runs: [] };
   const guardrailsData = guardrailsRes && guardrailsRes.ok ? await guardrailsRes.json() : { enabled: false, operations: {} };
   const incidentData = incidentRes && incidentRes.ok ? await incidentRes.json() : {};
-  const receiptsData = receiptsRes && receiptsRes.ok ? await receiptsRes.json() : { items: [] };
+  const receiptsData = receiptsRes && receiptsRes.ok ? await receiptsData.json() : { items: [] };
   const timelineData = timelineRes && timelineRes.ok ? await timelineRes.json() : { events: [] };
-  const alertsData = alertsRes && alertsRes.ok ? await alertsRes.json() : { alerts: [] };
+  const alertsData = alertsRes && alertsRes.ok ? await alertsData.json() : { alerts: [] };
 
-  // Derive per-agent event states — P16-2
   const pendingOps = (approvalsData.items || []).map(a => a.operation);
   const recentSkills = (historyData.runs || []).filter(r => r.status === 'success').map(r => r.skill);
   const recentSkillsAll = (historyData.runs || []).map(r => ({ skill: r.skill, status: r.status, timestamp: r.timestamp, error_type: r.error_type }));
@@ -1583,12 +1636,10 @@ async function renderScene() {
 
     if (agent.id === 'orchestrator') {
       if (recentSkills.length > 0) { status = 'running'; detail = '系統運行中'; }
-      // Check if any alerts are firing → orchestrator shows alert
       if (firingAlerts.length > 0) {
         events.push({ type: 'alert', label: `${firingAlerts.length} 警報`, count: firingAlerts.length });
       }
     } else if (agent.skill) {
-      // Check pending approvals
       const relatedApproval = approvalsData.items?.find(a => {
         const op = a.operation || '';
         return op.includes(agent.id.split('-')[0]) || op.includes(agent.skill.split('-')[0]);
@@ -1598,7 +1649,6 @@ async function renderScene() {
         events.push({ type: 'approval', label: '待審批', approval: relatedApproval });
       }
 
-      // Check recent history for blocked/error
       const recentForSkill = recentSkillsAll.filter(r => r.skill === agent.skill);
       const hasErrors = recentForSkill.some(r => r.status === 'error');
       const hasSuccess = recentForSkill.some(r => r.status === 'success');
@@ -1610,7 +1660,6 @@ async function renderScene() {
         if (status !== 'approval') { status = 'running'; detail = '執行中'; }
       }
 
-      // Check guardrail denied
       if (guardrailsData.enabled) {
         const guardrailOps = guardrailsData.operations || {};
         const relatedGuardrail = Object.entries(guardrailOps).find(([k, v]) =>
@@ -1622,14 +1671,12 @@ async function renderScene() {
         }
       }
 
-      // Check incident report for related incidents
       const incidentSummary = incidentData.summary || '';
       if (incidentSummary && (incidentSummary.includes(agent.skill) || incidentSummary.includes(agent.name))) {
         events.push({ type: 'incident', label: '事故相關' });
         if (status === 'idle') { status = 'incident'; detail = '事故涉及'; }
       }
 
-      // Check automation receipts
       const relatedReceipts = (receiptsData.items || []).filter(r => {
         const src = (r.source || '').toLowerCase();
         const op = (r.operation || '').toLowerCase();
@@ -1643,45 +1690,53 @@ async function renderScene() {
     agentStates[agent.id] = { status, detail, events, approval: events.find(e => e.type === 'approval')?.approval || null };
   }
 
-  // Build scene HTML by zones
+  // Build zone groups
   const zones = {};
   for (const agent of AGENT_CATALOG) {
     if (!zones[agent.zone]) zones[agent.zone] = [];
     zones[agent.zone].push(agent);
   }
 
+  // Build HTML — Main Stage grid layout
   let html = `
     <div class="scene-header">
       <div>
-        <div class="sh-title">🏭 Agent 團隊場景總覽</div>
-        <div class="sh-desc">各職能 Agent 狀態一目了然 — 點擊節點查看詳細資訊</div>
+        <div class="sh-title">🏭 Agent 團隊協作總覽</div>
+        <div class="sh-desc">製造業 AI 協作控制室 — 一眼看懂任務流向與瓶頸</div>
       </div>
-      <span class="sh-badge">Read-Only</span>
+      <span class="sh-badge">🔒 Read-Only</span>
     </div>`;
 
-  for (const [zoneId, agents] of Object.entries(zones)) {
+  html += '<div class="scene-stage">';
+
+  // Zone order: orchestrator first, then risk+production (row 2), commercial (row 3), comm (row 4)
+  const zoneOrder = ['orchestrator', 'risk', 'production', 'commercial', 'comm'];
+  for (const zoneId of zoneOrder) {
+    const agents = zones[zoneId];
+    if (!agents) continue;
     const zc = ZONE_CONFIG[zoneId];
     const zoneDesc = {
-      orchestrator: '統籌所有任務路由',
-      risk: '風險評估與加急方案',
-      production: '排程、產能與物料',
-      commercial: '報價與商務分析',
-      comm: '客戶與供應商溝通',
+      orchestrator: '任務路由與團隊調度中樞',
+      risk: '交期風險與加急方案',
+      production: '排程、產能與物料管控',
+      commercial: '報價比較與商務分析',
+      comm: '客戶、供應商與內部溝通',
     }[zoneId] || '';
 
-    html += `<div class="zone-card zone-${zoneId}">
+    html += `<div class="zone-card zone-${zoneId} ${zc.stageClass}">
       <div class="zone-card-header">
         <span class="zc-icon">${zc.label.split(' ')[0]}</span>
         <span class="zc-label">${zc.label.split(' ').slice(1).join(' ')}</span>
         <span class="zc-desc">${zoneDesc}</span>
       </div>
+      <div class="zone-subtitle">${zc.subtitle}</div>
       <div class="agent-row">`;
+
     for (const agent of agents) {
       const st = agentStates[agent.id];
       const isOrchestrator = agent.id === 'orchestrator';
       const pulseClass = st.status === 'running' ? 'pulse-running' : st.status === 'blocked' || st.status === 'incident' ? 'pulse-blocked' : st.status === 'approval' ? 'pulse-approval' : '';
 
-      // Event badges
       let badgesHtml = '';
       if (st.events && st.events.length > 0) {
         badgesHtml = '<div class="agent-event-badges">' + st.events.map(e => `<span class="event-badge evt-${e.type}">${e.label}</span>`).join('') + '</div>';
@@ -1690,6 +1745,7 @@ async function renderScene() {
       html += `<div class="agent-node ${isOrchestrator ? 'orchestrator' : ''}" data-agent="${agent.id}" onclick="showAgentDetail('${agent.id}')">
         <div class="agent-icon" style="background:${agent.bg};">${agent.icon}</div>
         <div class="agent-name">${agent.name}</div>
+        ${agent.role ? `<div class="agent-role">${agent.role}</div>` : ''}
         <div class="agent-status status-${st.status}">${statusLabel(st.status)}</div>
         ${badgesHtml}
         ${pulseClass ? `<div class="agent-pulse ${pulseClass}"></div>` : ''}
@@ -1698,7 +1754,9 @@ async function renderScene() {
     html += '</div></div>';
   }
 
-  // Scene legend — P16-2
+  html += '</div>'; // end scene-stage
+
+  // Scene legend
   html += `
     <div class="scene-legend">
       <div class="legend-title">📖 狀態與事件說明</div>
@@ -1724,7 +1782,6 @@ async function renderScene() {
 
   content.innerHTML = html;
 
-  // P16-5: Draw SVG task flow paths after DOM is rendered
   requestAnimationFrame(function() {
     renderTaskFlowPaths(historyData, alertsData, approvalsData);
   });
@@ -1741,6 +1798,7 @@ async function renderScene() {
     guardrails: guardrailsData,
   };
 }
+
 
 // ── P16-5: SVG Task Flow Animation ────────────────────────────────────────
 
@@ -1881,9 +1939,7 @@ function statusLabel(s) {
 }
 
 function showAgentDetail(agentId) {
-  // Deselect previous
   document.querySelectorAll('.agent-node.selected').forEach(n => n.classList.remove('selected'));
-  // Select current
   const node = document.querySelector(`.agent-node[data-agent="${agentId}"]`);
   if (node) node.classList.add('selected');
 
@@ -1893,29 +1949,24 @@ function showAgentDetail(agentId) {
   const st = window.__sceneState?.states?.[agentId] || { status: 'idle', detail: 'N/A', events: [] };
   const inspector = document.getElementById('scene-inspector');
 
-  // Find related approvals
   const relatedApprovals = (window.__sceneState?.approvals || []).filter(a => {
     const op = a.operation || '';
     return agent.skill && (op.includes(agent.id.split('-')[0]) || op.includes(agent.skill.split('-')[0]));
   });
 
-  // Find recent history for this skill
   const recentHistory = (window.__sceneState?.history || []).filter(r => r.skill === agent.skill).slice(0, 5);
 
-  // Find related receipts
   const relatedReceipts = (window.__sceneState?.receipts || []).filter(r => {
     const src = (r.source || '').toLowerCase();
     const op = (r.operation || '').toLowerCase();
     return src.includes(agent.id) || op.includes(agent.skill?.split('-')[0] || '');
   }).slice(0, 3);
 
-  // Find related timeline events
   const relatedTimeline = (window.__sceneState?.timeline || []).filter(e => {
     const summary = (e.summary || '').toLowerCase();
     return summary.includes(agent.id) || (agent.skill && summary.includes(agent.skill.split('-')[0]));
   }).slice(0, 3);
 
-  // Derive explainability from approval/recent errors
   let reason = null;
   let nextAction = null;
   if (relatedApprovals.length > 0) {
@@ -1930,7 +1981,6 @@ function showAgentDetail(agentId) {
     }
   }
 
-  // Check guardrail denied
   const guardrails = window.__sceneState?.guardrails || {};
   if (guardrails.enabled && agent.skill) {
     const guardrailOps = guardrails.operations || {};
@@ -1957,13 +2007,11 @@ function showAgentDetail(agentId) {
       <div class="si-field"><div class="si-field-label">目前狀態</div><div class="si-field-value">${st.detail}</div></div>
     </div>`;
 
-  // Event badges summary
   if (st.events && st.events.length > 0) {
     html += `<div class="si-section"><div class="si-section-title">📌 目前事件</div><div style="display:flex;gap:0.4rem;flex-wrap:wrap;">` +
       st.events.map(e => `<span class="event-badge evt-${e.type}">${e.label}</span>`).join('') + `</div></div>`;
   }
 
-  // Explainability — reason + next_action (P15-3/P15-4 integration)
   if (reason) {
     html += `<div class="si-section">
       <div class="si-section-title">🔍 決策說明</div>
@@ -1974,7 +2022,6 @@ function showAgentDetail(agentId) {
     html += `<div class="si-section"><div class="si-section-title">🔍 決策說明</div><div style="font-size:0.8rem;color:var(--text-muted);">目前無阻擋說明</div></div>`;
   }
 
-  // Approval details
   if (relatedApprovals.length > 0) {
     html += `<div class="si-section"><div class="si-section-title">⏳ 待審批項目 (${relatedApprovals.length})</div>` +
       relatedApprovals.map(a => `<div style="font-size:0.8rem;padding:0.35rem 0;border-bottom:1px solid var(--border);">
@@ -1985,7 +2032,6 @@ function showAgentDetail(agentId) {
     html += `<div class="si-section"><div class="si-section-title">⏳ 待審批項目</div><div style="font-size:0.8rem;color:var(--text-muted);">目前無待審批</div></div>`;
   }
 
-  // Recent history
   if (recentHistory.length > 0) {
     html += `<div class="si-section"><div class="si-section-title">📋 最近執行紀錄 (${recentHistory.length})</div>` +
       recentHistory.map(r => `<div style="font-size:0.8rem;padding:0.35rem 0;border-bottom:1px solid var(--border);">
@@ -1997,7 +2043,6 @@ function showAgentDetail(agentId) {
     html += `<div class="si-section"><div class="si-section-title">📋 最近執行紀錄</div><div style="font-size:0.8rem;color:var(--text-muted);">無執行紀錄</div></div>`;
   }
 
-  // Automation receipts
   if (relatedReceipts.length > 0) {
     html += `<div class="si-section"><div class="si-section-title">🤖 自動化執行紀錄 (${relatedReceipts.length})</div>` +
       relatedReceipts.map(r => `<div style="font-size:0.8rem;padding:0.35rem 0;border-bottom:1px solid var(--border);">
@@ -2007,26 +2052,26 @@ function showAgentDetail(agentId) {
       </div>`).join('') + `</div>`;
   }
 
-  // Incident
-  const incident = window.__sceneState?.incident || {};
-  if (incident.summary || incident.incident_summary) {
-    const incSummary = incident.summary || incident.incident_summary || '';
-    if (incSummary && (incSummary.includes(agent.skill) || incSummary.includes(agent.name) || agent.id === 'orchestrator')) {
-      html += `<div class="si-section"><div class="si-section-title">🚨 事故報告摘要</div><div style="font-size:0.8rem;color:var(--text-secondary);white-space:pre-wrap;">${incSummary}</div></div>`;
-    }
-  }
-
-  // Timeline events
   if (relatedTimeline.length > 0) {
-    html += `<div class="si-section"><div class="si-section-title">📅 相關時間軸事件</div>` +
+    html += `<div class="si-section"><div class="si-section-title">📅 相關時間軸事件 (${relatedTimeline.length})</div>` +
       relatedTimeline.map(e => `<div style="font-size:0.8rem;padding:0.35rem 0;border-bottom:1px solid var(--border);">
-        <span style="color:var(--text-muted);">${e.timestamp ? new Date(e.timestamp).toLocaleString() : 'N/A'}</span>
-        <br><span style="color:var(--text-secondary);">${e.summary || 'N/A'}</span>
+        <span class="badge" style="background:var(--bg-input);margin-right:0.3rem;">${e.type}</span>
+        <span style="color:var(--text-secondary);">${e.summary || e.description || 'N/A'}</span>
+        ${e.timestamp ? `<span style="color:var(--text-muted);margin-left:auto;font-size:0.75rem;">${new Date(e.timestamp).toLocaleString()}</span>` : ''}
       </div>`).join('') + `</div>`;
   }
 
+  const incident_summary = window.__sceneState?.incident?.summary; // incident_summary
+  const incidentSummary = incident_summary;
+  if (incidentSummary && (incidentSummary.includes(agent.skill) || incidentSummary.includes(agent.name))) {
+    html += `<div class="si-section"><div class="si-section-title">🚨 事故報告摘要</div>
+      <div style="font-size:0.8rem;color:var(--text-secondary);padding:0.35rem 0;">${incidentSummary}</div>
+    </div>`;
+  }
+
   inspector.innerHTML = html;
-  inspector.className = 'scene-inspector show';
+  inspector.classList.add('show');
+  inspector.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // Timeline View
