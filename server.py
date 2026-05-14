@@ -163,7 +163,7 @@ class AgentHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps(data, ensure_ascii=False).encode("utf-8"))
 
-    def _send_error_response(self, status_code, error_type, message, details=None):
+    def _send_error_response(self, status_code, error_type, message, details=None, explainability=None):
         """Send a consistent error response across all endpoints."""
         body = {
             "status": "error",
@@ -172,6 +172,8 @@ class AgentHandler(BaseHTTPRequestHandler):
         }
         if details is not None:
             body["details"] = details
+        if explainability is not None:
+            body.update({k: v for k, v in explainability.items() if k not in body})
         self._send_json_response(status_code, body)
 
     def _drain_request_body(self):
@@ -572,7 +574,11 @@ class AgentHandler(BaseHTTPRequestHandler):
                                details={"mode": body.get("mode") if body else "unknown",
                                         "rollout_blocked": True, "rollout_message": rollout["message"]},
                                result="denied")
-            self._send_error_response(403, "rollout_gated", rollout["message"])
+            self._send_error_response(403, "rollout_gated", rollout["message"],
+                                      explainability={"reason": rollout.get("reason", rollout["message"]),
+                                                      "next_action": rollout.get("next_action", "Update the rollout profile."),
+                                                      "decision_state": rollout.get("decision_state", "rollout_gated"),
+                                                      "requires_approval": rollout.get("requires_approval", False)})
             return
 
         headers = dict(self.headers)
@@ -925,7 +931,11 @@ class AgentHandler(BaseHTTPRequestHandler):
         # Rollout gating: auto_remediation
         rollout = check_rollout("auto_remediation", operation="auto_remediation:evaluate")
         if not rollout["allowed"]:
-            self._send_error_response(403, "rollout_gated", rollout["message"])
+            self._send_error_response(403, "rollout_gated", rollout["message"],
+                                      explainability={"reason": rollout.get("reason", rollout["message"]),
+                                                      "next_action": rollout.get("next_action", "Update the rollout profile."),
+                                                      "decision_state": rollout.get("decision_state", "rollout_gated"),
+                                                      "requires_approval": rollout.get("requires_approval", False)})
             return
 
         trigger = payload.get("trigger")
@@ -1480,7 +1490,11 @@ class AgentHandler(BaseHTTPRequestHandler):
         op = "run:dry_run" if dry_run else "run:query"
         rollout = check_rollout("run_query", operation=op)
         if not rollout["allowed"]:
-            self._send_error_response(403, "rollout_gated", rollout["message"])
+            self._send_error_response(403, "rollout_gated", rollout["message"],
+                                      explainability={"reason": rollout.get("reason", rollout["message"]),
+                                                      "next_action": rollout.get("next_action", "Update the rollout profile."),
+                                                      "decision_state": rollout.get("decision_state", "rollout_gated"),
+                                                      "requires_approval": rollout.get("requires_approval", False)})
             return
 
         self._process_run(query, data_dir, asana_task, payload, dry_run)

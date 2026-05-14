@@ -310,5 +310,54 @@ class TestDisabledGating(unittest.TestCase):
             reload_rollout_profile()
 
 
+class RolloutExplainabilityTest(unittest.TestCase):
+    """Test P15-3: Explainability fields in rollout gating responses."""
+
+    def test_disabled_has_explainability_fields(self):
+        """Disabled capability should include reason, decision_state, next_action."""
+        profile = {
+            "global_level": "internal_only",
+            "capabilities": {"run_query": "disabled"},
+        }
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump(profile, f)
+            tmp_path = f.name
+        try:
+            reload_rollout_profile(tmp_path)
+            result = check_rollout("run_query")
+            self.assertFalse(result["allowed"])
+            self.assertIn("reason", result)
+            self.assertIn("decision_state", result)
+            self.assertIn("next_action", result)
+            self.assertIn("requires_approval", result)
+            self.assertEqual(result["decision_state"], "rollout_gated")
+            self.assertFalse(result["requires_approval"])
+        finally:
+            os.unlink(tmp_path)
+            reload_rollout_profile()
+
+    def test_level_insufficient_has_explainability_fields(self):
+        """Insufficient level should include reason and actionable next_action."""
+        profile = {
+            "global_level": "internal_only",
+            "capabilities": {"provider_selection": "internal_only"},
+        }
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump(profile, f)
+            tmp_path = f.name
+        try:
+            reload_rollout_profile(tmp_path)
+            # provider:select requires pilot_with_approval, but global is internal_only
+            result = check_rollout("provider_selection", operation="provider:select")
+            self.assertFalse(result["allowed"])
+            self.assertIn("reason", result)
+            self.assertIn("next_action", result)
+            self.assertEqual(result["gating_rule"], "level_insufficient")
+            self.assertIn("insufficient", result["reason"].lower())
+        finally:
+            os.unlink(tmp_path)
+            reload_rollout_profile()
+
+
 if __name__ == "__main__":
     unittest.main()

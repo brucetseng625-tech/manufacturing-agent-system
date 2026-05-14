@@ -211,5 +211,47 @@ class ServerGuardrailsEndpointTest(unittest.TestCase):
         self.assertIsInstance(body["operations"], dict)
 
 
+class GuardrailsExplainabilityTest(unittest.TestCase):
+    """Test P15-3: Explainability fields in guardrail responses."""
+
+    def test_denied_has_explainability_fields(self):
+        """Denied operation should include reason, decision_state, next_action."""
+        with patch("guardrails.get_config_value") as mock_cfg:
+            mock_cfg.side_effect = lambda key, default: {
+                "guardrails.enabled": True,
+                "guardrails.operations": {
+                    "alerts:reset": {"denied": True},
+                },
+            }.get(key, default)
+            result = check_guardrail("alerts:reset")
+            self.assertIsNotNone(result)
+            self.assertIn("reason", result)
+            self.assertIn("decision_state", result)
+            self.assertIn("next_action", result)
+            self.assertIn("requires_approval", result)
+            self.assertEqual(result["decision_state"], "blocked")
+            self.assertFalse(result["requires_approval"])
+
+    def test_approval_required_has_explainability_fields(self):
+        """Approval required response should include next_action pointing to queue."""
+        with patch("guardrails.get_config_value") as mock_cfg:
+            mock_cfg.side_effect = lambda key, default: {
+                "guardrails.enabled": True,
+                "guardrails.operations": {
+                    "policy:reload": {"require_approval": True},
+                },
+                "guardrails.approval_token": "secret-123",
+            }.get(key, default)
+            result = check_guardrail("policy:reload", {})
+            self.assertIsNotNone(result)
+            self.assertIn("reason", result)
+            self.assertIn("next_action", result)
+            self.assertIn("decision_state", result)
+            self.assertIn("requires_approval", result)
+            self.assertEqual(result["decision_state"], "pending_approval")
+            self.assertTrue(result["requires_approval"])
+            self.assertIn("Approval Queue", result["next_action"])
+
+
 if __name__ == "__main__":
     unittest.main()

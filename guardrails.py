@@ -64,6 +64,9 @@ def check_guardrail(operation, headers=None):
             "error_type": "guardrail_denied",
             "operation": operation,
             "reason": "Operation is explicitly denied in guardrails config",
+            "decision_state": "blocked",
+            "next_action": "Review the guardrails configuration or contact an administrator.",
+            "requires_approval": False,
         }
 
     # Check if approval is required
@@ -81,6 +84,9 @@ def check_guardrail(operation, headers=None):
                 "error_type": "guardrail_approval_required",
                 "operation": operation,
                 "reason": "X-Approval-Token header is missing or invalid",
+                "decision_state": "pending_approval",
+                "next_action": "Visit the Approval Queue dashboard to review and approve this operation.",
+                "requires_approval": True,
             }
 
     return None  # Allowed

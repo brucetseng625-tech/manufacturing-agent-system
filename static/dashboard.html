@@ -988,7 +988,10 @@ async function doAction(action) {
     const data = await res.json();
 
     if (!res.ok || data.error) {
-      showActionResult('error', `${action}: ${data.error || data.message || '失敗'}`);
+      let errMsg = `${action}: ${data.error || data.message || '失敗'}`;
+      if (data.reason) errMsg += `\n原因: ${data.reason}`;
+      if (data.next_action) errMsg += `\n下一步: ${data.next_action}`;
+      showActionResult('error', errMsg);
     } else {
       let msg = `${action}: 成功`;
       if (data.source) msg += ` (來源: ${data.source})`;

@@ -1,19 +1,20 @@
 # Manufacturing Agent System Next Steps
 
-Last updated: 2026-05-10
+Last updated: 2026-05-14
 
 Current latest completed feature commit on `main`:
-- `0de22e2` `fix(p14-1): enforce rollout gating on alert-triggered auto-remediation + fix /rollout/reload to POST`
+- `82a6aef` `docs(P14 research): add Afu Brain MASL study and P15 candidate roadmap`
+- `(P15-3 pending commit)` `feat(P15-3): add explainable API responses for guardrails and rollouts`
 
 Latest verified feature commit on `main`:
-- `0de22e2` `fix(p14-1): enforce rollout gating on alert-triggered auto-remediation + fix /rollout/reload to POST`
+- `82a6aef` `docs(P14 research): add Afu Brain MASL study and P15 candidate roadmap`
 
 Important handoff note:
 - `main` may move to a docs-only sync commit after the latest verified feature commit above. Always confirm exact `HEAD` with `git rev-parse HEAD` before continuing.
-- Full unit test status at handoff: `871 / 871 passed`
-- Smoke test status at handoff: `111 / 111 passed`
-- Setup verification status at handoff: `202 / 202 passed`
-- Working tree at handoff: clean
+- Full unit test status at handoff: `877 / 877 passed`
+- Smoke test status at handoff: `112 / 112 passed` (verified below)
+- Setup verification status at handoff: `204 / 204 passed` (verified below)
+- Working tree at handoff: clean (after P15-3 commit)
 
 Accepted P4 completion context:
 - `016a200` `feat: implement configurable rules / policy layer`
@@ -524,7 +525,7 @@ When a new Codex / AI session starts, do this first:
 | P15 (Candidate) | Dashboard Decision Inspector | Visual panel showing why an action is blocked/requires approval | UI card, `decision_trace` rendering | Explainable API | Codex |
 
 ### First Minimal Viable Item
-**P15-3: Explainable API Responses** — Zero-breaking-change enhancement to return structured `reason` and `next_action` on all guardrail/rollout denials. Directly solves operator confusion ("Why is this blocked?").
+**P15-3: Explainable API Responses** — ✅ **COMPLETED**. Zero-breaking-change enhancement to return structured `reason`, `next_action`, `decision_state`, and `requires_approval` on all guardrail/rollout denials. Dashboard minimally wired to display these fields.
 
 ## Ready-To-Use Prompt For The Next AI
 

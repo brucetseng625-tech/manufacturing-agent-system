@@ -166,6 +166,10 @@ def check_rollout(capability, operation=None):
             "current_level": "unknown",
             "operation": operation,
             "message": f"Unknown capability '{capability}' — rollout gating denies by default",
+            "reason": f"Unknown capability '{capability}' — rollout gating denies by default",
+            "decision_state": "rollout_gated",
+            "next_action": "Verify the capability name or update the rollout profile.",
+            "requires_approval": False,
             "gating_rule": "unknown_capability",
         }
 
@@ -176,6 +180,10 @@ def check_rollout(capability, operation=None):
             "current_level": current_level,
             "operation": operation,
             "message": f"Capability '{capability}' is disabled in rollout profile — all operations blocked",
+            "reason": f"Capability '{capability}' is disabled in rollout profile",
+            "decision_state": "rollout_gated",
+            "next_action": "Update the rollout profile to a level that enables this capability.",
+            "requires_approval": False,
             "gating_rule": "disabled",
         }
 
@@ -191,6 +199,10 @@ def check_rollout(capability, operation=None):
                 f"Capability '{capability}' at level '{current_level}' "
                 f"does not meet required level '{op_required}' for operation '{operation}'"
             ),
+            "reason": f"Current level '{current_level}' is insufficient for operation '{operation}' (requires '{op_required}')",
+            "decision_state": "rollout_gated",
+            "next_action": f"Update rollout profile to at least '{op_required}' or use a supported operation.",
+            "requires_approval": False,
             "gating_rule": "level_insufficient",
         }
 
