@@ -3,18 +3,17 @@
 Last updated: 2026-05-14
 
 Current latest completed feature commit on `main`:
-- `af66cec` `feat(P15-3): add explainable API responses for guardrails and rollouts`
-- `(P15-4 pending commit)` `feat(P15-4): add dashboard decision inspector for explainability`
+- `63f9b18` `feat(P16-3): visual asset and scene styling upgrade`
 
 Latest verified feature commit on `main`:
-- `af66cec` `feat(P15-3): add explainable API responses for guardrails and rollouts`
+- `63f9b18` `feat(P16-3): visual asset and scene styling upgrade`
 
 Important handoff note:
 - `main` may move to a docs-only sync commit after the latest verified feature commit above. Always confirm exact `HEAD` with `git rev-parse HEAD` before continuing.
-- Full unit test status at handoff: `919 / 919 passed` (+12 from P16-2 scene detail enhancements)
-- Smoke test status at handoff: `112 / 112 passed` (verified below)
-- Setup verification status at handoff: `204 / 204 passed` (verified below)
-- Working tree at handoff: clean (after P15-3 commit)
+- Full unit test status at handoff: `919 / 919 passed`
+- Smoke test status at handoff: `112 / 112 passed`
+- Setup verification status at handoff: `204 / 204 passed`
+- Working tree at handoff: clean (after P16-3 commit)
 
 Accepted P4 completion context:
 - `016a200` `feat: implement configurable rules / policy layer`
@@ -556,7 +555,12 @@ Goal: Replace engineering-card UI with an intuitive factory-floor scene view for
 - No new external assets — all improvements via CSS (gradients, box-shadows, borders)
 - No changes to data logic, event projection, or read-only behavior
 - Tests updated: `.zone-card` / `.zone-card-header` replace old `.scene-zone-label`
-- Commit: pending
+- Commit: `63f9b18`
+
+### P16 Completion Assessment (2026-05-14)
+
+- **P16 判定**: 可視為完成，P17 可開始
+- 完整評估：`docs/P16_COMPLETION_ASSESSMENT.md`
 
 ## Start Here
 
