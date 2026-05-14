@@ -3,15 +3,15 @@
 Last updated: 2026-05-14
 
 Current latest completed feature commit on `main`:
-- `82a6aef` `docs(P14 research): add Afu Brain MASL study and P15 candidate roadmap`
-- `(P15-3 pending commit)` `feat(P15-3): add explainable API responses for guardrails and rollouts`
+- `af66cec` `feat(P15-3): add explainable API responses for guardrails and rollouts`
+- `(P15-4 pending commit)` `feat(P15-4): add dashboard decision inspector for explainability`
 
 Latest verified feature commit on `main`:
-- `82a6aef` `docs(P14 research): add Afu Brain MASL study and P15 candidate roadmap`
+- `af66cec` `feat(P15-3): add explainable API responses for guardrails and rollouts`
 
 Important handoff note:
 - `main` may move to a docs-only sync commit after the latest verified feature commit above. Always confirm exact `HEAD` with `git rev-parse HEAD` before continuing.
-- Full unit test status at handoff: `877 / 877 passed`
+- Full unit test status at handoff: `887 / 887 passed` (+10 from P15-4 `DecisionInspectorHTMLTest`)
 - Smoke test status at handoff: `112 / 112 passed` (verified below)
 - Setup verification status at handoff: `204 / 204 passed` (verified below)
 - Working tree at handoff: clean (after P15-3 commit)
@@ -474,6 +474,33 @@ Goal: Make limited automation understandable, reviewable, and operationally safe
 | P13 | ~~Automation execution receipts~~ | ~~Provide a single operator-facing record for approval retries and auto-remediation outcomes~~ | ~~execution_receipts.py, /automation/receipts, /automation/receipts/reset, integration with auto_remediation and approve-and-retry, tests~~ | ~~P13-1~~ | ~~Codex~~ |
 || P13 | ~~Incident closure workflow~~ | ~~Make incident follow-up and resolution status explicitly operable~~ | ~~Resolution notes/status transitions, incident linkage, tests~~ | ~~P11-2, P13-2~~ | ~~Codex~~ |
 || P13 | ~~Pilot readiness checklist~~ | ~~Codify human pilot prerequisites across safety, observability, and workflow completion~~ | ~~pilot_checklist.py, /pilot/checklist endpoint, aggregated status surface, tests~~ | ~~P13-1 to P13-3~~ | ~~Codex~~ |
+
+## P15 Decision Governance & Explainability Layer
+
+Goal: Unify scattered guardrail/rollout logic into a standardized Decision Contract with operator-facing explainability.
+
+### P15-1 Unified Decision Schema (pending)
+### P15-2 MASL-style Guardrail Refactor (pending)
+
+### P15-3 Explainable API Responses (completed)
+
+- `guardrails.py`: Returns `reason`, `decision_state`, `next_action`, `requires_approval`
+- `rollout_profile.py`: Same explainability fields for all rollout-gated denials
+- `server.py`: `_send_error_response` supports `explainability` param, merged into response body
+- Commit: `af66ceccb79126be899329becda6a118efd8fc8b`
+
+### P15-4 Dashboard Decision Inspector (completed)
+
+- `static/dashboard.html`: New "決策說明" card rendered when API responses contain `decision_state`
+- `renderDecisionInspector()` parses explainability fields and displays:
+  - `目前狀態` → 已被規則阻擋 / 需要審批 / 功能尚未開放 (color-coded)
+  - `原因` → from `data.reason`
+  - `下一步` → from `data.next_action`
+  - `審批` → 需要審批 / 不需審批 (from `data.requires_approval`)
+- `doAction()` detects `decision_state` + `reason` presence, renders structured card instead of inline text
+- 10 new unit tests in `tests/test_dashboard_actions.py` (`DecisionInspectorHTMLTest`)
+- Zero breaking changes — backward compatible with existing API responses
+- Commit: pending
 
 ## Start Here
 

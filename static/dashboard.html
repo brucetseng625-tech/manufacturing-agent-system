@@ -204,6 +204,31 @@ body {
 .action-result.show { display: block; }
 .action-result.success { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--success); }
 .action-result.error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--error); }
+
+/* Decision Inspector — P15-4 */
+.decision-inspector {
+  margin-top: 0.75rem; padding: 0.75rem;
+  border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg-input); display: none;
+}
+.decision-inspector.show { display: block; }
+.decision-inspector .di-header {
+  display: flex; align-items: center; gap: 0.5rem;
+  margin-bottom: 0.5rem; font-size: 0.85rem;
+}
+.decision-inspector .di-header .di-icon { font-size: 1rem; }
+.decision-inspector .di-header .di-title { font-weight: 600; }
+.decision-inspector .di-row {
+  display: flex; gap: 0.5rem; padding: 0.3rem 0;
+  font-size: 0.8rem; align-items: baseline;
+}
+.decision-inspector .di-label {
+  color: var(--text-muted); min-width: 5rem; flex-shrink: 0;
+}
+.decision-inspector .di-value { color: var(--text-primary); }
+.decision-inspector .di-value.di-blocked { color: var(--error); }
+.decision-inspector .di-value.di-pending { color: var(--warning); }
+.decision-inspector .di-value.di-gated { color: var(--warning); }
 </style>
 </head>
 <body>
@@ -766,6 +791,7 @@ async function loadOps() {
           </button>
         </div>
         <div id="action-result" class="action-result"></div>
+        <div id="decision-inspector" class="decision-inspector"></div>
       </div>
     `;
 
@@ -962,11 +988,13 @@ function showProviderSelectResult(type, message) {
 // Operator Actions
 async function doAction(action) {
   const result = document.getElementById('action-result');
+  const inspector = document.getElementById('decision-inspector');
   const buttons = document.querySelectorAll('.action-btn');
   buttons.forEach(b => b.disabled = true);
   result.className = 'action-result show';
   result.textContent = '執行中…';
   result.style.color = 'var(--text-muted)';
+  if (inspector) { inspector.className = 'decision-inspector'; inspector.innerHTML = ''; }
 
   try {
     const endpoints = {
@@ -988,10 +1016,18 @@ async function doAction(action) {
     const data = await res.json();
 
     if (!res.ok || data.error) {
+      // Check if response has P15-3 explainability fields
+      const hasExplainability = data.decision_state && data.reason;
       let errMsg = `${action}: ${data.error || data.message || '失敗'}`;
-      if (data.reason) errMsg += `\n原因: ${data.reason}`;
-      if (data.next_action) errMsg += `\n下一步: ${data.next_action}`;
+      if (!hasExplainability) {
+        // Fallback: show reason/next_action inline if no structured inspector
+        if (data.reason) errMsg += `\n原因: ${data.reason}`;
+        if (data.next_action) errMsg += `\n下一步: ${data.next_action}`;
+      }
       showActionResult('error', errMsg);
+      if (hasExplainability) {
+        renderDecisionInspector(data);
+      }
     } else {
       let msg = `${action}: 成功`;
       if (data.source) msg += ` (來源: ${data.source})`;
@@ -1010,6 +1046,60 @@ function showActionResult(type, message) {
   const result = document.getElementById('action-result');
   result.className = `action-result show ${type}`;
   result.textContent = message;
+}
+
+// Decision Inspector — P15-4
+function renderDecisionInspector(data) {
+  const inspector = document.getElementById('decision-inspector');
+  if (!inspector) return;
+
+  const stateLabel = {
+    blocked: '已被規則阻擋',
+    pending_approval: '需要審批',
+    rollout_gated: '功能尚未開放',
+  }[data.decision_state] || data.decision_state;
+
+  const stateClass = {
+    blocked: 'di-blocked',
+    pending_approval: 'di-pending',
+    rollout_gated: 'di-gated',
+  }[data.decision_state] || '';
+
+  const stateIcon = {
+    blocked: '🚫',
+    pending_approval: '⏳',
+    rollout_gated: '🔒',
+  }[data.decision_state] || 'ℹ️';
+
+  let html = `
+    <div class="di-header">
+      <span class="di-icon">${stateIcon}</span>
+      <span class="di-title">決策說明</span>
+      <span class="badge ${stateClass === 'di-blocked' ? 'badge-error' : 'badge-warning'}">${stateLabel}</span>
+    </div>
+    <div class="di-row">
+      <span class="di-label">目前狀態</span>
+      <span class="di-value ${stateClass}">${stateLabel}</span>
+    </div>
+    <div class="di-row">
+      <span class="di-label">原因</span>
+      <span class="di-value">${data.reason || '—'}</span>
+    </div>
+    <div class="di-row">
+      <span class="di-label">下一步</span>
+      <span class="di-value">${data.next_action || '—'}</span>
+    </div>`;
+
+  if (data.requires_approval !== undefined) {
+    html += `
+    <div class="di-row">
+      <span class="di-label">審批</span>
+      <span class="di-value ${data.requires_approval ? 'di-pending' : ''}">${data.requires_approval ? '需要審批' : '不需審批'}</span>
+    </div>`;
+  }
+
+  inspector.innerHTML = html;
+  inspector.className = 'decision-inspector show';
 }
 
 // Approval Queue Card

@@ -76,6 +76,62 @@ class DashboardOperatorActionsHTMLTest(unittest.TestCase):
         self.assertIn("b.disabled = false", self.html)
 
 
+class DecisionInspectorHTMLTest(unittest.TestCase):
+    """Tests for P15-4 Decision Inspector UI elements in dashboard HTML."""
+
+    def setUp(self):
+        dashboard_path = os.path.join(
+            os.path.dirname(__file__), "..", "static", "dashboard.html"
+        )
+        with open(dashboard_path, "r", encoding="utf-8") as f:
+            self.html = f.read()
+
+    def test_contains_decision_inspector_element(self):
+        """Dashboard must contain decision-inspector div."""
+        self.assertIn('id="decision-inspector"', self.html)
+        self.assertIn("decision-inspector", self.html)
+
+    def test_contains_render_decision_inspector_function(self):
+        """Dashboard must have renderDecisionInspector JavaScript function."""
+        self.assertIn("function renderDecisionInspector(data)", self.html)
+
+    def test_contains_decision_inspector_css(self):
+        """Dashboard must contain decision-inspector CSS styles."""
+        self.assertIn(".decision-inspector", self.html)
+        self.assertIn(".di-header", self.html)
+        self.assertIn(".di-row", self.html)
+        self.assertIn(".di-label", self.html)
+
+    def test_contains_blocked_state_label(self):
+        """Decision inspector must map blocked to 已被規則阻擋."""
+        self.assertIn("已被規則阻擋", self.html)
+
+    def test_contains_pending_approval_state_label(self):
+        """Decision inspector must map pending_approval to 需要審批."""
+        self.assertIn("需要審批", self.html)
+
+    def test_contains_rollout_gated_state_label(self):
+        """Decision inspector must map rollout_gated to 功能尚未開放."""
+        self.assertIn("功能尚未開放", self.html)
+
+    def test_contains_decision_state_mapping_in_doaction(self):
+        """doAction must check for decision_state to trigger inspector."""
+        self.assertIn("decision_state", self.html)
+        self.assertIn("hasExplainability", self.html)
+
+    def test_renders_reason_field(self):
+        """Decision inspector must render data.reason."""
+        self.assertIn("data.reason", self.html)
+
+    def test_renders_next_action_field(self):
+        """Decision inspector must render data.next_action."""
+        self.assertIn("data.next_action", self.html)
+
+    def test_renders_requires_approval_field(self):
+        """Decision inspector must render data.requires_approval when present."""
+        self.assertIn("data.requires_approval", self.html)
+
+
 class OperatorActionEndpointTest(unittest.TestCase):
     """Integration tests that dashboard action endpoints respond correctly."""
 
