@@ -64,13 +64,25 @@ def get(path, port):
 def post(path, port, payload):
     """POST request."""
     data = json.dumps(payload).encode()
-    req = urllib.request.Request(
-        f"http://127.0.0.1:{port}{path}",
-        data=data,
-        headers={"Content-Type": "application/json"}
-    )
-    resp = urllib.request.urlopen(req)
-    return json.loads(resp.read())
+    url = f"http://127.0.0.1:{port}{path}"
+
+    # The in-process test server can occasionally reset a connection while
+    # finalizing a previous request on some local Python runtime builds.
+    # Retry once so the smoke suite measures endpoint behavior, not socket
+    # flakiness in the harness itself.
+    for attempt in range(2):
+        req = urllib.request.Request(
+            url,
+            data=data,
+            headers={"Content-Type": "application/json"}
+        )
+        try:
+            resp = urllib.request.urlopen(req)
+            return json.loads(resp.read())
+        except ConnectionResetError:
+            if attempt == 1:
+                raise
+            time.sleep(0.05)
 
 
 def run_cli(args):
