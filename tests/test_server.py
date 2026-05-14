@@ -492,7 +492,7 @@ class ServerTest(unittest.TestCase):
             content_type = response.headers.get("Content-Type", "")
             self.assertIn("text/html", content_type)
             html = response.read().decode("utf-8")
-            self.assertIn("Manufacturing Agent Dashboard", html)
+            self.assertIn("製造業 AI 協作系統工作台", html)
 
     def test_dashboard_served_at_dashboard_path(self):
         """GET /dashboard serves the dashboard HTML."""

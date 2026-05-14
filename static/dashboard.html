@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Manufacturing Agent Dashboard</title>
+<title>製造業 AI 協作系統工作台</title>
 <style>
 :root {
   --bg-primary: #0f0f1a;
@@ -279,6 +279,7 @@ body {
           <option value="20">最近 20 筆</option>
           <option value="50" selected>最近 50 筆</option>
           <option value="100">最近 100 筆</option>
+        </select>
       </div>
       <div id="timeline-summary" class="card" style="display:none;"></div>
       <div id="timeline-content"><div class="loading">載入時間軸中…</div></div>
@@ -359,26 +360,26 @@ document.getElementById('query-input').addEventListener('keydown', e => {
 // Skills View
 async function loadSkills() {
   const grid = document.getElementById('skills-grid');
-  grid.innerHTML = '<div class="loading">Loading skills</div>';
+  grid.innerHTML = '<div class="loading">載入技能列表中…</div>';
   try {
     const res = await fetch('/skills');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     if (data.items.length === 0) {
-      grid.innerHTML = '<div class="empty-state">No skills available</div>';
+      grid.innerHTML = '<div class="empty-state">目前沒有可用的技能</div>';
       return;
     }
     grid.innerHTML = data.items.map(s => `
       <div class="card skill-card">
         <div class="card-header">
           <span class="card-title">${s.name}</span>
-          <span class="badge ${s.type === 'team' ? 'badge-team' : 'badge-skill'}">${s.type === 'team' ? 'TEAM' : 'SKILL'}</span>
+          <span class="badge ${s.type === 'team' ? 'badge-team' : 'badge-skill'}">${s.type === 'team' ? '團隊' : '技能'}</span>
         </div>
-        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:0.5rem;">Intent: <code style="background:var(--bg-input);padding:0.1rem 0.4rem;border-radius:4px;">${s.intent}</code></p>
-        ${s.steps ? `<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem;">Steps: ${s.steps.map(st => st.alias).join(' → ')}</p>` : ''}
+        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:0.5rem;">意圖：<code style="background:var(--bg-input);padding:0.1rem 0.4rem;border-radius:4px;">${s.intent}</code></p>
+        ${s.steps ? `<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem;">步驟：${s.steps.map(st => st.alias).join(' → ')}</p>` : ''}
         <div class="meta-row">
-          <span class="meta-item">📌 Priority: ${s.priority}</span>
-          <span class="meta-item">${s.requires_order_id ? '🔑 Requires Order' : '📋 No Order Required'}</span>
+          <span class="meta-item">📌 優先級：${s.priority}</span>
+          <span class="meta-item">${s.requires_order_id ? '🔑 需要訂單' : '📋 無需訂單'}</span>
         </div>
         <div class="keywords" style="margin-top:0.5rem;">
           ${(s.keywords || []).slice(0, 5).map(k => `<span>${k}</span>`).join('')}
@@ -387,7 +388,7 @@ async function loadSkills() {
       </div>
     `).join('');
   } catch (e) {
-    grid.innerHTML = `<div class="error-state">Failed to load skills: ${e.message}</div>`;
+    grid.innerHTML = `<div class="error-state">載入技能失敗：${e.message}</div>`;
   }
 }
 
@@ -400,8 +401,8 @@ async function executeQuery() {
   if (!query) return;
 
   btn.disabled = true;
-  btn.textContent = 'Running...';
-  result.innerHTML = '<div class="loading">Executing query</div>';
+  btn.textContent = '執行中…';
+  result.innerHTML = '<div class="loading">查詢執行中…</div>';
 
   try {
     const res = await fetch('/run', {
@@ -415,10 +416,10 @@ async function executeQuery() {
       result.innerHTML = `
         <div class="card" style="border-color:var(--error);">
           <div class="card-header">
-            <span class="card-title" style="color:var(--error);">Error: ${data.error_type || 'unknown'}</span>
-            <span class="badge badge-error">FAILED</span>
+            <span class="card-title" style="color:var(--error);">錯誤：${data.error_type || 'unknown'}</span>
+            <span class="badge badge-error">失敗</span>
           </div>
-          <p>${Array.isArray(data.error) ? data.error.join('<br>') : (data.error || data.details || 'No details')}</p>
+          <p>${Array.isArray(data.error) ? data.error.join('<br>') : (data.error || data.details || '無詳細資訊')}</p>
         </div>`;
       return;
     }
@@ -431,11 +432,11 @@ async function executeQuery() {
     if (isTeam) {
       html += `<div class="card">
         <div class="card-header">
-          <span class="card-title">Team: ${data.data.team_name}</span>
+          <span class="card-title">團隊：${data.data.team_name}</span>
           <div>
-            ${summary?.parallel ? '<span class="badge badge-parallel">⚡ Parallel</span> ' : ''}
-            <span class="badge badge-success">${summary.success_count}/${summary.total_steps} OK</span>
-            ${summary.partial_success ? `<span class="badge badge-warning" style="margin-left:0.5rem;">Partial Success</span>` : ''}
+            ${summary?.parallel ? '<span class="badge badge-parallel">⚡ 平行執行</span> ' : ''}
+            <span class="badge badge-success">${summary.success_count}/${summary.total_steps} 成功</span>
+            ${summary.partial_success ? `<span class="badge badge-warning" style="margin-left:0.5rem;">部分成功</span>` : ''}
           </div>
         </div>`;
 
@@ -446,7 +447,7 @@ async function executeQuery() {
         html += `<div class="step-result ${isError ? 'error' : 'success'}">
           <div class="step-header">
             <span class="step-title">${alias}</span>
-            <span class="badge ${isError ? 'badge-error' : 'badge-success'}">${isError ? 'FAILED' : 'OK'}</span>
+            <span class="badge ${isError ? 'badge-error' : 'badge-success'}">${isError ? '失敗' : '成功'}</span>
           </div>
           ${isError ? `<p style="color:var(--error);">${step.error}</p>` : renderSkillResult(step)}
         </div>`;
@@ -462,7 +463,7 @@ async function executeQuery() {
       html += `<div class="card">
         <div class="card-header">
           <span class="card-title">${data.skill}</span>
-          <span class="badge badge-success">SUCCESS</span>
+          <span class="badge badge-success">成功</span>
         </div>
         ${renderSkillResult(data.data)}
         ${data.data.trace?.length ? `<div class="trace-box">${data.data.trace.map(t => `<div>${t}</div>`).join('')}</div>` : ''}
@@ -470,10 +471,10 @@ async function executeQuery() {
     }
     result.innerHTML = html;
   } catch (e) {
-    result.innerHTML = `<div class="error-state">Request failed: ${e.message}</div>`;
+    result.innerHTML = `<div class="error-state">請求失敗：${e.message}</div>`;
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Run';
+    btn.textContent = '送出查詢';
   }
 }
 
@@ -486,35 +487,35 @@ function renderSkillResult(data) {
   const tradeoffs = data.tradeoffs || details.tradeoffs;
 
   if (data.decision) {
-    html += `<p><strong>Decision:</strong> <code>${data.decision}</code> (Confidence: ${data.confidence || 'N/A'})</p>`;
+    html += `<p><strong>決策：</strong> <code>${data.decision}</code>（信心：${data.confidence || 'N/A'}）</p>`;
   }
-  if (data.order_id) html += `<p><strong>Order:</strong> ${data.order_id} | <strong>Customer:</strong> ${data.customer || 'N/A'}</p>`;
-  if (details.customer_tier) html += `<p><strong>Tier:</strong> ${details.customer_tier} | <strong>Penalty:</strong> $${details.penalty_per_day}/day</p>`;
+  if (data.order_id) html += `<p><strong>訂單：</strong> ${data.order_id} | <strong>客戶：</strong> ${data.customer || 'N/A'}</p>`;
+  if (details.customer_tier) html += `<p><strong>等級：</strong> ${details.customer_tier} | <strong>延遲罰款：</strong> $${details.penalty_per_day}/天</p>`;
   if (details.expedite_option && details.expedite_option !== 'none') {
-    html += `<p><strong>Expedite:</strong> ${details.expedite_option} ($${details.expedite_cost.toLocaleString()})</p>`;
+    html += `<p><strong>加急：</strong> ${details.expedite_option}（$${details.expedite_cost.toLocaleString()}）</p>`;
   }
   if (data.blockers?.length && !data.blockers[0].includes('No critical')) {
-    html += `<p><strong>Blockers:</strong></p><ul style="margin-left:1.5rem;color:var(--warning);">`;
+    html += `<p><strong>阻礙因素：</strong></p><ul style="margin-left:1.5rem;color:var(--warning);">`;
     data.blockers.forEach(b => html += `<li>${b}</li>`);
     html += `</ul>`;
   }
   if (nextAction) {
-    html += `<p style="margin-top:0.5rem;"><strong>Next Action:</strong> ${nextAction}</p>`;
+    html += `<p style="margin-top:0.5rem;"><strong>下一步：</strong> ${nextAction}</p>`;
   }
   if (details.cost_notes?.length) {
-    html += `<p><strong>Cost Notes:</strong></p><ul style="margin-left:1.5rem;color:var(--text-secondary);">`;
+    html += `<p><strong>成本說明：</strong></p><ul style="margin-left:1.5rem;color:var(--text-secondary);">`;
     details.cost_notes.forEach(n => html += `<li>${n}</li>`);
     html += `</ul>`;
   }
   if (supplierScores) {
-    html += `<div style="margin-top:0.75rem;"><strong>Supplier Scores:</strong><div class="score-bar">`;
+    html += `<div style="margin-top:0.75rem;"><strong>供應商評分：</strong><div class="score-bar">`;
     for (const [supplier, info] of Object.entries(supplierScores)) {
       html += `<span class="score-item">${supplier}: ${info.score} (P:${info.breakdown.price_score} R:${info.breakdown.reliability_score} Q:${info.breakdown.quality_score} L:${info.breakdown.lead_time_score} K:${info.breakdown.risk_score})</span>`;
     }
     html += `</div></div>`;
   }
   if (tradeoffs?.length) {
-    html += `<p style="margin-top:0.5rem;color:var(--info);"><strong>Tradeoffs:</strong> ${tradeoffs.join(' ')}</p>`;
+    html += `<p style="margin-top:0.5rem;color:var(--info);"><strong>權衡：</strong> ${tradeoffs.join(' ')}</p>`;
   }
   return html;
 }
@@ -527,7 +528,7 @@ async function loadHistory() {
   const channel = document.getElementById('filter-channel').value;
   const limit = document.getElementById('filter-limit').value;
 
-  content.innerHTML = '<div class="loading">Loading history</div>';
+  content.innerHTML = '<div class="loading">載入歷史記錄中…</div>';
 
   try {
     let url = `/history?last=${limit}`;
@@ -540,13 +541,13 @@ async function loadHistory() {
     const data = await res.json();
 
     if (data.total === 0) {
-      content.innerHTML = '<div class="empty-state">No runs found matching the criteria</div>';
+      content.innerHTML = '<div class="empty-state">找不到符合條件的執行紀錄</div>';
       return;
     }
 
     let html = `<table class="history-table">
       <thead><tr>
-        <th>Time</th><th>Channel</th><th>Skill</th><th>Query</th><th>Orders</th><th>Status</th><th>Error</th>
+        <th>時間</th><th>來源</th><th>技能</th><th>查詢</th><th>訂單</th><th>狀態</th><th>錯誤</th>
       </tr></thead><tbody>`;
 
     for (const r of data.runs) {
@@ -560,21 +561,21 @@ async function loadHistory() {
         <td>${isTeam ? `<span class="badge badge-team">${skillDisplay}</span>` : skillDisplay}</td>
         <td class="query-cell" title="${r.query || ''}">${r.query || ''}</td>
         <td>${(r.order_ids || []).join(', ') || '-'}</td>
-        <td><span class="badge ${r.status === 'success' ? 'badge-success' : 'badge-error'}">${r.status}</span></td>
+        <td><span class="badge ${r.status === 'success' ? 'badge-success' : 'badge-error'}">${r.status === 'success' ? '成功' : '失敗'}</span></td>
         <td style="font-size:0.85rem;color:${errorType ? 'var(--error)' : 'var(--text-muted)'};">${errorType || '-'}</td>
       </tr>`;
     }
     html += '</tbody></table>';
     content.innerHTML = html;
   } catch (e) {
-    content.innerHTML = `<div class="error-state">Failed to load history: ${e.message}</div>`;
+    content.innerHTML = `<div class="error-state">載入歷史記錄失敗：${e.message}</div>`;
   }
 }
 
 // Stats View
 async function loadStats() {
   const grid = document.getElementById('stats-grid');
-  grid.innerHTML = '<div class="loading">Loading metrics</div>';
+  grid.innerHTML = '<div class="loading">載入統計資料中…</div>';
 
   try {
     const res = await fetch('/metrics');
@@ -586,17 +587,17 @@ async function loadStats() {
     let html = `
       <!-- Overview Cards -->
       <div class="card">
-        <div class="card-title">Total Runs</div>
+        <div class="card-title">總執行次數</div>
         <div style="font-size:2.5rem;font-weight:700;color:var(--accent-light);margin:0.5rem 0;">${m.total_runs}</div>
-        <div style="color:var(--text-muted);font-size:0.85rem;">Success: ${m.success_count} | Error: ${m.error_count}</div>
+        <div style="color:var(--text-muted);font-size:0.85rem;">成功：${m.success_count} | 失敗：${m.error_count}</div>
       </div>
       <div class="card">
-        <div class="card-title">Success Rate</div>
+        <div class="card-title">成功率</div>
         <div style="font-size:2.5rem;font-weight:700;color:${rateColor(m.success_rate)};margin:0.5rem 0;">${m.success_rate}%</div>
-        <div style="color:var(--text-muted);font-size:0.85rem;">Last ${m.window_hours}h: ${m.recent_runs} runs (${m.recent_success_rate}%)</div>
+        <div style="color:var(--text-muted);font-size:0.85rem;">近 ${m.window_hours} 小時：${m.recent_runs} 次（${m.recent_success_rate}%）</div>
       </div>
       <div class="card">
-        <div class="card-title">Channels</div>
+        <div class="card-title">來源分布</div>
         <div style="margin-top:0.5rem;">
           ${Object.entries(m.channel_distribution || {}).map(([ch, count]) =>
             `<div style="display:flex;justify-content:space-between;padding:0.25rem 0;border-bottom:1px solid var(--border);">
@@ -607,7 +608,7 @@ async function loadStats() {
       </div>
       <!-- Skill Distribution -->
       <div class="card" style="grid-column: span 2;">
-        <div class="card-title">Skill Distribution (Top 10)</div>
+        <div class="card-title">技能分布（前 10 名）</div>
         <div style="margin-top:0.75rem;">
           ${(() => {
             const dist = m.skill_distribution || {};
@@ -629,14 +630,14 @@ async function loadStats() {
     `;
     grid.innerHTML = html;
   } catch (e) {
-    grid.innerHTML = `<div class="error-state">Failed to load metrics: ${e.message}</div>`;
+    grid.innerHTML = `<div class="error-state">載入統計資料失敗：${e.message}</div>`;
   }
 }
 
 // Ops View
 async function loadOps() {
   const grid = document.getElementById('ops-grid');
-  grid.innerHTML = '<div class="loading">Loading ops data</div>';
+  grid.innerHTML = '<div class="loading">載入運營資料中…</div>';
 
   try {
     // Fetch system status and mapping diagnostics in parallel
@@ -684,7 +685,7 @@ async function loadOps() {
       <div class="card">
         <div class="card-header">
           <span class="card-title">健康診斷</span>
-          <span class="badge" style="background:${statusColor(s.health.status)};color:#fff;">${s.health.status.toUpperCase()}</span>
+          <span class="badge" style="background:${statusColor(s.health.status)};color:#fff;">${s.health.status === 'ok' ? '正常' : s.health.status === 'degraded' ? '降級' : '異常'}</span>
         </div>
         <div style="font-size:0.85rem;">
           <div style="color:var(--text-muted);margin-bottom:0.25rem;">支援狀態：<strong>${s.health.supported ? '支援' : '不支援'}</strong></div>
@@ -773,7 +774,7 @@ async function loadOps() {
 
     grid.innerHTML = html;
   } catch (e) {
-    grid.innerHTML = `<div class="error-state">Failed to load ops data: ${e.message}</div>`;
+    grid.innerHTML = `<div class="error-state">載入運營資料失敗：${e.message}</div>`;
   }
 }
 
@@ -854,15 +855,15 @@ function renderProviderDiagnosticsCard(s, mapping) {
       <div class="card-header">
         <span class="card-title">唯讀供應商診斷</span>
         <div style="display:flex;gap:0.5rem;">
-          <span class="badge" style="background:${readinessColor(readiness)};color:#fff;">${readiness.toUpperCase()}</span>
-          <span class="badge" style="background:${statusColor(healthStatus)};color:#fff;">${healthStatus.toUpperCase()}</span>
+          <span class="badge" style="background:${readinessColor(readiness)};color:#fff;">${readiness === 'ready' ? '就緒' : readiness === 'degraded' ? '降級' : readiness === 'not_configured' ? '未設定' : '異常'}</span>
+          <span class="badge" style="background:${statusColor(healthStatus)};color:#fff;">${healthStatus === 'ok' ? '正常' : healthStatus === 'degraded' ? '降級' : healthStatus === 'unreachable' || healthStatus === 'unhealthy' ? '異常' : healthStatus}</span>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-size:0.9rem;">
-        <div><span style="color:var(--text-muted)">Provider:</span> <strong>${providerName}</strong></div>
-        <div><span style="color:var(--text-muted)">Active Path:</span> <strong style="color:${isDegraded ? 'var(--warning)' : 'var(--success)'}">${activePath}</strong></div>
-        <div><span style="color:var(--text-muted)">Capabilities:</span> <strong>${(s.provider.capabilities || []).join(', ') || 'N/A'}</strong></div>
-        <div><span style="color:var(--text-muted)">Updated:</span> <strong>${s.timestamp || new Date().toISOString().split('T')[0]}</strong></div>
+        <div><span style="color:var(--text-muted)">供應商：</span> <strong>${providerName}</strong></div>
+        <div><span style="color:var(--text-muted)">目前路徑：</span> <strong style="color:${isDegraded ? 'var(--warning)' : 'var(--success)'}">${activePath}</strong></div>
+        <div><span style="color:var(--text-muted)">功能：</span> <strong>${(s.provider.capabilities || []).join(', ') || 'N/A'}</strong></div>
+        <div><span style="color:var(--text-muted)">更新時間：</span> <strong>${s.timestamp || new Date().toISOString().split('T')[0]}</strong></div>
       </div>
       ${providerInfo}
       ${mappingSection}
@@ -946,7 +947,7 @@ async function doSelectProvider() {
       showProviderSelectResult('error', data.error || data.details || `HTTP ${res.status}`);
     }
   } catch (e) {
-    showProviderSelectResult('error', `Failed: ${e.message}`);
+    showProviderSelectResult('error', `失敗：${e.message}`);
   }
 }
 
@@ -964,7 +965,7 @@ async function doAction(action) {
   const buttons = document.querySelectorAll('.action-btn');
   buttons.forEach(b => b.disabled = true);
   result.className = 'action-result show';
-  result.textContent = 'Executing...';
+  result.textContent = '執行中…';
   result.style.color = 'var(--text-muted)';
 
   try {
@@ -1028,7 +1029,7 @@ async function renderApprovalQueueCard() {
         const preview = item.request_preview || {};
         const bodySummary = preview.body_summary || '無內容';
         const requestSummary = `${preview.method || 'POST'} ${preview.path || '(無路徑)'}`;
-        const riskLevel = (item.risk_level || 'low').toUpperCase();
+        const riskLevel = { low: '低', medium: '中', high: '高', critical: '嚴重' }[item.risk_level || 'low'] || item.risk_level;
         const riskColor = item.risk_level === 'medium' ? 'var(--warning)' : 'var(--success)';
         return `<tr>
           <td style="font-family:monospace;font-size:0.8rem;">${item.id}</td>
@@ -1038,13 +1039,13 @@ async function renderApprovalQueueCard() {
             <div style="margin-top:0.25rem;color:var(--text-primary);font-family:monospace;">${requestSummary}</div>
             <div style="margin-top:0.15rem;color:var(--text-muted);">${bodySummary}</div>
             <div style="margin-top:0.35rem;">
-              <span class="badge" style="background:${riskColor};color:#fff;font-size:0.65rem;">${riskLevel} RISK</span>
+              <span class="badge" style="background:${riskColor};color:#fff;font-size:0.65rem;">${riskLevel} 風險</span>
             </div>
           </td>
           <td style="font-size:0.8rem;color:var(--text-muted);">${ts}</td>
           <td style="white-space:nowrap;">
             <button class="btn" style="padding:0.3rem 0.6rem;font-size:0.75rem;background:var(--success);" onclick="doApprove('${item.id}')">✓</button>
-            <button class="btn" style="padding:0.3rem 0.6rem;font-size:0.75rem;background:var(--accent-light);" onclick="doApproveRetry('${item.id}')" title="Approve & re-execute">⟳</button>
+            <button class="btn" style="padding:0.3rem 0.6rem;font-size:0.75rem;background:var(--accent-light);" onclick="doApproveRetry('${item.id}')" title="核准並重新執行">⟳</button>
             <button class="btn" style="padding:0.3rem 0.6rem;font-size:0.75rem;background:var(--error);" onclick="doReject('${item.id}')">✗</button>
           </td>
         </tr>`;
@@ -1074,7 +1075,7 @@ async function renderApprovalQueueCard() {
       </div>
     `;
   } catch (e) {
-    return `<div class="card" style="grid-column: span 2;"><div class="error-state">Failed to load approvals: ${e.message}</div></div>`;
+    return `<div class="card" style="grid-column: span 2;"><div class="error-state">載入審批項目失敗：${e.message}</div></div>`;
   }
 }
 
@@ -1082,7 +1083,7 @@ async function doApprove(approvalId) {
   const result = document.getElementById('approval-result');
   if (!result) return;
   result.className = 'action-result show';
-  result.textContent = 'Approving...';
+  result.textContent = '審批中…';
   result.style.color = 'var(--text-muted)';
 
   try {
@@ -1093,14 +1094,14 @@ async function doApprove(approvalId) {
     });
     const data = await res.json();
     if (res.ok) {
-      showApprovalResult('success', `${approvalId} approved`);
+      showApprovalResult('success', `${approvalId} 已核准`);
       // Refresh the ops view
       setTimeout(() => loadOps(), 500);
     } else {
       showApprovalResult('error', data.error || `HTTP ${res.status}`);
     }
   } catch (e) {
-    showApprovalResult('error', `Failed: ${e.message}`);
+    showApprovalResult('error', `失敗：${e.message}`);
   }
 }
 
@@ -1108,7 +1109,7 @@ async function doApproveRetry(approvalId) {
   const result = document.getElementById('approval-result');
   if (!result) return;
   result.className = 'action-result show';
-  result.textContent = 'Approving & retrying...';
+  result.textContent = '審批並重新執行中…';
   result.style.color = 'var(--text-muted)';
 
   try {
@@ -1119,15 +1120,15 @@ async function doApproveRetry(approvalId) {
     });
     const data = await res.json();
     if (res.ok) {
-      let msg = `${approvalId} approved`;
+      let msg = `${approvalId} 已核准`;
       if (data.retry) {
         if (data.retry.success) {
-          msg += ` — retry OK (${data.retry.status_code})`;
+          msg += ` — 重新執行成功（${data.retry.status_code}）`;
         } else {
-          msg += ` — retry failed (${data.retry.status_code || data.retry.error})`;
+          msg += ` — 重新執行失敗（${data.retry.status_code || data.retry.error}）`;
         }
       } else {
-        msg += ' — no original request to retry';
+        msg += ' — 無原始請求可重新執行';
       }
       showApprovalResult('success', msg);
       setTimeout(() => loadOps(), 500);
@@ -1135,7 +1136,7 @@ async function doApproveRetry(approvalId) {
       showApprovalResult('error', data.error || `HTTP ${res.status}`);
     }
   } catch (e) {
-    showApprovalResult('error', `Failed: ${e.message}`);
+    showApprovalResult('error', `失敗：${e.message}`);
   }
 }
 
@@ -1143,7 +1144,7 @@ async function doReject(approvalId) {
   const result = document.getElementById('approval-result');
   if (!result) return;
   result.className = 'action-result show';
-  result.textContent = 'Rejecting...';
+  result.textContent = '退回中…';
   result.style.color = 'var(--text-muted)';
 
   try {
@@ -1154,13 +1155,13 @@ async function doReject(approvalId) {
     });
     const data = await res.json();
     if (res.ok) {
-      showApprovalResult('success', `${approvalId} rejected`);
+      showApprovalResult('success', `${approvalId} 已退回`);
       setTimeout(() => loadOps(), 500);
     } else {
       showApprovalResult('error', data.error || `HTTP ${res.status}`);
     }
   } catch (e) {
-    showApprovalResult('error', `Failed: ${e.message}`);
+    showApprovalResult('error', `失敗：${e.message}`);
   }
 }
 
@@ -1178,7 +1179,7 @@ async function loadTimeline() {
   const type = document.getElementById('timeline-type').value;
   const limit = document.getElementById('timeline-limit').value;
 
-  content.innerHTML = '<div class="loading">Loading timeline</div>';
+  content.innerHTML = '<div class="loading">載入時間軸中…</div>';
   summaryDiv.style.display = 'none';
 
   try {
@@ -1241,7 +1242,7 @@ async function loadTimeline() {
     }
     content.innerHTML = html;
   } catch (e) {
-    content.innerHTML = `<div class="error-state">Failed to load timeline: ${e.message}</div>`;
+    content.innerHTML = `<div class="error-state">載入時間軸失敗：${e.message}</div>`;
   }
 }
 

@@ -61,7 +61,7 @@ class DashboardOperatorActionsHTMLTest(unittest.TestCase):
     def test_contains_approval_request_preview_markup(self):
         """Approval queue should render replay request preview details."""
         self.assertIn("request_preview", self.html)
-        self.assertIn("RISK", self.html)
+        self.assertIn("風險", self.html)
 
     def test_action_endpoints_mapping(self):
         """doAction must map actions to correct endpoints."""
