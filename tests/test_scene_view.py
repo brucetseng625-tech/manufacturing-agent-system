@@ -66,8 +66,8 @@ class SceneViewHTMLTest(unittest.TestCase):
         """Dashboard must contain agent-node CSS styles."""
         self.assertIn(".agent-node", self.html)
         self.assertIn(".agent-row", self.html)
-        self.assertIn(".scene-zone", self.html)
-        self.assertIn(".scene-zone-label", self.html)
+        self.assertIn(".zone-card", self.html)
+        self.assertIn(".zone-card-header", self.html)
 
     def test_contains_status_badge_styles(self):
         """Dashboard must contain agent status badge styles."""

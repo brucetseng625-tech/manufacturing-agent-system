@@ -540,6 +540,22 @@ Goal: Replace engineering-card UI with an intuitive factory-floor scene view for
 - 12 additional unit tests in `tests/test_scene_view.py` (P16-2 enhancements)
 - Total scene tests: 32/32
 - Zero new API endpoints — all data from existing endpoints
+### P16-3 Visual Asset / Scene Styling Upgrade (completed)
+
+- Complete visual overhaul of scene view to look more like a "factory floor" scene
+- New `.zone-card` components replace basic zone labels — room/workspace panels
+  with colored left borders and gradient backgrounds per zone type
+- Scene header with title, description, and Read-Only badge
+- Agent nodes upgraded: 3D-ish gradient cards, larger rounded-square icons,
+  improved hover/selected states with cubic-bezier transitions
+- Status badges redesigned with colored borders for better visibility
+- Scene legend enhanced with section headers and improved dot styling
+- Zone descriptions added (e.g., "排程、產能與物料", "報價與商務分析")
+- Detail panel upgraded: gradient background, larger rounded-square icon,
+  refined section dividers
+- No new external assets — all improvements via CSS (gradients, box-shadows, borders)
+- No changes to data logic, event projection, or read-only behavior
+- Tests updated: `.zone-card` / `.zone-card-header` replace old `.scene-zone-label`
 - Commit: pending
 
 ## Start Here
