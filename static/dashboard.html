@@ -229,6 +229,84 @@ body {
 .decision-inspector .di-value.di-blocked { color: var(--error); }
 .decision-inspector .di-value.di-pending { color: var(--warning); }
 .decision-inspector .di-value.di-gated { color: var(--warning); }
+
+/* Scene View — P16-1 */
+.scene-container {
+  position: relative; min-height: 600px;
+  background: linear-gradient(180deg, #0d1117 0%, #161b22 100%);
+  border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+}
+.scene-container .scene-floor {
+  position: absolute; inset: 0; opacity: 0.08;
+  background-image: linear-gradient(rgba(99,102,241,0.3) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(99,102,241,0.3) 1px, transparent 1px);
+  background-size: 40px 40px; pointer-events: none;
+}
+.scene-container .scene-zone {
+  position: relative; z-index: 1; padding: 1rem;
+}
+.scene-zone-label {
+  display: inline-block; padding: 0.3rem 0.8rem; border-radius: 4px;
+  font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+}
+.scene-zone-label.zone-orchestrator { background: rgba(99,102,241,0.2); color: var(--accent-light); }
+.scene-zone-label.zone-risk { background: rgba(239,68,68,0.15); color: var(--error); }
+.scene-zone-label.zone-production { background: rgba(245,158,11,0.15); color: var(--warning); }
+.scene-zone-label.zone-commercial { background: rgba(16,185,129,0.15); color: var(--success); }
+.scene-zone-label.zone-comm { background: rgba(168,85,247,0.15); color: #c084fc; }
+
+.agent-row {
+  display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem;
+}
+.agent-node {
+  position: relative; display: flex; flex-direction: column; align-items: center;
+  width: 120px; padding: 0.75rem 0.5rem; background: var(--bg-card);
+  border: 1px solid var(--border); border-radius: 10px; cursor: pointer;
+  transition: all 0.15s; text-align: center;
+}
+.agent-node:hover { border-color: var(--accent); box-shadow: 0 0 12px var(--accent-glow); transform: translateY(-2px); }
+.agent-node.selected { border-color: var(--accent-light); box-shadow: 0 0 16px var(--accent-glow); background: rgba(99,102,241,0.1); }
+.agent-node .agent-icon {
+  width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; margin-bottom: 0.5rem;
+}
+.agent-node .agent-name { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem; }
+.agent-node .agent-status { font-size: 0.7rem; padding: 0.15rem 0.4rem; border-radius: 4px; }
+.agent-status.status-idle { background: rgba(107,114,128,0.2); color: var(--text-muted); }
+.agent-status.status-running { background: rgba(16,185,129,0.2); color: var(--success); }
+.agent-status.status-blocked { background: rgba(239,68,68,0.2); color: var(--error); }
+.agent-status.status-approval { background: rgba(245,158,11,0.2); color: var(--warning); }
+.agent-status.status-incident { background: rgba(239,68,68,0.3); color: #f87171; border: 1px solid rgba(239,68,68,0.4); }
+.agent-node .agent-pulse {
+  position: absolute; top: -2px; right: -2px; width: 12px; height: 12px;
+  border-radius: 50%; border: 2px solid;
+}
+.agent-pulse.pulse-running { border-color: var(--success); animation: pulse-green 2s infinite; }
+.agent-pulse.pulse-blocked { border-color: var(--error); animation: pulse-red 1.5s infinite; }
+.agent-pulse.pulse-approval { border-color: var(--warning); animation: pulse-yellow 2s infinite; }
+@keyframes pulse-green { 0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); } 50% { box-shadow: 0 0 0 6px rgba(16,185,129,0); } }
+@keyframes pulse-red { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); } 50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); } }
+@keyframes pulse-yellow { 0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); } 50% { box-shadow: 0 0 0 6px rgba(245,158,11,0); } }
+
+/* Scene detail panel */
+.scene-inspector {
+  margin-top: 1rem; padding: 1rem; background: var(--bg-card);
+  border: 1px solid var(--border); border-radius: 10px; display: none;
+}
+.scene-inspector.show { display: block; }
+.scene-inspector .si-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+.scene-inspector .si-icon { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+.scene-inspector .si-title { font-size: 1.1rem; font-weight: 600; }
+.scene-inspector .si-subtitle { font-size: 0.85rem; color: var(--text-secondary); }
+.scene-inspector .si-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.75rem; }
+.scene-inspector .si-field { font-size: 0.85rem; }
+.scene-inspector .si-field-label { color: var(--text-muted); margin-bottom: 0.15rem; }
+.scene-inspector .si-field-value { color: var(--text-primary); }
+
+/* Orchestrator special style */
+.agent-node.orchestrator { width: 160px; border-color: var(--accent); background: rgba(99,102,241,0.08); }
+.agent-node.orchestrator .agent-icon { background: rgba(99,102,241,0.2); color: var(--accent-light); }
 </style>
 </head>
 <body>
@@ -252,6 +330,9 @@ body {
     </div>
     <div class="nav-item" data-view="stats">
       <span class="nav-icon">📊</span><span class="nav-text">統計資料</span>
+    </div>
+    <div class="nav-item" data-view="scene">
+      <span class="nav-icon">🏭</span><span class="nav-text">場景視圖</span>
     </div>
   </nav>
 
@@ -357,6 +438,19 @@ body {
       </div>
     </section>
 
+    <!-- Scene View — P16-1 -->
+    <section id="view-scene" class="view">
+      <div class="view-header">
+        <h2>場景視圖</h2>
+        <p>Agent 團隊狀態總覽 — 直覺理解各職能節點健康狀態與阻塞原因</p>
+      </div>
+      <div class="scene-container" id="scene-container">
+        <div class="scene-floor"></div>
+        <div class="scene-zone" id="scene-content"><div class="loading">載入場景中…</div></div>
+      </div>
+      <div id="scene-inspector" class="scene-inspector"></div>
+    </section>
+
   </main>
 </div>
 
@@ -374,6 +468,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
     if (view === 'stats') loadStats();
     if (view === 'ops') loadOps();
     if (view === 'timeline') loadTimeline();
+    if (view === 'scene') renderScene();
   });
 });
 
@@ -1263,6 +1358,153 @@ function showApprovalResult(type, message) {
   if (!result) return;
   result.className = `action-result show ${type}`;
   result.textContent = message;
+}
+
+// ── Scene View — P16-1 ──────────────────────────────────────────────────
+
+const AGENT_CATALOG = [
+  { id: 'orchestrator', name: '製造主控', skill: null, zone: 'orchestrator', icon: '🎛️', bg: 'rgba(99,102,241,0.2)', desc: '系統主控 Agent，統籌所有任務路由與團隊調度' },
+  { id: 'delivery-risk', name: '交期分析', skill: 'delivery-risk-analysis', zone: 'risk', icon: '⚠️', bg: 'rgba(239,68,68,0.2)', desc: '評估訂單交期風險，分析缺料與排程衝突' },
+  { id: 'expedite', name: '加急方案', skill: 'expedite-options', zone: 'risk', icon: '🚀', bg: 'rgba(245,158,11,0.2)', desc: '針對高風險訂單提供加急選項與成本分析' },
+  { id: 'schedule', name: '排程檢查', skill: 'schedule-conflict-check', zone: 'production', icon: '📅', bg: 'rgba(245,158,11,0.2)', desc: '檢查多訂單間的排程衝突與機台負載' },
+  { id: 'capacity', name: '產能重分配', skill: 'capacity-rebalance', zone: 'production', icon: '⚙️', bg: 'rgba(245,158,11,0.2)', desc: '機台負載平衡與產能重新分配' },
+  { id: 'shortage', name: '缺料恢復', skill: 'material-shortage-recovery', zone: 'production', icon: '📦', bg: 'rgba(245,158,11,0.2)', desc: '物料短缺情境下的補貨策略' },
+  { id: 'quote', name: '報價比較', skill: 'quote-comparison-summary', zone: 'commercial', icon: '💰', bg: 'rgba(16,185,129,0.2)', desc: '供應商報價比較與評分' },
+  { id: 'sales', name: '客戶回覆', skill: 'sales-response-draft', zone: 'comm', icon: '✉️', bg: 'rgba(168,85,247,0.2)', desc: '自動生成客戶回覆與通知郵件草稿' },
+  { id: 'internal', name: '內部行動', skill: 'internal-action-summary', zone: 'comm', icon: '📋', bg: 'rgba(168,85,247,0.2)', desc: '內部協調行動摘要與升級建議' },
+  { id: 'supplier', name: '供應商跟進', skill: 'supplier-followup-draft', zone: 'comm', icon: '🤝', bg: 'rgba(168,85,247,0.2)', desc: '生成供應商跟進信件草稿' },
+];
+
+const ZONE_CONFIG = {
+  orchestrator: { label: '🎛️ 主控區', cssClass: 'zone-orchestrator' },
+  risk:         { label: '⚠️ 風險評估區', cssClass: 'zone-risk' },
+  production:   { label: '🏭 生產計畫區', cssClass: 'zone-production' },
+  commercial:   { label: '💰 商務區', cssClass: 'zone-commercial' },
+  comm:         { label: '✉️ 通訊協調區', cssClass: 'zone-comm' },
+};
+
+async function renderScene() {
+  const content = document.getElementById('scene-content');
+  if (!content) return;
+  content.innerHTML = '<div class="loading">載入場景中…</div>';
+
+  // Fetch data in parallel for state derivation
+  const [skillsRes, approvalsRes, historyRes, guardrailsRes] = await Promise.all([
+    fetch('/skills').catch(() => null),
+    fetch('/approvals?status=pending&limit=50').catch(() => null),
+    fetch('/history?last=20').catch(() => null),
+    fetch('/guardrails').catch(() => null),
+  ]);
+
+  const skillsData = skillsRes && skillsRes.ok ? await skillsRes.json() : { items: [] };
+  const approvalsData = approvalsRes && approvalsRes.ok ? await approvalsRes.json() : { items: [] };
+  const historyData = historyRes && historyRes.ok ? await historyRes.json() : { runs: [] };
+  const guardrailsData = guardrailsRes && guardrailsRes.ok ? await guardrailsRes.json() : { enabled: false, operations: {} };
+
+  // Derive agent states from API data
+  const pendingOps = (approvalsData.items || []).map(a => a.operation);
+  const recentSkills = (historyData.runs || []).filter(r => r.status === 'success').map(r => r.skill);
+  const guardrailEnabled = guardrailsData.enabled;
+
+  const agentStates = {};
+  for (const agent of AGENT_CATALOG) {
+    let status = 'idle';
+    let detail = '待機中';
+
+    if (agent.id === 'orchestrator') {
+      // Orchestrator: running if any recent activity
+      if (recentSkills.length > 0) { status = 'running'; detail = '系統運行中'; }
+    } else if (agent.skill) {
+      // Check if this skill is involved in a pending approval
+      if (pendingOps.some(op => op && (op.includes(agent.id.split('-')[0]) || op.includes(agent.skill.split('-')[0])))) {
+        status = 'approval'; detail = '等待審批';
+      } else if (recentSkills.includes(agent.skill)) {
+        status = 'running'; detail = '執行中';
+      }
+    }
+
+    agentStates[agent.id] = { status, detail, pendingOps: pendingOps, recentSkills: recentSkills, guardrailEnabled };
+  }
+
+  // Build scene HTML by zones
+  const zones = {};
+  for (const agent of AGENT_CATALOG) {
+    if (!zones[agent.zone]) zones[agent.zone] = [];
+    zones[agent.zone].push(agent);
+  }
+
+  let html = '';
+  for (const [zoneId, agents] of Object.entries(zones)) {
+    const zc = ZONE_CONFIG[zoneId];
+    html += `<div class="scene-zone"><span class="scene-zone-label ${zc.cssClass}">${zc.label}</span><div class="agent-row">`;
+    for (const agent of agents) {
+      const st = agentStates[agent.id];
+      const isOrchestrator = agent.id === 'orchestrator';
+      const pulseClass = st.status === 'running' ? 'pulse-running' : st.status === 'approval' ? 'pulse-approval' : '';
+      html += `<div class="agent-node ${isOrchestrator ? 'orchestrator' : ''}" data-agent="${agent.id}" onclick="showAgentDetail('${agent.id}')">
+        <div class="agent-icon" style="background:${agent.bg};">${agent.icon}</div>
+        <div class="agent-name">${agent.name}</div>
+        <div class="agent-status status-${st.status}">${statusLabel(st.status)}</div>
+        ${pulseClass ? `<div class="agent-pulse ${pulseClass}"></div>` : ''}
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+
+  content.innerHTML = html;
+  window.__sceneState = { agents: AGENT_CATALOG, states: agentStates, approvals: approvalsData.items || [], history: historyData.runs || [] };
+}
+
+function statusLabel(s) {
+  return { idle: '待機', running: '執行中', blocked: '已阻擋', approval: '待審批', incident: '事故中' }[s] || s;
+}
+
+function showAgentDetail(agentId) {
+  // Deselect previous
+  document.querySelectorAll('.agent-node.selected').forEach(n => n.classList.remove('selected'));
+  // Select current
+  const node = document.querySelector(`.agent-node[data-agent="${agentId}"]`);
+  if (node) node.classList.add('selected');
+
+  const agent = AGENT_CATALOG.find(a => a.id === agentId);
+  if (!agent) return;
+
+  const st = window.__sceneState?.states?.[agentId] || { status: 'idle', detail: 'N/A' };
+  const inspector = document.getElementById('scene-inspector');
+
+  // Find related approvals
+  const relatedApprovals = (window.__sceneState?.approvals || []).filter(a => {
+    const op = a.operation || '';
+    return agent.skill && (op.includes(agent.id.split('-')[0]) || op.includes(agent.skill.split('-')[0]));
+  });
+
+  // Find recent history for this skill
+  const recentHistory = (window.__sceneState?.history || []).filter(r => r.skill === agent.skill).slice(0, 3);
+
+  let html = `
+    <div class="si-header">
+      <div class="si-icon" style="background:${agent.bg};">${agent.icon}</div>
+      <div>
+        <div class="si-title">${agent.name}</div>
+        <div class="si-subtitle">${agent.desc}</div>
+      </div>
+      <span class="badge ${st.status === 'running' ? 'badge-success' : st.status === 'idle' ? '' : 'badge-warning'}" style="margin-left:auto;">${statusLabel(st.status)}</span>
+    </div>
+    <div class="si-grid">
+      <div class="si-field"><div class="si-field-label">技能識別</div><div class="si-field-value"><code style="background:var(--bg-input);padding:0.1rem 0.4rem;border-radius:4px;">${agent.skill || '主控節點'}</code></div></div>
+      <div class="si-field"><div class="si-field-label">目前狀態</div><div class="si-field-value">${st.detail}</div></div>
+    </div>`;
+
+  if (agent.skill) {
+    html += `
+    <div class="si-grid" style="margin-top:0.75rem;">
+      <div class="si-field"><div class="si-field-label">待審批關聯</div><div class="si-field-value">${relatedApprovals.length > 0 ? relatedApprovals.map(a => `<span class="badge badge-warning">${a.operation || 'N/A'}</span>`).join(' ') : '無'}</div></div>
+      <div class="si-field"><div class="si-field-label">最近執行紀錄</div><div class="si-field-value">${recentHistory.length > 0 ? recentHistory.map(r => `<span style="font-size:0.8rem;color:var(--text-muted);">${r.timestamp ? new Date(r.timestamp).toLocaleString() : 'N/A'} — ${r.status === 'success' ? '成功' : '失敗'}</span>`).join('<br>') : '無執行紀錄'}</div></div>
+    </div>`;
+  }
+
+  inspector.innerHTML = html;
+  inspector.className = 'scene-inspector show';
 }
 
 // Timeline View

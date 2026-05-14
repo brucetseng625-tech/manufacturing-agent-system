@@ -11,7 +11,7 @@ Latest verified feature commit on `main`:
 
 Important handoff note:
 - `main` may move to a docs-only sync commit after the latest verified feature commit above. Always confirm exact `HEAD` with `git rev-parse HEAD` before continuing.
-- Full unit test status at handoff: `887 / 887 passed` (+10 from P15-4 `DecisionInspectorHTMLTest`)
+- Full unit test status at handoff: `907 / 907 passed` (+20 from P16-1 `SceneViewHTMLTest`)
 - Smoke test status at handoff: `112 / 112 passed` (verified below)
 - Setup verification status at handoff: `204 / 204 passed` (verified below)
 - Working tree at handoff: clean (after P15-3 commit)
@@ -508,6 +508,23 @@ Goal: Unify scattered guardrail/rollout logic into a standardized Decision Contr
 - **P15-2**: 可延後 — Guardrail 架構已是純函數 + handler 分層，MASL 模式已滿足
 - **P15 判定**: 可視為完成，P16 可開始
 - 完整評估：`docs/P15_COMPLETION_ASSESSMENT.md`
+
+## P16 Scene-Based Operator Visibility
+
+Goal: Replace engineering-card UI with an intuitive factory-floor scene view for operator monitoring.
+
+### P16-1 Read-Only Agent Team Scene View (completed)
+
+- `static/dashboard.html`: New "場景視圖" nav + view with agent grid layout
+- 10 agent nodes across 5 zones (主控區, 風險評估區, 生產計畫區, 商務區, 通訊協調區)
+- Status badges: 待機, 執行中, 待審批, 已阻擋 — derived from /approvals, /history, /guardrails
+- Click-to-inspect detail panel with skill ID, status, related approvals, recent history
+- Scene-floor grid overlay + pulse animations for active agents
+- 20 unit tests in `tests/test_scene_view.py`
+- Read-only: no mutation operations from scene view
+- Data sources: `/skills` (agent catalog), `/approvals` (pending state), `/history` (recent activity), `/guardrails` (guard state)
+- Derived states: `running` from recent history match, `approval` from pending ops match
+- Commit: pending
 
 ## Start Here
 
