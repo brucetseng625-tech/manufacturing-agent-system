@@ -500,7 +500,14 @@ Goal: Unify scattered guardrail/rollout logic into a standardized Decision Contr
 - `doAction()` detects `decision_state` + `reason` presence, renders structured card instead of inline text
 - 10 new unit tests in `tests/test_dashboard_actions.py` (`DecisionInspectorHTMLTest`)
 - Zero breaking changes — backward compatible with existing API responses
-- Commit: pending
+- Commit: `8732e53` `feat(P15-4): add dashboard decision inspector for explainability`
+
+### P15 Completion Assessment (2026-05-14)
+
+- **P15-1**: 可延後 — Decision schema 已透過 P15-3/4 API 回應格式事實存在
+- **P15-2**: 可延後 — Guardrail 架構已是純函數 + handler 分層，MASL 模式已滿足
+- **P15 判定**: 可視為完成，P16 可開始
+- 完整評估：`docs/P15_COMPLETION_ASSESSMENT.md`
 
 ## Start Here
 
