@@ -504,6 +504,28 @@ When a new Codex / AI session starts, do this first:
 | ~~7~~ | ~~Per-provider rollout controls~~ | ~~Config-driven deployment controls~~ |
 | ~~8~~ | ~~Safe fallback and degraded-mode visibility~~ | ~~Make degraded live behavior visible and operable~~ |
 
+## P15 Candidate — Decision Governance & Explainability (Research Phase)
+
+> **Status**: Research complete. Not yet implemented.
+> **Reference**: `afu-brain` MASL (Model-Agnostic Safety Layer) pattern.
+> **Full Analysis**: See `docs/AFU_BRAIN_RESEARCH.md`
+
+### Candidate Direction
+
+**Goal**: Unify scattered `risk`, `approval`, `guardrail`, and `rollout` logic into an explicit **Decision Contract** layer, providing full operator explainability for all blocking/approval decisions.
+
+### Recommended Sub-tasks (Candidates)
+
+| Priority | Work Item | Goal | Main Deliverables | Depends On | Recommended Owner |
+| --- | --- | --- | --- | --- | --- |
+| P15 (Candidate) | Unified Decision Schema | Define `Decision` data structure for all guarded ops | `Decision` type, `intent` -> `risk` -> `decision` mapping | P14 complete | Codex |
+| P15 (Candidate) | MASL-style Guardrail Refactor | Decouple guardrail evaluation from HTTP handlers | Pure function `evaluate_decision()`, policy file | Decision schema | Codex |
+| P15 (Candidate) | Explainable API Responses | Return `reason` + `suggestion` on all 403/409 blocks | API response enhancement, dashboard parsing | Guardrail refactor | Codex |
+| P15 (Candidate) | Dashboard Decision Inspector | Visual panel showing why an action is blocked/requires approval | UI card, `decision_trace` rendering | Explainable API | Codex |
+
+### First Minimal Viable Item
+**P15-3: Explainable API Responses** — Zero-breaking-change enhancement to return structured `reason` and `next_action` on all guardrail/rollout denials. Directly solves operator confusion ("Why is this blocked?").
+
 ## Ready-To-Use Prompt For The Next AI
 
 ```text
