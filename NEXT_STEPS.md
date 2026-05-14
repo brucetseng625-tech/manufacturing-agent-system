@@ -574,6 +574,18 @@ Goal: Replace engineering-card UI with an intuitive factory-floor scene view for
 - No backend changes, no new dependencies
 - Tests unchanged: 948/948 passed
 
+### P16-5 SVG Task Flow Animation (completed)
+
+- `static/dashboard.html`: Added SVG overlay layer with animated task flow paths
+- 7 core routes: orchestrator → risk/production/commercial/comm, risk → production, production → commercial, commercial → comm
+- Route states derived from `/history` data: active (green, flowing dots), recent (indigo, animated dashes), idle (gray, static dashes)
+- SVG paths use cubic bezier curves connecting zone card centers
+- Active routes have animated dots via SVG `<animateMotion>` along `<mpath>`
+- Legend section added with task flow state explanation
+- Zero backend changes, zero new APIs, fully read-only
+- Compatible with P16-4 isometric layout (z-index: 2 overlay, overflow: visible)
+- Tests unchanged: 948/948 passed
+
 ## P17 Channel Integrations & External Operator Entry
 
 Goal: Enable external channel access (Discord/LINE) for operator queries, notifications, and approvals.

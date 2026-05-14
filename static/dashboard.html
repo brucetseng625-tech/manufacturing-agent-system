@@ -392,7 +392,51 @@ body {
 .scene-legend .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: var(--text-muted); }
 .scene-legend .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
 
-/* Scene detail panel — P16-2 enhanced */
+/* Scene detail panel — P16-2 */
+/* (See .scene-inspector below after P16-5 SVG styles) */
+
+/* P16-5: SVG Task Flow Animation overlay */
+.scene-taskflow {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 2; pointer-events: none;
+}
+.scene-taskflow path {
+  fill: none; stroke-width: 2; stroke-linecap: round;
+}
+/* Route state classes */
+.taskflow-path-idle {
+  stroke: rgba(107,114,128,0.15); stroke-dasharray: 4 6;
+}
+.taskflow-path-recent {
+  stroke: rgba(99,102,241,0.35); stroke-dasharray: 6 4;
+  animation: flow-recent 2s linear infinite;
+}
+.taskflow-path-active {
+  stroke: rgba(16,185,129,0.6); stroke-width: 2.5;
+  stroke-dasharray: 8 4;
+  animation: flow-active 1.5s linear infinite;
+  filter: drop-shadow(0 0 3px rgba(16,185,129,0.4));
+}
+@keyframes flow-recent {
+  from { stroke-dashoffset: 20; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes flow-active {
+  from { stroke-dashoffset: 24; }
+  to { stroke-dashoffset: 0; }
+}
+/* Flowing dot on active paths */
+.taskflow-dot {
+  fill: rgba(16,185,129,0.9);
+  filter: drop-shadow(0 0 4px rgba(16,185,129,0.6));
+}
+.taskflow-dot-dot { animation: dot-pulse 1.5s ease-in-out infinite; }
+@keyframes dot-pulse {
+  0%, 100% { r: 3; opacity: 0.9; }
+  50% { r: 4.5; opacity: 1; }
+}
+
+/* Scene detail panel — P16-2 */
 .scene-inspector {
   margin-top: 1rem; padding: 1.1rem; background: linear-gradient(160deg, rgba(30,30,58,0.9) 0%, rgba(22,33,62,0.95) 100%);
   border: 1px solid var(--border); border-radius: 12px; display: none;
@@ -560,6 +604,8 @@ body {
       </div>
       <div class="scene-container" id="scene-container">
         <div class="scene-floor"></div>
+        <!-- P16-5: SVG Task Flow overlay -->
+        <svg class="scene-taskflow" id="scene-taskflow" xmlns="http://www.w3.org/2000/svg"></svg>
         <div class="scene-zone" id="scene-content"><div class="loading">載入場景中…</div></div>
       </div>
       <div id="scene-inspector" class="scene-inspector"></div>
@@ -1668,9 +1714,21 @@ async function renderScene() {
         <div class="legend-item"><span class="event-badge evt-receipt">執行紀錄</span>有自動化執行紀錄</div>
         <div class="legend-item"><span class="event-badge evt-alert">警報</span>有活躍系統警報</div>
       </div>
+      <div class="legend-section">任務流向</div>
+      <div class="legend-row">
+        <div class="legend-item"><svg width="24" height="8"><line x1="0" y1="4" x2="24" y2="4" stroke="rgba(16,185,129,0.6)" stroke-width="2.5" stroke-dasharray="8 4"/></svg>主線流向 — 最近有任務流動</div>
+        <div class="legend-item"><svg width="24" height="8"><line x1="0" y1="4" x2="24" y2="4" stroke="rgba(99,102,241,0.35)" stroke-width="2" stroke-dasharray="6 4"/></svg>最近活動 — 近期有互動</div>
+        <div class="legend-item"><svg width="24" height="8"><line x1="0" y1="4" x2="24" y2="4" stroke="rgba(107,114,128,0.15)" stroke-width="2" stroke-dasharray="4 6"/></svg>待命路徑 — 無近期活動</div>
+      </div>
     </div>`;
 
   content.innerHTML = html;
+
+  // P16-5: Draw SVG task flow paths after DOM is rendered
+  requestAnimationFrame(function() {
+    renderTaskFlowPaths(historyData, alertsData, approvalsData);
+  });
+
   window.__sceneState = {
     agents: AGENT_CATALOG,
     states: agentStates,
@@ -1682,6 +1740,140 @@ async function renderScene() {
     alerts: alertsData.alerts || [],
     guardrails: guardrailsData,
   };
+}
+
+// ── P16-5: SVG Task Flow Animation ────────────────────────────────────────
+
+const TASK_FLOW_ROUTES = [
+  { from: 'orchestrator', to: 'risk', label: '派工 → 風險評估' },
+  { from: 'orchestrator', to: 'production', label: '派工 → 生產計畫' },
+  { from: 'orchestrator', to: 'commercial', label: '派工 → 商務報價' },
+  { from: 'orchestrator', to: 'comm', label: '派工 → 通訊協調' },
+  { from: 'risk', to: 'production', label: '風險 → 生產' },
+  { from: 'production', to: 'commercial', label: '生產 → 商務' },
+  { from: 'commercial', to: 'comm', label: '商務 → 通訊' },
+];
+
+const SKILL_TO_ZONE = {
+  'delivery-risk-analysis': 'risk',
+  'expedite-options': 'risk',
+  'schedule-conflict-check': 'production',
+  'capacity-rebalance': 'production',
+  'material-shortage-recovery': 'production',
+  'quote-comparison-summary': 'commercial',
+  'sales-response-draft': 'comm',
+  'internal-action-summary': 'comm',
+  'supplier-followup-draft': 'comm',
+};
+
+function renderTaskFlowPaths(historyData, alertsData, approvalsData) {
+  var svg = document.getElementById('scene-taskflow');
+  if (!svg) return;
+
+  var container = document.getElementById('scene-container');
+  if (!container) return;
+
+  var containerRect = container.getBoundingClientRect();
+  svg.setAttribute('viewBox', '0 0 ' + containerRect.width + ' ' + containerRect.height);
+
+  // Collect active skills from history
+  var recentSkills = (historyData.runs || []).filter(function(r) { return r.status === 'success'; }).map(function(r) { return r.skill; });
+  var errorSkills = (historyData.runs || []).filter(function(r) { return r.status === 'error'; }).map(function(r) { return r.skill; });
+  var pendingApprovalOps = (approvalsData.items || []).map(function(a) { return a.operation; });
+
+  // Determine which zones are active
+  var activeZones = {};
+  recentSkills.forEach(function(s) { var z = SKILL_TO_ZONE[s]; if (z) activeZones[z] = 'active'; });
+  errorSkills.forEach(function(s) { var z = SKILL_TO_ZONE[s]; if (z && !activeZones[z]) activeZones[z] = 'recent'; });
+  if (!activeZones['orchestrator']) activeZones['orchestrator'] = 'recent';
+
+  // Build zone center positions
+  var zonePositions = {};
+  TASK_FLOW_ROUTES.forEach(function(route) {
+    ['from', 'to'].forEach(function(prop) {
+      var zoneId = route[prop];
+      if (!zonePositions[zoneId]) {
+        var el = container.querySelector('.zone-' + zoneId);
+        if (el) {
+          var rect = el.getBoundingClientRect();
+          zonePositions[zoneId] = {
+            x: rect.left - containerRect.left + rect.width / 2,
+            y: rect.top - containerRect.top + rect.height / 2,
+            w: rect.width, h: rect.height,
+            top: rect.top - containerRect.top,
+            bottom: rect.bottom - containerRect.bottom,
+            left: rect.left - containerRect.left,
+            right: rect.right - containerRect.right,
+          };
+        }
+      }
+    });
+  });
+
+  // Determine route states
+  function getRouteState(route) {
+    var fromZ = activeZones[route.from] || 'idle';
+    var toZ = activeZones[route.to] || 'idle';
+    // If from zone has active skill going to to zone's domain
+    var relevantSkills = Object.keys(SKILL_TO_ZONE).filter(function(s) { return SKILL_TO_ZONE[s] === route.to; });
+    var hasActiveFlow = relevantSkills.some(function(s) { return recentSkills.indexOf(s) >= 0; });
+    var hasRecentError = relevantSkills.some(function(s) { return errorSkills.indexOf(s) >= 0; });
+
+    if (hasActiveFlow) return 'active';
+    if (fromZ === 'active' || toZ === 'active') return 'recent';
+    if (hasRecentError) return 'recent';
+    if (fromZ === 'recent' || toZ === 'recent') return 'recent';
+    return 'idle';
+  }
+
+  // Draw paths
+  var pathsHtml = '';
+  var dotHtml = '';
+  var animId = 0;
+
+  TASK_FLOW_ROUTES.forEach(function(route) {
+    var fromPos = zonePositions[route.from];
+    var toPos = zonePositions[route.to];
+    if (!fromPos || !toPos) return;
+
+    var state = getRouteState(route);
+
+    // Compute curved path: from bottom of source to top of target (or side for adjacent)
+    var x1, y1, x2, y2, cp1x, cp1y, cp2x, cp2y;
+
+    if (Math.abs(fromPos.x - toPos.x) < 100) {
+      // Vertical: bottom of from to top of to
+      x1 = fromPos.x; y1 = fromPos.top + fromPos.h * 0.85;
+      x2 = toPos.x; y2 = toPos.top + toPos.h * 0.15;
+      var midY = (y1 + y2) / 2;
+      cp1x = x1; cp1y = midY; cp2x = x2; cp2y = midY;
+    } else if (toPos.x > fromPos.x) {
+      // Source is to the left: connect right of source to left of target
+      x1 = fromPos.right - fromPos.w * 0.15; y1 = fromPos.top + fromPos.h * 0.5;
+      x2 = toPos.left + toPos.w * 0.15; y2 = toPos.top + toPos.h * 0.5;
+      var midX = (x1 + x2) / 2;
+      cp1x = midX; cp1y = y1; cp2x = midX; cp2y = y2;
+    } else {
+      // Source is to the right
+      x1 = fromPos.left + fromPos.w * 0.15; y1 = fromPos.top + fromPos.h * 0.5;
+      x2 = toPos.right - toPos.w * 0.15; y2 = toPos.top + toPos.h * 0.5;
+      var midX = (x1 + x2) / 2;
+      cp1x = midX; cp1y = y1; cp2x = midX; cp2y = y2;
+    }
+
+    var d = 'M' + x1 + ' ' + y1 + ' C' + cp1x + ' ' + cp1y + ',' + cp2x + ' ' + cp2y + ',' + x2 + ' ' + y2;
+
+    pathsHtml += '<path d="' + d + '" class="taskflow-path-' + state + '" data-route="' + route.from + '-' + route.to + '" />';
+
+    if (state === 'active') {
+      animId++;
+      // Flowing dot along the path
+      dotHtml += '<circle class="taskflow-dot taskflow-dot-dot" r="3"><animateMotion dur="2s" repeatCount="indefinite" begin="' + (animId * 0.3) + 's"><mpath href="#animpath' + animId + '"/></animateMotion></circle>';
+      pathsHtml = pathsHtml.replace('data-route="' + route.from + '-' + route.to + '"', 'data-route="' + route.from + '-' + route.to + '" id="animpath' + animId + '"');
+    }
+  });
+
+  svg.innerHTML = '<defs><filter id="glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>' + pathsHtml + dotHtml;
 }
 
 function statusLabel(s) {
