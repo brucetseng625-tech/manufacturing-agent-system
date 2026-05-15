@@ -784,3 +784,6 @@ Requirements:
 - Added `sheets` data source mode backed by `GoogleSheetsProvider` for Google Sheets CSV exports.
 - Main workspace now supports `ERP 整合版` vs `輕量版（Sheets / LINE）` mode switching.
 - Lightweight mode routes workspace queries through the `sheets` provider without changing the scene or governance surfaces.
+
+
+- P17 lightweight extension: direct LINE webhook adapter for read-only query handling, allowlist, signature verification, and audit trace.

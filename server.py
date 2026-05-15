@@ -33,6 +33,7 @@ from execution_receipts import record_receipt, query_receipts, get_receipts_summ
 from pilot_checklist import get_checklist, get_checklist_summary
 from incident_closure import get_closure, query_closures, upsert_closure, reset_closures
 from integrations.discord_bot import send_discord_notification, handle_discord_message, handle_discord_approval_command
+from integrations.line_bot import verify_line_signature, send_line_reply, handle_line_message
 from rollout_profile import get_rollout_profile, get_rollout_status, check_rollout, reload_rollout_profile
 
 
@@ -1273,6 +1274,55 @@ class AgentHandler(BaseHTTPRequestHandler):
         else:
             self._send_json_response(200, {"status": "ok", "reply": result["message"]})
 
+    def _handle_line_webhook(self):
+        """Handle POST /webhook/line — Receive LINE messages and process as read-only queries."""
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            if content_length <= 0:
+                self._send_error_response(400, "missing_body", "Request body is required")
+                return
+            raw_body = self.rfile.read(content_length)
+            body = json.loads(raw_body.decode("utf-8"))
+        except (json.JSONDecodeError, ValueError) as e:
+            self._send_error_response(400, "invalid_json", f"Invalid JSON: {e}")
+            return
+
+        signature = self.headers.get("X-Line-Signature", "")
+        if not verify_line_signature(raw_body, signature):
+            self._send_error_response(401, "invalid_signature", "Invalid LINE webhook signature")
+            return
+
+        events = body.get("events")
+        if isinstance(events, list):
+            reply_count = 0
+            processed = 0
+            for event in events:
+                if event.get("type") != "message":
+                    continue
+                message = event.get("message", {})
+                if message.get("type") != "text":
+                    continue
+                source = event.get("source", {})
+                user_id = source.get("userId", "")
+                reply_token = event.get("replyToken", "")
+                content = message.get("text", "")
+                result = handle_line_message({"user_id": user_id, "content": content})
+                sent = send_line_reply(reply_token, result["message"])
+                reply_count += 1 if sent else 0
+                processed += 1
+            self._send_json_response(200, {"status": "ok", "processed": processed, "replies_sent": reply_count})
+            return
+
+        user_id = body.get("user_id") or body.get("author_id")
+        reply_token = body.get("reply_token", "")
+        content = body.get("content", "")
+        result = handle_line_message({"user_id": user_id, "content": content})
+        sent = send_line_reply(reply_token, result["message"]) if reply_token else False
+        if result["status"] == "error":
+            self._send_json_response(403, {"status": "error", "error": "line_blocked", "message": result["message"], "reply_sent": sent})
+        else:
+            self._send_json_response(200, {"status": "ok", "reply": result["message"], "reply_sent": sent})
+
     def _handle_history(self, parsed_path):
         """Handle GET /history with optional query parameters for filtering."""
         try:
@@ -1295,8 +1345,8 @@ class AgentHandler(BaseHTTPRequestHandler):
                 return
 
             channel = params.get("channel", [None])[0]
-            if channel is not None and channel not in ("cli", "http", "discord"):
-                self._send_error_response(400, "invalid_parameter", "'channel' must be 'cli', 'http', or 'discord'")
+            if channel is not None and channel not in ("cli", "http", "discord", "line"):
+                self._send_error_response(400, "invalid_parameter", "'channel' must be 'cli', 'http', 'discord', or 'line'")
                 return
 
             intent = params.get("intent", [None])[0]
@@ -1385,6 +1435,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_approvals_reset()
         elif path == "/webhook/discord":
             self._handle_discord_webhook()
+        elif path == "/webhook/line":
+            self._handle_line_webhook()
         else:
             self._drain_request_body()
             self._send_error_response(404, "not_found", "Endpoint not found")

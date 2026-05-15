@@ -124,6 +124,11 @@
     "allowed_user_ids": [],
     "channel_id": ""
   },
+  "line": {
+    "channel_access_token": "",
+    "channel_secret": "",
+    "allowed_user_ids": []
+  },
   "guardrails": {
     "enabled": false,
     "approval_token": "",
