@@ -59,16 +59,57 @@ class LineMessageTest(unittest.TestCase):
         self.assertEqual(result["status"], "error")
         self.assertIn("未經授權", result["message"])
 
+    @patch("integrations.line_bot.route_query")
+    @patch("integrations.line_bot.set_data_source")
+    @patch("integrations.line_bot.create_provider")
+    @patch("integrations.line_bot.get_provider_name")
     @patch("integrations.line_bot.get_config_value")
-    def test_handle_line_message_routes_readonly_query(self, mock_get_config):
-        mock_get_config.side_effect = lambda k, d: {"line.allowed_user_ids": []}.get(k, d)
-        with patch("integrations.line_bot.route_query") as mock_route:
-            mock_route.return_value = {"status": "success", "skill": "test", "intent": "test_intent", "data": {"decision": "ok"}}
-            result = handle_line_message({"user_id": "u-1", "content": "ORD-1001"})
-            self.assertEqual(result["status"], "success")
-            self.assertIn("查詢完成", result["message"])
-            _, kwargs = mock_route.call_args
-            self.assertTrue(kwargs["dry_run"])
+    def test_handle_line_message_uses_sheets_in_lightweight_mode(self, mock_get_config, mock_provider_name, mock_create_provider, mock_set_data_source, mock_route):
+        values = {
+            "line.allowed_user_ids": [],
+            "line.default_data_source": "",
+            "runtime.workspace_mode": "lightweight",
+            "runtime.default_data_dir": "mock_data",
+            "live_provider.circuit_breaker.failure_threshold": 0,
+            "live_provider.circuit_breaker.recovery_seconds": 60,
+        }
+        mock_get_config.side_effect = lambda k, d=None, raw=False: values.get(k, d)
+        mock_provider_name.return_value = "google_sheets"
+        mock_create_provider.return_value = object()
+        mock_route.return_value = {"status": "success", "skill": "test", "intent": "test_intent", "data": {"decision": "ok"}}
+
+        result = handle_line_message({"user_id": "u-1", "content": "ORD-1001"})
+
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["data_source"], "sheets")
+        self.assertIn("資料來源：google_sheets", result["message"])
+        self.assertEqual(mock_create_provider.call_args[0][0], "sheets")
+        mock_set_data_source.assert_called_once()
+        mock_route.assert_called_once()
+
+    @patch("integrations.line_bot.route_query")
+    @patch("integrations.line_bot.set_data_source")
+    @patch("integrations.line_bot.create_provider")
+    @patch("integrations.line_bot.get_provider_name")
+    @patch("integrations.line_bot.get_config_value")
+    def test_handle_line_message_respects_explicit_line_data_source(self, mock_get_config, mock_provider_name, mock_create_provider, mock_set_data_source, mock_route):
+        values = {
+            "line.allowed_user_ids": [],
+            "line.default_data_source": "local",
+            "runtime.workspace_mode": "lightweight",
+            "runtime.default_data_dir": "mock_data",
+            "live_provider.circuit_breaker.failure_threshold": 0,
+            "live_provider.circuit_breaker.recovery_seconds": 60,
+        }
+        mock_get_config.side_effect = lambda k, d=None, raw=False: values.get(k, d)
+        mock_provider_name.return_value = "local"
+        mock_create_provider.return_value = object()
+        mock_route.return_value = {"status": "success", "skill": "test", "intent": "test_intent", "data": {"decision": "ok"}}
+
+        result = handle_line_message({"user_id": "u-1", "content": "ORD-1001"})
+        self.assertEqual(result["data_source"], "local")
+        self.assertIn("資料來源：local", result["message"])
+        self.assertEqual(mock_create_provider.call_args[0][0], "local")
 
     def test_format_line_response_includes_explainability(self):
         text = format_line_response("測試", {"status": "error", "error_type": "rollout_gated", "message": "blocked", "reason": "capability disabled", "next_action": "enable it", "decision_state": "rollout_gated"})

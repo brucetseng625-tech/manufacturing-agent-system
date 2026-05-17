@@ -787,3 +787,5 @@ Requirements:
 
 
 - P17 lightweight extension: direct LINE webhook adapter for read-only query handling, allowlist, signature verification, and audit trace.
+
+- LINE lightweight mode: LINE webhook now defaults to Google Sheets data source in lightweight workspace mode, enabling direct LINE + Sheets query handling without ERP.

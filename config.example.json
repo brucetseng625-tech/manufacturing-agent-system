@@ -127,7 +127,8 @@
   "line": {
     "channel_access_token": "",
     "channel_secret": "",
-    "allowed_user_ids": []
+    "allowed_user_ids": [],
+    "default_data_source": "sheets"
   },
   "guardrails": {
     "enabled": false,
