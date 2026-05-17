@@ -33,7 +33,7 @@ from execution_receipts import record_receipt, query_receipts, get_receipts_summ
 from pilot_checklist import get_checklist, get_checklist_summary
 from incident_closure import get_closure, query_closures, upsert_closure, reset_closures
 from integrations.discord_bot import send_discord_notification, handle_discord_message, handle_discord_approval_command
-from integrations.line_bot import verify_line_signature, send_line_reply, handle_line_message
+from integrations.line_bot import verify_line_signature, send_line_reply, handle_line_message, handle_line_approval_command
 from rollout_profile import get_rollout_profile, get_rollout_status, check_rollout, reload_rollout_profile
 
 
@@ -1275,7 +1275,7 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._send_json_response(200, {"status": "ok", "reply": result["message"]})
 
     def _handle_line_webhook(self):
-        """Handle POST /webhook/line — Receive LINE messages and process as read-only queries."""
+        """Handle POST /webhook/line — Receive LINE messages and process queries or approval commands."""
         try:
             content_length = int(self.headers.get("Content-Length", 0))
             if content_length <= 0:
@@ -1306,7 +1306,12 @@ class AgentHandler(BaseHTTPRequestHandler):
                 user_id = source.get("userId", "")
                 reply_token = event.get("replyToken", "")
                 content = message.get("text", "")
-                result = handle_line_message({"user_id": user_id, "content": content})
+                content_lower = content.strip().lower()
+                approval_prefixes = ("approval", "approve ", "reject ")
+                if any(content_lower.startswith(prefix) for prefix in approval_prefixes):
+                    result = handle_line_approval_command({"user_id": user_id, "content": content})
+                else:
+                    result = handle_line_message({"user_id": user_id, "content": content})
                 sent = send_line_reply(reply_token, result["message"])
                 reply_count += 1 if sent else 0
                 processed += 1

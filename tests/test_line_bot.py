@@ -12,7 +12,11 @@ from unittest.mock import patch
 
 from integrations.line_bot import (
     format_line_response,
+    format_line_approval_list,
+    format_line_approval_item_detail,
+    format_line_approval_action_result,
     handle_line_message,
+    handle_line_approval_command,
     send_line_reply,
     verify_line_signature,
 )
@@ -118,6 +122,85 @@ class LineMessageTest(unittest.TestCase):
         self.assertIn("功能尚未開放", text)
 
 
+class LineApprovalCommandTest(unittest.TestCase):
+    def test_format_approval_list_empty(self):
+        self.assertIn("目前沒有待核可項目", format_line_approval_list([]))
+
+    def test_format_approval_item_detail_shows_replay(self):
+        item = {
+            "id": "approval-3",
+            "operation": "config:reload",
+            "status": "pending",
+            "created_at": "2026-05-17T10:00:00Z",
+            "details": {"endpoint": "/config/reload"},
+            "request_preview": {
+                "method": "POST",
+                "path": "/config/reload",
+                "body_summary": "config_path=prod.json",
+                "replay_ready": True,
+            },
+        }
+        output = format_line_approval_item_detail(item)
+        self.assertIn("可重試：是", output)
+        self.assertIn("操作提示", output)
+
+    def test_format_approval_action_result_approved(self):
+        item = {"request_preview": {"replay_ready": True, "method": "POST", "path": "/config/reload"}}
+        result = {"id": "approval-3", "operation": "config:reload"}
+        output = format_line_approval_action_result("approved", result, item=item)
+        self.assertIn("支援重試：是", output)
+        self.assertIn("不會自動執行", output)
+
+    @patch("integrations.line_bot.get_config_value")
+    def test_handle_line_approval_command_blocks_unauthorized(self, mock_get_config):
+        mock_get_config.return_value = ["u-1"]
+        result = handle_line_approval_command({"user_id": "u-2", "content": "approval list"})
+        self.assertEqual(result["status"], "error")
+        self.assertIn("未經授權", result["message"])
+
+    @patch("integrations.line_bot.get_config_value")
+    @patch("integrations.line_bot.list_pending")
+    def test_handle_line_approval_command_lists_pending(self, mock_list, mock_get_config):
+        mock_get_config.return_value = []
+        mock_list.return_value = [{"id": "approval-1", "operation": "config:reload", "status": "pending", "risk_level": "medium", "created_at": "2026-05-17T10:00:00Z"}]
+        result = handle_line_approval_command({"user_id": "u-1", "content": "approval list"})
+        self.assertEqual(result["status"], "success")
+        self.assertIn("approval-1", result["message"])
+
+    @patch("integrations.line_bot.get_config_value")
+    @patch("integrations.line_bot.get_item")
+    @patch("integrations.line_bot.serialize_item_for_api")
+    def test_handle_line_approval_command_detail(self, mock_serialize, mock_get_item, mock_get_config):
+        mock_get_config.return_value = []
+        mock_get_item.return_value = {"id": "approval-2"}
+        mock_serialize.return_value = {"id": "approval-2", "operation": "policy:reload", "status": "pending", "created_at": "2026-05-17T10:00:00Z"}
+        result = handle_line_approval_command({"user_id": "u-1", "content": "approval approval-2"})
+        self.assertEqual(result["status"], "success")
+        self.assertIn("approval-2", result["message"])
+
+    @patch("integrations.line_bot.get_config_value")
+    @patch("integrations.line_bot.approve_item")
+    @patch("integrations.line_bot.get_item")
+    @patch("integrations.line_bot.serialize_item_for_api")
+    def test_handle_line_approval_command_approve(self, mock_serialize, mock_get_item, mock_approve, mock_get_config):
+        mock_get_config.return_value = []
+        mock_get_item.return_value = {"id": "approval-3"}
+        mock_serialize.return_value = {"id": "approval-3", "request_preview": {"replay_ready": True}}
+        mock_approve.return_value = {"id": "approval-3", "operation": "config:reload"}
+        result = handle_line_approval_command({"user_id": "u-1", "content": "approve approval-3"})
+        self.assertEqual(result["status"], "success")
+        self.assertIn("已核可", result["message"])
+
+    @patch("integrations.line_bot.get_config_value")
+    @patch("integrations.line_bot.reject_item")
+    def test_handle_line_approval_command_reject(self, mock_reject, mock_get_config):
+        mock_get_config.return_value = []
+        mock_reject.return_value = {"id": "approval-4", "operation": "policy:reload", "rejection_reason": "不需要"}
+        result = handle_line_approval_command({"user_id": "u-1", "content": "reject approval-4 不需要"})
+        self.assertEqual(result["status"], "success")
+        self.assertIn("已退回", result["message"])
+
+
 class LineWebhookServerTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -157,6 +240,31 @@ class LineWebhookServerTest(unittest.TestCase):
             self.assertEqual(response.status, 200)
             self.assertEqual(body["processed"], 1)
             self.assertEqual(body["replies_sent"], 1)
+
+    @patch("server.send_line_reply")
+    @patch("server.handle_line_approval_command")
+    @patch("server.verify_line_signature")
+    def test_line_webhook_routes_approval_commands(self, mock_verify, mock_handle_approval, mock_reply):
+        mock_verify.return_value = True
+        mock_handle_approval.return_value = {"status": "success", "message": "approval-ok"}
+        mock_reply.return_value = True
+        url = f"http://localhost:{self.port}/webhook/line"
+        payload = {
+            "events": [{
+                "type": "message",
+                "replyToken": "reply-1",
+                "source": {"userId": "u-1"},
+                "message": {"type": "text", "text": "approval list"}
+            }]
+        }
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json", "X-Line-Signature": "sig"}, method="POST")
+        with urllib.request.urlopen(req) as response:
+            body = json.loads(response.read())
+            self.assertEqual(response.status, 200)
+            self.assertEqual(body["processed"], 1)
+            self.assertEqual(body["replies_sent"], 1)
+        mock_handle_approval.assert_called_once()
 
     @patch("server.verify_line_signature")
     def test_line_webhook_rejects_invalid_signature(self, mock_verify):
