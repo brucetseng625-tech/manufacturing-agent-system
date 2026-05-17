@@ -230,3 +230,21 @@ class WorkspaceModeHTMLTest(unittest.TestCase):
     def test_provider_selection_contains_sheets(self):
         self.assertIn("{ id: 'sheets'", self.html)
         self.assertIn("Google Sheets CSV 匯出資料", self.html)
+
+    def test_ops_view_has_mode_aware_header_targets(self):
+        self.assertIn('id="ops-title"', self.html)
+        self.assertIn('id="ops-copy"', self.html)
+
+    def test_lightweight_ops_mentions_line_and_sheets(self):
+        self.assertIn("輕量營運總覽", self.html)
+        self.assertIn("資料入口摘要", self.html)
+        self.assertIn("收單與跟進", self.html)
+        self.assertIn("LINE 互動", self.html)
+        self.assertIn("Google Sheets", self.html)
+
+    def test_lightweight_ops_fetches_line_history(self):
+        self.assertIn("'/history?channel=line&last=10'", self.html)
+
+    def test_switching_workspace_mode_refreshes_ops_view(self):
+        self.assertIn("if (opsView && opsView.classList.contains('active'))", self.html)
+        self.assertIn("loadOps();", self.html)

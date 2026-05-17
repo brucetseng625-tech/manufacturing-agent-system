@@ -969,8 +969,8 @@ body {
     <!-- Ops View -->
     <section id="view-ops" class="view">
       <div class="view-header">
-        <h2>營運治理</h2>
-        <p>查看系統健康、待審批、警報、事件閉環與治理狀態。這裡負責風險放行，不負責日常提問。</p>
+        <h2 id="ops-title">營運治理</h2>
+        <p id="ops-copy">查看系統健康、待審批、警報、事件閉環與治理狀態。這裡負責風險放行，不負責日常提問。</p>
       </div>
       <div id="ops-grid" class="grid"><div class="loading">載入運營資料中…</div></div>
     </section>
@@ -1283,6 +1283,10 @@ function setWorkspaceMode(mode) {
   SCENE_WORKSPACE_STATE.mode = mode;
   try { localStorage.setItem('mas.workspaceMode', mode); } catch (e) {}
   syncWorkspaceModeUI();
+  const opsView = document.getElementById('view-ops');
+  if (opsView && opsView.classList.contains('active')) {
+    loadOps();
+  }
 }
 
 function restoreWorkspaceMode() {
@@ -1620,14 +1624,28 @@ async function loadOps() {
   grid.innerHTML = '<div class="loading">載入運營資料中…</div>';
 
   try {
+    const isLightweight = SCENE_WORKSPACE_STATE.mode === 'lightweight';
+    const opsTitle = document.getElementById('ops-title');
+    const opsCopy = document.getElementById('ops-copy');
+    if (opsTitle) opsTitle.textContent = '營運治理';
+    if (opsCopy) {
+      opsCopy.textContent = isLightweight
+        ? '這裡聚焦 Google Sheets、LINE 與待跟進事項，幫你管理輕量營運流程，而不是 ERP 等級的治理細節。'
+        : '查看系統健康、待審批、警報、事件閉環與治理狀態。這裡負責風險放行，不負責日常提問。';
+    }
+
     // Fetch system status and mapping diagnostics in parallel
-    const [sysRes, mapRes] = await Promise.all([
+    const [sysRes, mapRes, lineHistoryRes, approvalsRes] = await Promise.all([
       fetch('/system/status'),
-      fetch('/mapping/diagnostics').catch(() => null)
+      fetch('/mapping/diagnostics').catch(() => null),
+      isLightweight ? fetch('/history?channel=line&last=10').catch(() => null) : Promise.resolve(null),
+      isLightweight ? fetch('/approvals?status=pending&limit=10').catch(() => null) : Promise.resolve(null),
     ]);
     if (!sysRes.ok) throw new Error(`HTTP ${sysRes.status}`);
     const s = await sysRes.json();
     const mapping = mapRes && mapRes.ok ? await mapRes.json() : null;
+    const lineHistory = lineHistoryRes && lineHistoryRes.ok ? await lineHistoryRes.json() : { items: [] };
+    const approvalsData = approvalsRes && approvalsRes.ok ? await approvalsRes.json() : { items: [], stats: { pending_count: 0 } };
 
     const statusColor = (st) => st === 'ok' ? 'var(--success)' : st === 'degraded' ? 'var(--warning)' : 'var(--error)';
     const readinessColor = (r) => {
@@ -1637,6 +1655,12 @@ async function loadOps() {
     };
 
     let html = '';
+
+    if (isLightweight) {
+      html += renderLightweightOpsSummaryCard(s, mapping, lineHistory, approvalsData);
+      html += renderLightweightEntryCard(s, mapping);
+      html += renderLightweightFollowupCard(lineHistory, approvalsData);
+    }
 
     // System Status Card → 系統狀態
     html += `
@@ -1710,6 +1734,61 @@ async function loadOps() {
       </div>
     `;
 
+    if (isLightweight) {
+      // Lightweight mode stops here after common read-only visibility + quick ops/approvals.
+      html += `
+        <div class="card" style="grid-column: span 2;">
+          <div class="card-header">
+            <span class="card-title">輕量模式說明</span>
+            <span class="badge" style="background:var(--info);color:#fff;">Sheets / LINE</span>
+          </div>
+          <div style="font-size:0.85rem;color:var(--text-secondary);line-height:1.6;">
+            目前以 Google Sheets、LINE 與輕量資料入口為主，這裡優先呈現收單來源、待跟進事項與簡化治理資訊。
+            若切回 ERP 整合版，會顯示完整的供應商、降級、資料來源切換與企業治理模組。
+          </div>
+        </div>
+      `;
+      html += `
+        <div class="card" style="grid-column: span 2;">
+          <div class="card-header">
+            <span class="card-title">快速操作</span>
+          </div>
+          <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">常用系統管理操作，點擊即可執行。</div>
+          <div class="action-grid">
+            <button class="action-btn" onclick="doAction('reset_alerts')">
+              <span class="action-icon">🔔</span>
+              <span class="action-label">重設警報</span>
+              <span class="action-desc">清除警報冷卻與記錄</span>
+            </button>
+            <button class="action-btn" onclick="doAction('reload_config')">
+              <span class="action-icon">⚙️</span>
+              <span class="action-label">重載設定</span>
+              <span class="action-desc">重新讀取設定檔</span>
+            </button>
+            <button class="action-btn" onclick="doAction('reload_policy')">
+              <span class="action-icon">📋</span>
+              <span class="action-label">重載政策</span>
+              <span class="action-desc">刷新政策規則</span>
+            </button>
+            <button class="action-btn" onclick="doAction('health_check')">
+              <span class="action-icon">💚</span>
+              <span class="action-label">健康檢查</span>
+              <span class="action-desc">測試供應商連線</span>
+            </button>
+          </div>
+          <div id="action-result" class="action-result"></div>
+          <div id="decision-inspector" class="decision-inspector"></div>
+        </div>
+      `;
+
+      if ((approvalsData.stats?.pending_count || 0) > 0) {
+        html += await renderApprovalQueueCard();
+      }
+
+      grid.innerHTML = html;
+      return;
+    }
+
     // Provider Diagnostics → 供應商診斷
     html += renderProviderDiagnosticsCard(s, mapping);
 
@@ -1757,6 +1836,85 @@ async function loadOps() {
   } catch (e) {
     grid.innerHTML = `<div class="error-state">載入運營資料失敗：${e.message}</div>`;
   }
+}
+
+function renderLightweightOpsSummaryCard(s, mapping, lineHistory, approvalsData) {
+  const pendingCount = approvalsData.stats?.pending_count || 0;
+  const lineRuns = (lineHistory.items || []).length;
+  const mappedDatasets = Object.keys(mapping?.datasets || {}).length;
+  return `
+    <div class="card" style="grid-column: span 2;">
+      <div class="card-header">
+        <span class="card-title">輕量營運總覽</span>
+        <span class="badge" style="background:var(--accent);color:#fff;">模式：輕量版</span>
+      </div>
+      <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">把 LINE 收單、Google Sheets 資料與待跟進項目放在一起看，先處理日常營運，再決定是否需要更正式治理。</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;">
+        <div style="padding:0.75rem;border:1px solid var(--border);border-radius:10px;background:rgba(99,102,241,0.08);">
+          <div style="font-size:0.8rem;color:var(--text-muted);">主要資料入口</div>
+          <div style="font-size:1rem;font-weight:700;margin-top:0.2rem;">Google Sheets</div>
+        </div>
+        <div style="padding:0.75rem;border:1px solid var(--border);border-radius:10px;background:rgba(16,185,129,0.08);">
+          <div style="font-size:0.8rem;color:var(--text-muted);">LINE 互動</div>
+          <div style="font-size:1rem;font-weight:700;margin-top:0.2rem;">${lineRuns} 筆</div>
+        </div>
+        <div style="padding:0.75rem;border:1px solid var(--border);border-radius:10px;background:rgba(245,158,11,0.08);">
+          <div style="font-size:0.8rem;color:var(--text-muted);">待核可</div>
+          <div style="font-size:1rem;font-weight:700;margin-top:0.2rem;">${pendingCount} 項</div>
+        </div>
+        <div style="padding:0.75rem;border:1px solid var(--border);border-radius:10px;background:rgba(59,130,246,0.08);">
+          <div style="font-size:0.8rem;color:var(--text-muted);">已對應資料集</div>
+          <div style="font-size:1rem;font-weight:700;margin-top:0.2rem;">${mappedDatasets} 組</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderLightweightEntryCard(s, mapping) {
+  const datasets = Object.entries(mapping?.datasets || {});
+  const sourcePath = s.data_dir?.data_dir || s.data_dir?.path || '未設定';
+  return `
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">資料入口摘要</span>
+        <span class="badge" style="background:var(--info);color:#fff;">Sheets 優先</span>
+      </div>
+      <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.6rem;">目前以輕量資料來源為主，不要求先上 ERP，也能先完成收單、查詢與協作整理。</div>
+      <div style="font-size:0.85rem;line-height:1.7;">
+        <div><span style="color:var(--text-muted)">目前供應商：</span><strong>${s.provider.name}</strong></div>
+        <div><span style="color:var(--text-muted)">資料位置：</span><code style="background:var(--bg-input);padding:0.1rem 0.4rem;border-radius:4px;font-size:0.75rem;">${sourcePath}</code></div>
+        <div><span style="color:var(--text-muted)">資料對應：</span><strong>${datasets.length ? '已啟用' : '尚未設定'}</strong></div>
+      </div>
+      <div style="margin-top:0.75rem;font-size:0.8rem;color:var(--text-secondary);">
+        ${datasets.length
+          ? datasets.slice(0, 4).map(([name, ds]) => `<div>• ${name}（${ds.field_mapping_count || 0} 個欄位對應）</div>`).join('')
+          : '可接入 orders、materials、work_orders 等資料表。'}
+      </div>
+    </div>
+  `;
+}
+
+function renderLightweightFollowupCard(lineHistory, approvalsData) {
+  const latestLine = (lineHistory.items || [])[0];
+  const latestSummary = latestLine
+    ? `${latestLine.query || latestLine.summary || latestLine.skill || '最近有新的 LINE 互動'}`
+    : '目前還沒有 LINE 查詢紀錄';
+  const pendingApprovals = approvalsData.items || [];
+  return `
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">收單與跟進</span>
+        <span class="badge" style="background:${pendingApprovals.length ? 'var(--warning)' : 'var(--success)'};color:#fff;">${pendingApprovals.length ? '有待處理' : '已清空'}</span>
+      </div>
+      <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.6rem;">適合沒有 ERP 的團隊快速確認：誰來訊、哪筆要追、哪些動作仍需人工核可。</div>
+      <div style="font-size:0.85rem;line-height:1.7;">
+        <div><span style="color:var(--text-muted)">最近 LINE 互動：</span><strong>${latestSummary}</strong></div>
+        <div><span style="color:var(--text-muted)">待核可項目：</span><strong>${pendingApprovals.length} 項</strong></div>
+        <div><span style="color:var(--text-muted)">建議下一步：</span><strong>${pendingApprovals.length ? '先完成核可，再回主工作台追蹤處理' : '回主工作台整理新單或跟進訊息'}</strong></div>
+      </div>
+    </div>
+  `;
 }
 
 // Readonly Provider Diagnostics Card — injected after Operator Actions
