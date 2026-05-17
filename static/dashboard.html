@@ -1266,11 +1266,15 @@ function syncWorkspaceModeUI() {
   const cfg = getWorkspaceModeConfig();
   const erpBtn = document.getElementById('workspace-mode-erp');
   const lightBtn = document.getElementById('workspace-mode-lightweight');
+  const title = document.querySelector('.scene-sidepanel-title');
   if (erpBtn) erpBtn.classList.toggle('active', SCENE_WORKSPACE_STATE.mode === 'erp');
   if (lightBtn) lightBtn.classList.toggle('active', SCENE_WORKSPACE_STATE.mode === 'lightweight');
   const note = document.getElementById('workspace-mode-note');
   const desc = document.getElementById('scene-sidepanel-desc');
   const input = document.getElementById('scene-query-input');
+  if (title) {
+    title.textContent = SCENE_WORKSPACE_STATE.mode === 'lightweight' ? '今日工作台' : '協作工作台';
+  }
   if (note) note.textContent = cfg.note;
   if (desc) desc.textContent = cfg.desc;
   if (input) input.placeholder = cfg.placeholder;
@@ -1332,27 +1336,60 @@ function renderSceneWorkspaceThread() {
 function renderSceneWorkspaceStatus() {
   const el = document.getElementById('scene-workspace-status');
   if (!el) return;
+  const isLightweight = SCENE_WORKSPACE_STATE.mode === 'lightweight';
+  const cards = isLightweight
+    ? [
+        {
+          title: '今天先處理',
+          value: SCENE_WORKSPACE_STATE.lastRoute === '尚未查詢' ? '先查待出貨或待回覆' : SCENE_WORKSPACE_STATE.lastRoute,
+          copy: '不知道從哪開始時，先用左側捷徑查今天要出貨、要回覆或要補料的項目。',
+        },
+        {
+          title: '剛剛整理到哪',
+          value: SCENE_WORKSPACE_STATE.currentFocus,
+          copy: `目前聚焦：${SCENE_WORKSPACE_STATE.currentFocusStatus}`,
+        },
+        {
+          title: '今天資料從哪來',
+          value: getWorkspaceModeConfig().sourceLabel,
+          copy: '通常是 LINE、Google Sheets 或表單整理進來的資料。',
+        },
+        {
+          title: '你現在可以做什麼',
+          value: '查詢、整理、跟進',
+          copy: '先看今天要處理什麼，再決定是否需要人工確認或回覆客戶。',
+        },
+      ]
+    : [
+        {
+          title: '現在正在看',
+          value: SCENE_WORKSPACE_STATE.currentFocus,
+          copy: `狀態：${SCENE_WORKSPACE_STATE.currentFocusStatus}`,
+        },
+        {
+          title: '最近系統分流',
+          value: SCENE_WORKSPACE_STATE.lastRoute,
+          copy: '查詢後會自動帶你看對應區域',
+        },
+        {
+          title: '目前資料來源',
+          value: getWorkspaceModeConfig().sourceLabel,
+          copy: '系統會依模式切換不同的資料入口與提示',
+        },
+        {
+          title: '目前可做的事',
+          value: '查詢與整理',
+          copy: '這裡只會幫你看狀況、整理重點，不會直接改資料',
+        },
+      ];
   el.innerHTML = `
-    <div class="scene-status-card">
-      <div class="scene-status-card-title">現在正在看</div>
-      <div class="scene-status-card-value">${SCENE_WORKSPACE_STATE.currentFocus}</div>
-      <div class="scene-status-card-copy">狀態：${SCENE_WORKSPACE_STATE.currentFocusStatus}</div>
-    </div>
-    <div class="scene-status-card">
-      <div class="scene-status-card-title">最近系統分流</div>
-      <div class="scene-status-card-value">${SCENE_WORKSPACE_STATE.lastRoute}</div>
-      <div class="scene-status-card-copy">查詢後會自動帶你看對應區域</div>
-    </div>
-    <div class="scene-status-card">
-      <div class="scene-status-card-title">目前資料來源</div>
-      <div class="scene-status-card-value">${getWorkspaceModeConfig().sourceLabel}</div>
-      <div class="scene-status-card-copy">系統會依模式切換不同的資料入口與提示</div>
-    </div>
-    <div class="scene-status-card">
-      <div class="scene-status-card-title">目前可做的事</div>
-      <div class="scene-status-card-value">查詢與整理</div>
-      <div class="scene-status-card-copy">這裡只會幫你看狀況、整理重點，不會直接改資料</div>
-    </div>
+    ${cards.map(card => `
+      <div class="scene-status-card">
+        <div class="scene-status-card-title">${card.title}</div>
+        <div class="scene-status-card-value">${card.value}</div>
+        <div class="scene-status-card-copy">${card.copy}</div>
+      </div>
+    `).join('')}
   `;
 }
 

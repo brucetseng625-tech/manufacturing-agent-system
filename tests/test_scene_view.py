@@ -248,3 +248,8 @@ class WorkspaceModeHTMLTest(unittest.TestCase):
     def test_switching_workspace_mode_refreshes_ops_view(self):
         self.assertIn("if (opsView && opsView.classList.contains('active'))", self.html)
         self.assertIn("loadOps();", self.html)
+
+    def test_lightweight_workspace_uses_today_first_language(self):
+        self.assertIn("今天先處理", self.html)
+        self.assertIn("先查待出貨或待回覆", self.html)
+        self.assertIn("今日工作台", self.html)
