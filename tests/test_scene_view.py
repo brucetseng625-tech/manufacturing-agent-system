@@ -225,7 +225,7 @@ class WorkspaceModeHTMLTest(unittest.TestCase):
 
     def test_workspace_mode_mentions_sheets_provider(self):
         self.assertIn("queryDataSource: 'sheets'", self.html)
-        self.assertIn("Google Sheets / 輕量資料", self.html)
+        self.assertIn("LINE / Google Sheets", self.html)
 
     def test_provider_selection_contains_sheets(self):
         self.assertIn("{ id: 'sheets'", self.html)
@@ -236,10 +236,10 @@ class WorkspaceModeHTMLTest(unittest.TestCase):
         self.assertIn('id="ops-copy"', self.html)
 
     def test_lightweight_ops_mentions_line_and_sheets(self):
-        self.assertIn("輕量營運總覽", self.html)
-        self.assertIn("資料入口摘要", self.html)
-        self.assertIn("收單與跟進", self.html)
-        self.assertIn("LINE 互動", self.html)
+        self.assertIn("今天先看這些事", self.html)
+        self.assertIn("資料從哪裡進來", self.html)
+        self.assertIn("今天要跟進什麼", self.html)
+        self.assertIn("今天收到幾次 LINE", self.html)
         self.assertIn("Google Sheets", self.html)
 
     def test_lightweight_ops_fetches_line_history(self):

@@ -918,9 +918,9 @@ body {
           <div class="scene-sidepanel-header">
             <div>
               <div class="scene-sidepanel-title">協作工作台</div>
-              <div id="scene-sidepanel-desc" class="scene-sidepanel-desc">左側專注提問、脈絡與最近互動；右側專注主控分流、職能協作與阻塞原因。</div>
+              <div id="scene-sidepanel-desc" class="scene-sidepanel-desc">左側先整理今天要處理的事；右側再看系統怎麼幫你分流、提醒與整理下一步。</div>
               <div class="workspace-mode-shell">
-                <span class="workspace-mode-label">工作模式</span>
+                <span class="workspace-mode-label">使用情境</span>
                 <div class="workspace-mode-toggle">
                   <button type="button" class="workspace-mode-chip active" id="workspace-mode-erp" onclick="setWorkspaceMode('erp')">ERP 整合版</button>
                   <button type="button" class="workspace-mode-chip" id="workspace-mode-lightweight" onclick="setWorkspaceMode('lightweight')">輕量版（Sheets / LINE）</button>
@@ -932,13 +932,13 @@ body {
           </div>
           <div id="scene-workspace-status" class="scene-workspace-status"></div>
           <div class="scene-thread-shell">
-            <div class="scene-sidepanel-label">最近互動</div>
+            <div class="scene-sidepanel-label">最近對話與提醒</div>
             <div id="scene-thread" class="scene-thread">
               <div class="scene-thread-empty">載入工作台脈絡中…</div>
             </div>
           </div>
           <div class="scene-sidepanel-section">
-            <div class="scene-sidepanel-label">快速查詢</div>
+            <div class="scene-sidepanel-label">今天先查什麼</div>
             <div class="scene-quick-actions">
               <div id="scene-quick-actions-content" class="scene-quick-actions"></div>
             </div>
@@ -948,10 +948,10 @@ body {
             </div>
           </div>
           <div class="scene-sidepanel-section">
-            <div class="scene-sidepanel-label">節點上下文</div>
+            <div class="scene-sidepanel-label">目前協作焦點</div>
             <div id="scene-context-panel" class="scene-context-panel">
-              <div class="scene-context-title">尚未選取節點</div>
-              <div class="scene-context-copy">點擊右側任一 Agent 節點後，這裡會顯示它的職責、當前狀態、最近事件與建議下一步。</div>
+              <div class="scene-context-title">先選一個區域或角色</div>
+              <div class="scene-context-copy">點右側任一節點後，這裡會告訴你它現在在處理什麼、卡在哪裡，以及你下一步該做什麼。</div>
             </div>
           </div>
         </aside>
@@ -1212,17 +1212,17 @@ const WORKSPACE_MODE_CONFIG = {
   },
   lightweight: {
     label: '輕量版',
-    note: '目前以 Google Sheets / LINE / 表單等輕量資料入口為主。',
-    desc: '左側先收單、追單與提醒；右側用同一套主控分流與場景總覽理解輕量營運流程。',
+    note: '適合還沒有 ERP 的團隊，先用 LINE、Google Sheets 或表單整理每天的單、回覆與出貨。',
+    desc: '左側先看今天的新單、待回覆與待出貨；右側再看系統怎麼幫你分流、整理與提醒。',
     placeholder: '例如：今天有哪些待出貨？或 哪些客戶還沒回覆？',
     quickActions: [
-      { title: '待出貨清單', subtitle: '從 Sheets 找今天要出貨的單', query: '今天有哪些待出貨訂單？' },
-      { title: '客戶未回覆', subtitle: '整理需要跟進的客戶', query: '哪些客戶或訂單還沒回覆？' },
-      { title: '低庫存提醒', subtitle: '先找缺料與危險庫存', query: '目前哪些料件低於安全庫存？' },
-      { title: '訂單整理', subtitle: '把新收單資料整理成待辦', query: '請整理今天新收到的訂單與後續動作' },
+      { title: '今天要出貨', subtitle: '先找今天要處理的出貨單', query: '今天有哪些待出貨訂單？' },
+      { title: '哪些客戶還沒回', subtitle: '整理今天需要跟進的人', query: '哪些客戶或訂單還沒回覆？' },
+      { title: '哪些料不夠', subtitle: '先看低庫存與缺料', query: '目前哪些料件低於安全庫存？' },
+      { title: '今天新單整理', subtitle: '把新進訂單整理成待辦', query: '請整理今天新收到的訂單與後續動作' },
     ],
     queryDataSource: 'sheets',
-    sourceLabel: 'Google Sheets / 輕量資料',
+    sourceLabel: 'LINE / Google Sheets',
   }
 };
 
@@ -1230,8 +1230,8 @@ const SCENE_WORKSPACE_STATE = {
   messages: [
     {
       role: 'system',
-      label: 'Workspace',
-      content: '這裡會保留你在場景頁的查詢與系統回應。先從左側提問，再到右側看主控派工與各職能節點狀態。',
+      label: '工作台',
+      content: '先在左側問今天要處理什麼，再到右側看系統怎麼整理、分流與提醒。',
     }
   ],
   currentFocus: '製造主控',
@@ -1334,24 +1334,24 @@ function renderSceneWorkspaceStatus() {
   if (!el) return;
   el.innerHTML = `
     <div class="scene-status-card">
-      <div class="scene-status-card-title">目前焦點</div>
+      <div class="scene-status-card-title">現在正在看</div>
       <div class="scene-status-card-value">${SCENE_WORKSPACE_STATE.currentFocus}</div>
       <div class="scene-status-card-copy">狀態：${SCENE_WORKSPACE_STATE.currentFocusStatus}</div>
     </div>
     <div class="scene-status-card">
-      <div class="scene-status-card-title">最近派工</div>
+      <div class="scene-status-card-title">最近系統分流</div>
       <div class="scene-status-card-value">${SCENE_WORKSPACE_STATE.lastRoute}</div>
-      <div class="scene-status-card-copy">查詢後會把焦點帶回對應 Agent 區域</div>
+      <div class="scene-status-card-copy">查詢後會自動帶你看對應區域</div>
     </div>
     <div class="scene-status-card">
-      <div class="scene-status-card-title">資料入口</div>
+      <div class="scene-status-card-title">目前資料來源</div>
       <div class="scene-status-card-value">${getWorkspaceModeConfig().sourceLabel}</div>
-      <div class="scene-status-card-copy">依模式切換不同資料接入與提示內容</div>
+      <div class="scene-status-card-copy">系統會依模式切換不同的資料入口與提示</div>
     </div>
     <div class="scene-status-card">
-      <div class="scene-status-card-title">操作模式</div>
-      <div class="scene-status-card-value">唯讀協作</div>
-      <div class="scene-status-card-copy">只看路由、原因與下一步，不會直接改動資料</div>
+      <div class="scene-status-card-title">目前可做的事</div>
+      <div class="scene-status-card-value">查詢與整理</div>
+      <div class="scene-status-card-copy">這裡只會幫你看狀況、整理重點，不會直接改資料</div>
     </div>
   `;
 }
@@ -1739,21 +1739,21 @@ async function loadOps() {
       html += `
         <div class="card" style="grid-column: span 2;">
           <div class="card-header">
-            <span class="card-title">輕量模式說明</span>
+            <span class="card-title">這個模式適合誰</span>
             <span class="badge" style="background:var(--info);color:#fff;">Sheets / LINE</span>
           </div>
           <div style="font-size:0.85rem;color:var(--text-secondary);line-height:1.6;">
-            目前以 Google Sheets、LINE 與輕量資料入口為主，這裡優先呈現收單來源、待跟進事項與簡化治理資訊。
-            若切回 ERP 整合版，會顯示完整的供應商、降級、資料來源切換與企業治理模組。
+            適合還沒有 ERP、平常用 LINE、Google Sheets 或表單在管理訂單與跟進工作的團隊。
+            這裡會先把今天要處理的事整理出來，再決定需不需要更正式的治理流程。
           </div>
         </div>
       `;
       html += `
         <div class="card" style="grid-column: span 2;">
           <div class="card-header">
-            <span class="card-title">快速操作</span>
+            <span class="card-title">系統維護</span>
           </div>
-          <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">常用系統管理操作，點擊即可執行。</div>
+          <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">這區是系統維護用，不是日常工作入口。平常先回主工作台處理訂單、回覆與出貨。</div>
           <div class="action-grid">
             <button class="action-btn" onclick="doAction('reset_alerts')">
               <span class="action-icon">🔔</span>
@@ -1845,25 +1845,25 @@ function renderLightweightOpsSummaryCard(s, mapping, lineHistory, approvalsData)
   return `
     <div class="card" style="grid-column: span 2;">
       <div class="card-header">
-        <span class="card-title">輕量營運總覽</span>
+        <span class="card-title">今天先看這些事</span>
         <span class="badge" style="background:var(--accent);color:#fff;">模式：輕量版</span>
       </div>
-      <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">把 LINE 收單、Google Sheets 資料與待跟進項目放在一起看，先處理日常營運，再決定是否需要更正式治理。</div>
+      <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">先看今天有多少單、多少訊息、多少要人工確認。這頁不是給工程師看的，是幫你快速知道今天先忙什麼。</div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;">
         <div style="padding:0.75rem;border:1px solid var(--border);border-radius:10px;background:rgba(99,102,241,0.08);">
-          <div style="font-size:0.8rem;color:var(--text-muted);">主要資料入口</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">訂單資料放哪裡</div>
           <div style="font-size:1rem;font-weight:700;margin-top:0.2rem;">Google Sheets</div>
         </div>
         <div style="padding:0.75rem;border:1px solid var(--border);border-radius:10px;background:rgba(16,185,129,0.08);">
-          <div style="font-size:0.8rem;color:var(--text-muted);">LINE 互動</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">今天收到幾次 LINE</div>
           <div style="font-size:1rem;font-weight:700;margin-top:0.2rem;">${lineRuns} 筆</div>
         </div>
         <div style="padding:0.75rem;border:1px solid var(--border);border-radius:10px;background:rgba(245,158,11,0.08);">
-          <div style="font-size:0.8rem;color:var(--text-muted);">待核可</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">需要你確認</div>
           <div style="font-size:1rem;font-weight:700;margin-top:0.2rem;">${pendingCount} 項</div>
         </div>
         <div style="padding:0.75rem;border:1px solid var(--border);border-radius:10px;background:rgba(59,130,246,0.08);">
-          <div style="font-size:0.8rem;color:var(--text-muted);">已對應資料集</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">已接上的資料表</div>
           <div style="font-size:1rem;font-weight:700;margin-top:0.2rem;">${mappedDatasets} 組</div>
         </div>
       </div>
@@ -1877,19 +1877,19 @@ function renderLightweightEntryCard(s, mapping) {
   return `
     <div class="card">
       <div class="card-header">
-        <span class="card-title">資料入口摘要</span>
+        <span class="card-title">資料從哪裡進來</span>
         <span class="badge" style="background:var(--info);color:#fff;">Sheets 優先</span>
       </div>
-      <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.6rem;">目前以輕量資料來源為主，不要求先上 ERP，也能先完成收單、查詢與協作整理。</div>
+      <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.6rem;">你現在不用先上 ERP。只要先把訂單、庫存或工單整理在表格裡，系統就能開始幫你查詢與整理。</div>
       <div style="font-size:0.85rem;line-height:1.7;">
-        <div><span style="color:var(--text-muted)">目前供應商：</span><strong>${s.provider.name}</strong></div>
+        <div><span style="color:var(--text-muted)">目前來源：</span><strong>${s.provider.name}</strong></div>
         <div><span style="color:var(--text-muted)">資料位置：</span><code style="background:var(--bg-input);padding:0.1rem 0.4rem;border-radius:4px;font-size:0.75rem;">${sourcePath}</code></div>
-        <div><span style="color:var(--text-muted)">資料對應：</span><strong>${datasets.length ? '已啟用' : '尚未設定'}</strong></div>
+        <div><span style="color:var(--text-muted)">可用資料表：</span><strong>${datasets.length ? '已接上' : '尚未設定'}</strong></div>
       </div>
       <div style="margin-top:0.75rem;font-size:0.8rem;color:var(--text-secondary);">
         ${datasets.length
-          ? datasets.slice(0, 4).map(([name, ds]) => `<div>• ${name}（${ds.field_mapping_count || 0} 個欄位對應）</div>`).join('')
-          : '可接入 orders、materials、work_orders 等資料表。'}
+          ? datasets.slice(0, 4).map(([name, ds]) => `<div>• ${name}（已對應 ${ds.field_mapping_count || 0} 個欄位）</div>`).join('')
+          : '你可以先接上 orders、materials、work_orders 等表格。'}
       </div>
     </div>
   `;
@@ -1904,14 +1904,14 @@ function renderLightweightFollowupCard(lineHistory, approvalsData) {
   return `
     <div class="card">
       <div class="card-header">
-        <span class="card-title">收單與跟進</span>
+        <span class="card-title">今天要跟進什麼</span>
         <span class="badge" style="background:${pendingApprovals.length ? 'var(--warning)' : 'var(--success)'};color:#fff;">${pendingApprovals.length ? '有待處理' : '已清空'}</span>
       </div>
-      <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.6rem;">適合沒有 ERP 的團隊快速確認：誰來訊、哪筆要追、哪些動作仍需人工核可。</div>
+      <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.6rem;">先看誰剛來訊、哪些單還沒回、哪些動作還要你點頭確認。</div>
       <div style="font-size:0.85rem;line-height:1.7;">
-        <div><span style="color:var(--text-muted)">最近 LINE 互動：</span><strong>${latestSummary}</strong></div>
-        <div><span style="color:var(--text-muted)">待核可項目：</span><strong>${pendingApprovals.length} 項</strong></div>
-        <div><span style="color:var(--text-muted)">建議下一步：</span><strong>${pendingApprovals.length ? '先完成核可，再回主工作台追蹤處理' : '回主工作台整理新單或跟進訊息'}</strong></div>
+        <div><span style="color:var(--text-muted)">剛剛最新訊息：</span><strong>${latestSummary}</strong></div>
+        <div><span style="color:var(--text-muted)">今天待確認：</span><strong>${pendingApprovals.length} 項</strong></div>
+        <div><span style="color:var(--text-muted)">建議下一步：</span><strong>${pendingApprovals.length ? '先確認需要你放行的項目，再回主工作台追蹤處理' : '回主工作台整理新單、回覆客戶或追蹤出貨'}</strong></div>
       </div>
     </div>
   `;
