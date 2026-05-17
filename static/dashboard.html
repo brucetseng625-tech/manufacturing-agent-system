@@ -2419,25 +2419,61 @@ function showApprovalResult(type, message) {
 // ── Scene View — P16-1 ──────────────────────────────────────────────────
 
 const AGENT_CATALOG = [
-  { id: 'orchestrator', name: '製造主控', skill: null, zone: 'orchestrator', icon: '🎛️', bg: 'rgba(99,102,241,0.2)', desc: '系統主控 Agent，統籌所有任務路由與團隊調度', role: '指揮中樞' },
-  { id: 'delivery-risk', name: '交期分析', skill: 'delivery-risk-analysis', zone: 'risk', icon: '⚠️', bg: 'rgba(239,68,68,0.2)', desc: '評估訂單交期風險，分析缺料與排程衝突', role: '風險監控' },
-  { id: 'expedite', name: '加急方案', skill: 'expedite-options', zone: 'risk', icon: '🚀', bg: 'rgba(245,158,11,0.2)', desc: '針對高風險訂單提供加急選項與成本分析', role: '應變規劃' },
-  { id: 'schedule', name: '排程檢查', skill: 'schedule-conflict-check', zone: 'production', icon: '📅', bg: 'rgba(59,130,246,0.2)', desc: '檢查多訂單間的排程衝突與機台負載', role: '排程管理' },
-  { id: 'capacity', name: '產能重分配', skill: 'capacity-rebalance', zone: 'production', icon: '⚙️', bg: 'rgba(59,130,246,0.2)', desc: '機台負載平衡與產能重新分配', role: '資源調度' },
-  { id: 'shortage', name: '缺料恢復', skill: 'material-shortage-recovery', zone: 'production', icon: '📦', bg: 'rgba(59,130,246,0.2)', desc: '物料短缺情境下的補貨策略', role: '物料管控' },
-  { id: 'quote', name: '報價比較', skill: 'quote-comparison-summary', zone: 'commercial', icon: '💰', bg: 'rgba(217,119,6,0.2)', desc: '供應商報價比較與評分', role: '商務分析' },
-  { id: 'sales', name: '客戶回覆', skill: 'sales-response-draft', zone: 'comm', icon: '✉️', bg: 'rgba(16,185,129,0.2)', desc: '自動生成客戶回覆與通知郵件草稿', role: '客戶溝通' },
-  { id: 'internal', name: '內部行動', skill: 'internal-action-summary', zone: 'comm', icon: '📋', bg: 'rgba(16,185,129,0.2)', desc: '內部協調行動摘要與升級建議', role: '內部協調' },
-  { id: 'supplier', name: '供應商跟進', skill: 'supplier-followup-draft', zone: 'comm', icon: '🤝', bg: 'rgba(16,185,129,0.2)', desc: '生成供應商跟進信件草稿', role: '供應商管理' },
+  { id: 'orchestrator', name: '製造主控', lightName: '今日總覽', skill: null, zone: 'orchestrator', icon: '🎛️', bg: 'rgba(99,102,241,0.2)', desc: '系統主控 Agent，統籌所有任務路由與團隊調度', lightDesc: '先幫你整理今天要先處理的單、回覆與異常', role: '指揮中樞', lightRole: '今日重點' },
+  { id: 'delivery-risk', name: '交期分析', lightName: '延誤風險', skill: 'delivery-risk-analysis', zone: 'risk', icon: '⚠️', bg: 'rgba(239,68,68,0.2)', desc: '評估訂單交期風險，分析缺料與排程衝突', lightDesc: '找出可能延誤、容易出問題的單', role: '風險監控', lightRole: '先看風險' },
+  { id: 'expedite', name: '加急方案', lightName: '補救建議', skill: 'expedite-options', zone: 'risk', icon: '🚀', bg: 'rgba(245,158,11,0.2)', desc: '針對高風險訂單提供加急選項與成本分析', lightDesc: '如果真的趕不及，這裡幫你整理可行補救做法', role: '應變規劃', lightRole: '補救方案' },
+  { id: 'schedule', name: '排程檢查', lightName: '出貨安排', skill: 'schedule-conflict-check', zone: 'production', icon: '📅', bg: 'rgba(59,130,246,0.2)', desc: '檢查多訂單間的排程衝突與機台負載', lightDesc: '把今天要出貨、要處理的單先排出順序', role: '排程管理', lightRole: '先排順序' },
+  { id: 'capacity', name: '產能重分配', lightName: '工作重排', skill: 'capacity-rebalance', zone: 'production', icon: '⚙️', bg: 'rgba(59,130,246,0.2)', desc: '機台負載平衡與產能重新分配', lightDesc: '當事情太多或卡住時，這裡幫你重排處理順序', role: '資源調度', lightRole: '重排工作' },
+  { id: 'shortage', name: '缺料恢復', lightName: '缺貨補救', skill: 'material-shortage-recovery', zone: 'production', icon: '📦', bg: 'rgba(59,130,246,0.2)', desc: '物料短缺情境下的補貨策略', lightDesc: '找出不夠的料或貨，整理補救方式', role: '物料管控', lightRole: '補貨處理' },
+  { id: 'quote', name: '報價比較', lightName: '價格比較', skill: 'quote-comparison-summary', zone: 'commercial', icon: '💰', bg: 'rgba(217,119,6,0.2)', desc: '供應商報價比較與評分', lightDesc: '幫你整理價格、成本與哪個方案比較划算', role: '商務分析', lightRole: '價格判斷' },
+  { id: 'sales', name: '客戶回覆', lightName: '客戶回覆', skill: 'sales-response-draft', zone: 'comm', icon: '✉️', bg: 'rgba(16,185,129,0.2)', desc: '自動生成客戶回覆與通知郵件草稿', lightDesc: '幫你整理要怎麼回客戶比較快', role: '客戶溝通', lightRole: '回客戶' },
+  { id: 'internal', name: '內部行動', lightName: '內部待辦', skill: 'internal-action-summary', zone: 'comm', icon: '📋', bg: 'rgba(16,185,129,0.2)', desc: '內部協調行動摘要與升級建議', lightDesc: '把今天內部誰要做什麼整理成待辦', role: '內部協調', lightRole: '內部跟進' },
+  { id: 'supplier', name: '供應商跟進', lightName: '供應商催辦', skill: 'supplier-followup-draft', zone: 'comm', icon: '🤝', bg: 'rgba(16,185,129,0.2)', desc: '生成供應商跟進信件草稿', lightDesc: '幫你整理還要追哪些供應商', role: '供應商管理', lightRole: '催辦供應商' },
 ];
 
 const ZONE_CONFIG = {
-  orchestrator: { label: '🎛️ 主控區', cssClass: 'zone-orchestrator', stageClass: 'zone-orchestrator-stage', subtitle: '任務路由與團隊調度中樞' },
-  risk:         { label: '⚠️ 風險評估區', cssClass: 'zone-risk', stageClass: 'zone-risk-stage', subtitle: '交期風險與加急方案' },
-  production:   { label: '🏭 生產計畫區', cssClass: 'zone-production', stageClass: 'zone-production-stage', subtitle: '排程、產能與物料管控' },
-  commercial:   { label: '💰 商務區', cssClass: 'zone-commercial', stageClass: 'zone-commercial-stage', subtitle: '報價比較與商務分析' },
-  comm:         { label: '✉️ 通訊協調區', cssClass: 'zone-comm', stageClass: 'zone-comm-stage', subtitle: '客戶、供應商與內部溝通' },
+  orchestrator: { label: '🎛️ 主控區', lightLabel: '🎛️ 今日總覽', cssClass: 'zone-orchestrator', stageClass: 'zone-orchestrator-stage', subtitle: '任務路由與團隊調度中樞', lightSubtitle: '先整理今天要處理的重點與順序' },
+  risk:         { label: '⚠️ 風險評估區', lightLabel: '⚠️ 問題提醒區', cssClass: 'zone-risk', stageClass: 'zone-risk-stage', subtitle: '交期風險與加急方案', lightSubtitle: '先看哪幾筆單可能延誤或需要補救' },
+  production:   { label: '🏭 生產計畫區', lightLabel: '📦 出貨與備料區', cssClass: 'zone-production', stageClass: 'zone-production-stage', subtitle: '排程、產能與物料管控', lightSubtitle: '整理出貨順序、缺貨與今天要先處理的工作' },
+  commercial:   { label: '💰 商務區', lightLabel: '💰 價格與訂單區', cssClass: 'zone-commercial', stageClass: 'zone-commercial-stage', subtitle: '報價比較與商務分析', lightSubtitle: '看價格、訂單條件與該怎麼回覆比較好' },
+  comm:         { label: '✉️ 通訊協調區', lightLabel: '✉️ 回覆與跟進區', cssClass: 'zone-comm', stageClass: 'zone-comm-stage', subtitle: '客戶、供應商與內部溝通', lightSubtitle: '整理客戶回覆、供應商催辦與內部待辦' },
 };
+
+function isLightweightWorkspace() {
+  return SCENE_WORKSPACE_STATE.mode === 'lightweight';
+}
+
+function displayAgentName(agent) {
+  return isLightweightWorkspace() ? (agent.lightName || agent.name) : agent.name;
+}
+
+function displayAgentRole(agent) {
+  return isLightweightWorkspace() ? (agent.lightRole || agent.role) : agent.role;
+}
+
+function displayAgentDesc(agent) {
+  return isLightweightWorkspace() ? (agent.lightDesc || agent.desc) : agent.desc;
+}
+
+function displayZoneLabel(zoneId) {
+  const z = ZONE_CONFIG[zoneId];
+  return isLightweightWorkspace() ? (z.lightLabel || z.label) : z.label;
+}
+
+function displayZoneSubtitle(zoneId) {
+  const z = ZONE_CONFIG[zoneId];
+  return isLightweightWorkspace() ? (z.lightSubtitle || z.subtitle) : z.subtitle;
+}
+
+function displayRouteLabel(label) {
+  if (!isLightweightWorkspace()) return label;
+  return {
+    '風險評估': '問題提醒',
+    '生產計畫': '出貨與備料',
+    '商務分析': '價格與訂單',
+    '通訊協調': '回覆與跟進',
+  }[label] || label;
+}
 
 async function renderScene() {
   const content = document.getElementById('scene-content');
@@ -2584,18 +2620,13 @@ async function renderScene() {
     const agents = zones[zoneId];
     if (!agents) return '';
     const zc = ZONE_CONFIG[zoneId];
-    const zoneDesc = {
-      orchestrator: '任務路由與團隊調度中樞',
-      risk: '交期風險與加急方案',
-      production: '排程、產能與物料管控',
-      commercial: '報價比較與商務分析',
-      comm: '客戶、供應商與內部溝通',
-    }[zoneId] || '';
+    const zoneLabel = displayZoneLabel(zoneId);
+    const zoneDesc = displayZoneSubtitle(zoneId);
 
     let zoneHtml = `<div class="zone-card zone-${zoneId} ${zc.stageClass}">
       <div class="zone-card-header">
-        <span class="zc-icon">${zc.label.split(' ')[0]}</span>
-        <span class="zc-label">${zc.label.split(' ').slice(1).join(' ')}</span>
+        <span class="zc-icon">${zoneLabel.split(' ')[0]}</span>
+        <span class="zc-label">${zoneLabel.split(' ').slice(1).join(' ')}</span>
         <span class="zc-desc">${zoneDesc}</span>
       </div>`;
 
@@ -2610,8 +2641,8 @@ async function renderScene() {
 
       zoneHtml += `<div class="agent-node orchestrator" data-agent="${orch.id}" onclick="showAgentDetail('${orch.id}')">
           <div class="agent-icon" style="background:${orch.bg};">${orch.icon}</div>
-          <div class="agent-name">${orch.name}</div>
-          <div class="agent-role">${orch.role}</div>
+          <div class="agent-name">${displayAgentName(orch)}</div>
+          <div class="agent-role">${displayAgentRole(orch)}</div>
           <div class="agent-status status-${st.status}">${statusLabel(st.status)}</div>
           ${pulseClass ? `<div class="agent-pulse ${pulseClass}"></div>` : ''}
         </div>
@@ -2619,11 +2650,11 @@ async function renderScene() {
         <div class="orchestrator-briefing">
           <div>
             <div class="ob-label">Control Room</div>
-            <div class="ob-title">主控節點持續監看風險、排程、商務與協調四條主線</div>
-            <div class="ob-desc">所有派工與回傳都先經過主控整理，再分流到各職能工作站。當前畫面維持唯讀，只負責協作可視化與狀態判讀。</div>
+            <div class="ob-title">${isLightweightWorkspace() ? '系統先幫你整理今天要優先處理的出貨、回覆、缺料與跟進' : '主控節點持續監看風險、排程、商務與協調四條主線'}</div>
+            <div class="ob-desc">${isLightweightWorkspace() ? '你不用先懂系統術語，先看今天有哪些事該先做，再決定要追哪筆單、回哪位客戶、補哪個料。' : '所有派工與回傳都先經過主控整理，再分流到各職能工作站。當前畫面維持唯讀，只負責協作可視化與狀態判讀。'}</div>
           </div>
           <div class="orchestrator-route-strip">
-            ${routeSummaryChips.map(chip => `<span class="orchestrator-route-chip">${chip.state === 'active' ? '●' : '○'} ${chip.label}</span>`).join('')}
+            ${routeSummaryChips.map(chip => `<span class="orchestrator-route-chip">${chip.state === 'active' ? '●' : '○'} ${displayRouteLabel(chip.label)}</span>`).join('')}
           </div>
         </div>
         <div class="orchestrator-status-row">
@@ -2656,7 +2687,7 @@ async function renderScene() {
       </div>`;
     } else {
       // Regular zone layout
-      zoneHtml += `<div class="zone-subtitle">${zc.subtitle}</div>
+      zoneHtml += `<div class="zone-subtitle">${zoneDesc}</div>
       <div class="agent-row">`;
 
       for (const agent of agents) {
@@ -2670,8 +2701,8 @@ async function renderScene() {
 
         zoneHtml += `<div class="agent-node" data-agent="${agent.id}" onclick="showAgentDetail('${agent.id}')">
           <div class="agent-icon" style="background:${agent.bg};">${agent.icon}</div>
-          <div class="agent-name">${agent.name}</div>
-          <div class="agent-role">${agent.role}</div>
+          <div class="agent-name">${displayAgentName(agent)}</div>
+          <div class="agent-role">${displayAgentRole(agent)}</div>
           <div class="agent-status status-${st.status}">${statusLabel(st.status)}</div>
           ${badgesHtml}
           ${pulseClass ? `<div class="agent-pulse ${pulseClass}"></div>` : ''}
@@ -2715,7 +2746,7 @@ async function renderScene() {
 function updateSceneContextPanel(agent, st, reason, nextAction, relatedApprovals, recentHistory, relatedReceipts) {
   const panel = document.getElementById('scene-context-panel');
   if (!panel || !agent) return;
-  SCENE_WORKSPACE_STATE.currentFocus = agent.name;
+  SCENE_WORKSPACE_STATE.currentFocus = displayAgentName(agent);
   SCENE_WORKSPACE_STATE.currentFocusStatus = statusLabel(st.status);
   renderSceneWorkspaceStatus();
   panel.innerHTML = `
@@ -2969,8 +3000,8 @@ function showAgentDetail(agentId) {
     <div class="si-header">
       <div class="si-icon" style="background:${agent.bg};">${agent.icon}</div>
       <div>
-        <div class="si-title">${agent.name}</div>
-        <div class="si-subtitle">${agent.desc}</div>
+        <div class="si-title">${displayAgentName(agent)}</div>
+        <div class="si-subtitle">${displayAgentDesc(agent)}</div>
       </div>
       <span class="badge ${st.status === 'running' ? 'badge-success' : st.status === 'idle' ? '' : st.status === 'blocked' || st.status === 'incident' ? 'badge-error' : 'badge-warning'}" style="margin-left:auto;">${statusLabel(st.status)}</span>
     </div>
