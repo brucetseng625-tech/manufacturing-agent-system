@@ -1802,19 +1802,19 @@ async function loadOps() {
     html += `
       <div class="card">
         <div class="card-header">
-          <span class="card-title">系統狀態</span>
+          <span class="card-title">${isLightweight ? '今天系統有沒有正常幫你整理' : '系統狀態'}</span>
           <span class="badge" style="background:${statusColor(s.system)};color:#fff;">${s.system === 'ok' ? '正常' : s.system === 'degraded' ? '降級運行' : '異常'}</span>
         </div>
-        <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">系統整體健康狀態、資料來源與降級情況。開工前確認此處正常。</div>
+        <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">${isLightweight ? '開工前先看這裡，確認 LINE、Google Sheets 和系統整理流程都正常。' : '系統整體健康狀態、資料來源與降級情況。開工前確認此處正常。'}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-size:0.9rem;">
-          <div><span style="color:var(--text-muted)">資料來源：</span> <strong>${s.provider.name}</strong></div>
-          <div><span style="color:var(--text-muted)">就緒狀態：</span> <strong style="color:${readinessColor(s.provider.readiness)}">${s.provider.readiness === 'ready' ? '就緒' : s.provider.readiness === 'degraded' ? '降級' : '異常'}</strong></div>
-          <div><span style="color:var(--text-muted)">健康檢查：</span> <strong style="color:${statusColor(s.health.status)}">${s.health.status === 'ok' ? '正常' : '異常'}</strong></div>
-          <div><span style="color:var(--text-muted)">降級狀態：</span> <strong style="color:${s.degradation.is_degraded ? 'var(--warning)' : 'var(--success)'}">${s.degradation.is_degraded ? '已降級' : '正常'}</strong></div>
-          <div><span style="color:var(--text-muted)">目前路徑：</span> <strong>${s.degradation.active_path}</strong></div>
-          <div><span style="color:var(--text-muted)">設定來源：</span> <strong>${s.config.source}</strong></div>
-          <div><span style="color:var(--text-muted)">運行時間：</span> <strong>${s.uptime_seconds != null ? Math.floor(s.uptime_seconds) + 's' : 'N/A'}</strong></div>
-          <div><span style="color:var(--text-muted)">更新時間：</span> <strong>${s.timestamp}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '目前從哪裡讀資料：' : '資料來源：'}</span> <strong>${s.provider.name}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '現在能不能正常整理：' : '就緒狀態：'}</span> <strong style="color:${readinessColor(s.provider.readiness)}">${s.provider.readiness === 'ready' ? '就緒' : s.provider.readiness === 'degraded' ? '降級' : '異常'}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '健康檢查：' : '健康檢查：'}</span> <strong style="color:${statusColor(s.health.status)}">${s.health.status === 'ok' ? '正常' : '異常'}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '有沒有切到備援：' : '降級狀態：'}</span> <strong style="color:${s.degradation.is_degraded ? 'var(--warning)' : 'var(--success)'}">${s.degradation.is_degraded ? '已降級' : '正常'}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '目前走哪條路：' : '目前路徑：'}</span> <strong>${s.degradation.active_path}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '這次設定從哪來：' : '設定來源：'}</span> <strong>${s.config.source}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '已運作多久：' : '運行時間：'}</span> <strong>${s.uptime_seconds != null ? Math.floor(s.uptime_seconds) + 's' : 'N/A'}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '最後更新：' : '更新時間：'}</span> <strong>${s.timestamp}</strong></div>
         </div>
         ${s.degradation.reason ? `<div style="margin-top:0.75rem;padding:0.5rem 0.75rem;background:rgba(245,158,11,0.1);border-radius:6px;font-size:0.85rem;color:var(--warning);">⚠ ${s.degradation.reason}</div>` : ''}
       </div>
@@ -1824,12 +1824,12 @@ async function loadOps() {
     html += `
       <div class="card">
         <div class="card-header">
-          <span class="card-title">健康診斷</span>
+          <span class="card-title">${isLightweight ? '系統現在有沒有哪裡怪怪的' : '健康診斷'}</span>
           <span class="badge" style="background:${statusColor(s.health.status)};color:#fff;">${s.health.status === 'ok' ? '正常' : s.health.status === 'degraded' ? '降級' : '異常'}</span>
         </div>
         <div style="font-size:0.85rem;">
-          <div style="color:var(--text-muted);margin-bottom:0.25rem;">支援狀態：<strong>${s.health.supported ? '支援' : '不支援'}</strong></div>
-          <div style="color:var(--text-muted);">詳細：<code style="background:var(--bg-input);padding:0.2rem 0.4rem;border-radius:4px;font-size:0.8rem;">${JSON.stringify(s.health.details || {})}</code></div>
+          <div style="color:var(--text-muted);margin-bottom:0.25rem;">${isLightweight ? '這套檢查目前可不可以用：' : '支援狀態：'}<strong>${s.health.supported ? '支援' : '不支援'}</strong></div>
+          <div style="color:var(--text-muted);">${isLightweight ? '系統回報：' : '詳細：'}<code style="background:var(--bg-input);padding:0.2rem 0.4rem;border-radius:4px;font-size:0.8rem;">${JSON.stringify(s.health.details || {})}</code></div>
         </div>
       </div>
     `;
@@ -1839,15 +1839,15 @@ async function loadOps() {
     html += `
       <div class="card">
         <div class="card-header">
-          <span class="card-title">降級狀態</span>
+          <span class="card-title">${isLightweight ? '如果主要資料有問題，系統會怎麼撐住' : '降級狀態'}</span>
           <span class="badge" style="background:${deg.is_degraded ? 'var(--warning)' : 'var(--success)'};color:#fff;">${deg.is_degraded ? '已降級' : '正常'}</span>
         </div>
-        <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem;">系統在主要資料來源異常時的降級行為監控。</div>
+        <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem;">${isLightweight ? '如果 LINE、Sheets 或主要資料入口有狀況，系統會看這裡決定要不要切備援。' : '系統在主要資料來源異常時的降級行為監控。'}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-size:0.85rem;">
-          <div><span style="color:var(--text-muted)">模式：</span> <strong>${deg.mode}</strong></div>
-          <div><span style="color:var(--text-muted)">目前路徑：</span> <strong>${deg.active_path}</strong></div>
-          <div><span style="color:var(--text-muted)">主要就緒：</span> <strong style="color:${deg.live_readiness ? readinessColor(deg.live_readiness) : 'var(--text-muted)'}">${deg.live_readiness || 'N/A'}</strong></div>
-          <div><span style="color:var(--text-muted)">備援就緒：</span> <strong style="color:${deg.fallback_readiness ? readinessColor(deg.fallback_readiness) : 'var(--text-muted)'}">${deg.fallback_readiness || 'N/A'}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '目前模式：' : '模式：'}</span> <strong>${deg.mode}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '現在走哪條資料路：' : '目前路徑：'}</span> <strong>${deg.active_path}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '主要入口是否可用：' : '主要就緒：'}</span> <strong style="color:${deg.live_readiness ? readinessColor(deg.live_readiness) : 'var(--text-muted)'}">${deg.live_readiness || 'N/A'}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '備援入口是否可用：' : '備援就緒：'}</span> <strong style="color:${deg.fallback_readiness ? readinessColor(deg.fallback_readiness) : 'var(--text-muted)'}">${deg.fallback_readiness || 'N/A'}</strong></div>
           ${deg.circuit_breaker ? `<div><span style="color:var(--text-muted)">斷路器：</span> <strong style="color:${deg.circuit_breaker.state === 'closed' ? 'var(--success)' : 'var(--warning)'}">${deg.circuit_breaker.state === 'closed' ? '正常' : deg.circuit_breaker.state}</strong></div>` : ''}
         </div>
         ${deg.recommendations && deg.recommendations.length > 0 ? `<div style="margin-top:0.75rem;"><div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:0.25rem;">建議操作：</div><ul style="font-size:0.85rem;color:var(--text-secondary);padding-left:1.2rem;">${deg.recommendations.map(r => `<li>${r}</li>`).join('')}</ul></div>` : ''}
@@ -2853,12 +2853,12 @@ function updateSceneContextPanel(agent, st, reason, nextAction, relatedApprovals
     <div class="scene-context-title">${agent.name}</div>
     <div class="scene-context-copy">${agent.desc}</div>
     <div class="scene-context-list">
-      <div class="scene-context-item"><span>角色</span><strong>${agent.role}</strong></div>
-      <div class="scene-context-item"><span>狀態</span><strong>${statusLabel(st.status)}</strong></div>
-      <div class="scene-context-item"><span>待審批</span><strong>${relatedApprovals.length}</strong></div>
-      <div class="scene-context-item"><span>最近執行</span><strong>${recentHistory.length}</strong></div>
-      <div class="scene-context-item"><span>執行紀錄</span><strong>${relatedReceipts.length}</strong></div>
-      <div class="scene-context-item"><span>下一步</span><strong>${nextAction || reason || '目前正常待命'}</strong></div>
+      <div class="scene-context-item"><span>${isLightweight ? '這格角色' : '角色'}</span><strong>${agent.role}</strong></div>
+      <div class="scene-context-item"><span>${isLightweight ? '現在進度' : '狀態'}</span><strong>${statusLabel(st.status)}</strong></div>
+      <div class="scene-context-item"><span>${isLightweight ? '還要確認' : '待審批'}</span><strong>${relatedApprovals.length}</strong></div>
+      <div class="scene-context-item"><span>${isLightweight ? '最近整理過' : '最近執行'}</span><strong>${recentHistory.length}</strong></div>
+      <div class="scene-context-item"><span>${isLightweight ? '留下幾筆紀錄' : '執行紀錄'}</span><strong>${relatedReceipts.length}</strong></div>
+      <div class="scene-context-item"><span>${isLightweight ? '你現在先做' : '下一步'}</span><strong>${nextAction || reason || (isLightweight ? '目前先維持待命' : '目前正常待命')}</strong></div>
     </div>
   `;
 }

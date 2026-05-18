@@ -275,3 +275,10 @@ class WorkspaceModeHTMLTest(unittest.TestCase):
         self.assertIn("工作概況", self.html)
         self.assertIn("最近整理次數", self.html)
         self.assertIn("最近最常整理的事情（前 10 名）", self.html)
+
+    def test_lightweight_mode_updates_ops_and_context_labels(self):
+        self.assertIn("今天系統有沒有正常幫你整理", self.html)
+        self.assertIn("如果主要資料有問題，系統會怎麼撐住", self.html)
+        self.assertIn("這格角色", self.html)
+        self.assertIn("還要確認", self.html)
+        self.assertIn("留下幾筆紀錄", self.html)
