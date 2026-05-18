@@ -258,3 +258,8 @@ class WorkspaceModeHTMLTest(unittest.TestCase):
         self.assertIn("這一格在幫你做什麼", self.html)
         self.assertIn("這裡現在發生什麼", self.html)
         self.assertIn("還要你確認的項目", self.html)
+
+    def test_lightweight_thread_summary_uses_daily_language(self):
+        self.assertIn("今天的重點整理好了", self.html)
+        self.assertIn("你現在先做", self.html)
+        self.assertIn("今日整理結果", self.html)

@@ -1394,13 +1394,50 @@ function renderSceneWorkspaceStatus() {
 }
 
 function summarizeSceneResponse(data) {
+  const isLightweight = isLightweightWorkspace();
   if (data.status === 'error') {
-    const lines = [
+    const lines = isLightweight ? [
+      `❌ 這次沒有整理成功`,
+      data.reason ? `卡住原因：${data.reason}` : (data.error || data.details || '目前沒有更多資訊'),
+      data.next_action ? `你現在可以先做：${data.next_action}` : '',
+    ].filter(Boolean) : [
       `❌ 查詢失敗：${data.error_type || 'unknown'}`,
       data.reason ? `原因：${data.reason}` : (data.error || data.details || '無詳細資訊'),
       data.next_action ? `下一步：${data.next_action}` : '',
     ].filter(Boolean);
     return lines.join('\n');
+  }
+
+  if (isLightweight) {
+    const lightweightLines = [];
+    const customer = data.data?.customer;
+    const orderId = data.data?.order_id;
+    const blockers = data.data?.blockers?.filter(b => !b.includes('No critical')) || [];
+    const actionText = Array.isArray(data.data?.next_action) ? data.data.next_action.join(' ') : data.data?.next_action;
+
+    lightweightLines.push('✅ 今天的重點整理好了');
+    if (orderId || customer) {
+      lightweightLines.push(`處理對象：${[orderId, customer].filter(Boolean).join(' / ')}`);
+    }
+    if (data.data?.decision) {
+      lightweightLines.push(`系統判斷：${data.data.decision}`);
+    }
+    if (actionText) {
+      lightweightLines.push(`你現在先做：${actionText}`);
+    }
+    if (blockers.length) {
+      lightweightLines.push(`目前卡住：${blockers.slice(0, 2).join('；')}`);
+    }
+    if (data.reason) {
+      lightweightLines.push(`補充原因：${data.reason}`);
+    }
+    if (!actionText && !blockers.length && data.skill) {
+      const skillAgent = AGENT_CATALOG.find(a => a.skill === data.skill);
+      if (skillAgent) {
+        lightweightLines.push(`目前交給：${displayAgentName(skillAgent)}`);
+      }
+    }
+    return lightweightLines.join('\n');
   }
 
   const lines = [];
@@ -1481,7 +1518,7 @@ async function executeSceneWorkspaceQuery() {
     const data = await res.json();
     SCENE_WORKSPACE_STATE.messages.push({
       role: 'assistant',
-      label: data.status === 'error' ? '系統回應' : 'AI 協作結果',
+      label: data.status === 'error' ? '系統回應' : (isLightweightWorkspace() ? '今日整理結果' : 'AI 協作結果'),
       content: summarizeSceneResponse(data),
     });
     renderSceneWorkspaceThread();
