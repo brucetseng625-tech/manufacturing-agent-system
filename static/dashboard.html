@@ -2972,15 +2972,20 @@ function showAgentDetail(agentId) {
 
   let reason = null;
   let nextAction = null;
+  const isLightweight = isLightweightWorkspace();
   if (relatedApprovals.length > 0) {
     const a = relatedApprovals[0];
-    reason = a.guardrail_config?.require_approval ? '此操作需要 Operator 審批權杖才能執行' : '此操作已被保護機制拒絕';
-    nextAction = '前往「營運治理」的待審批項目進行核准或退回';
+    reason = a.guardrail_config?.require_approval
+      ? (isLightweight ? '這件事還需要你先確認，系統才會繼續往下整理。' : '此操作需要 Operator 審批權杖才能執行')
+      : (isLightweight ? '這件事目前被保護規則擋住，還不能直接往下做。' : '此操作已被保護機制拒絕');
+    nextAction = isLightweight ? '前往「營運治理」確認這筆待處理項目，再回主工作台繼續跟進。' : '前往「營運治理」的待審批項目進行核准或退回';
   } else {
     const errors = recentHistory.filter(r => r.status === 'error');
     if (errors.length > 0) {
-      reason = errors[0].error_type ? `最近執行失敗：${errors[0].error_type}` : '最近執行失敗';
-      nextAction = '檢查執行紀錄中的錯誤詳細資訊，或查看事故報告';
+      reason = errors[0].error_type
+        ? (isLightweight ? `這一步最近沒處理成功：${errors[0].error_type}` : `最近執行失敗：${errors[0].error_type}`)
+        : (isLightweight ? '這一步最近沒有處理成功。' : '最近執行失敗');
+      nextAction = isLightweight ? '先看下面的最近處理紀錄，再決定要不要重新整理這筆單。' : '檢查執行紀錄中的錯誤詳細資訊，或查看事故報告';
     }
   }
 
@@ -2991,8 +2996,8 @@ function showAgentDetail(agentId) {
       k.includes(agent.id.split('-')[0]) && v.denied
     );
     if (deniedGuardrail) {
-      reason = `操作 '${deniedGuardrail[0]}' 已被防護規則明確拒絕`;
-      nextAction = '請聯繫系統管理員修改 guardrails 設定';
+      reason = isLightweight ? `這一步目前被系統保護規則擋住：${deniedGuardrail[0]}` : `操作 '${deniedGuardrail[0]}' 已被防護規則明確拒絕`;
+      nextAction = isLightweight ? '請先改用其他處理方式，或請管理者協助放行。' : '請聯繫系統管理員修改 guardrails 設定';
     }
   }
 
@@ -3006,44 +3011,44 @@ function showAgentDetail(agentId) {
       <span class="badge ${st.status === 'running' ? 'badge-success' : st.status === 'idle' ? '' : st.status === 'blocked' || st.status === 'incident' ? 'badge-error' : 'badge-warning'}" style="margin-left:auto;">${statusLabel(st.status)}</span>
     </div>
     <div class="si-grid">
-      <div class="si-field"><div class="si-field-label">技能識別</div><div class="si-field-value"><code style="background:var(--bg-input);padding:0.1rem 0.4rem;border-radius:4px;">${agent.skill || '主控節點'}</code></div></div>
-      <div class="si-field"><div class="si-field-label">目前狀態</div><div class="si-field-value">${st.detail}</div></div>
+      <div class="si-field"><div class="si-field-label">${isLightweight ? '這一格在幫你做什麼' : '技能識別'}</div><div class="si-field-value"><code style="background:var(--bg-input);padding:0.1rem 0.4rem;border-radius:4px;">${agent.skill || (isLightweight ? '今日重點整理' : '主控節點')}</code></div></div>
+      <div class="si-field"><div class="si-field-label">${isLightweight ? '現在進度' : '目前狀態'}</div><div class="si-field-value">${st.detail}</div></div>
     </div>`;
 
   if (st.events && st.events.length > 0) {
-    html += `<div class="si-section"><div class="si-section-title">📌 目前事件</div><div style="display:flex;gap:0.35rem;flex-wrap:wrap;">` +
+    html += `<div class="si-section"><div class="si-section-title">${isLightweight ? '📌 這裡現在發生什麼' : '📌 目前事件'}</div><div style="display:flex;gap:0.35rem;flex-wrap:wrap;">` +
       st.events.map(e => `<span class="event-badge evt-${e.type}">${e.label}</span>`).join('') + `</div></div>`;
   }
 
   if (reason) {
     html += `<div class="si-section">
-      <div class="si-section-title">🔍 決策說明</div>
+      <div class="si-section-title">${isLightweight ? '🔍 為什麼會這樣' : '🔍 決策說明'}</div>
       <div class="si-reason-block"><div class="si-reason-label">原因</div><div class="si-reason-text">${reason}</div></div>
-      ${nextAction ? `<div class="si-next-action"><div class="si-next-label">下一步建議</div><div class="si-next-text">${nextAction}</div></div>` : ''}
+      ${nextAction ? `<div class="si-next-action"><div class="si-next-label">${isLightweight ? '你現在可以怎麼做' : '下一步建議'}</div><div class="si-next-text">${nextAction}</div></div>` : ''}
     </div>`;
   } else if (agent.skill) {
-    html += `<div class="si-section"><div class="si-section-title">🔍 決策說明</div><div style="font-size:0.8rem;color:var(--text-muted);">目前無阻擋說明</div></div>`;
+    html += `<div class="si-section"><div class="si-section-title">${isLightweight ? '🔍 為什麼會這樣' : '🔍 決策說明'}</div><div style="font-size:0.8rem;color:var(--text-muted);">${isLightweight ? '目前沒有特別卡住的地方。' : '目前無阻擋說明'}</div></div>`;
   }
 
   if (relatedApprovals.length > 0) {
-    html += `<div class="si-section"><div class="si-section-title">⏳ 待審批項目 (${relatedApprovals.length})</div>` +
+    html += `<div class="si-section"><div class="si-section-title">${isLightweight ? `⏳ 還要你確認的項目 (${relatedApprovals.length})` : `⏳ 待審批項目 (${relatedApprovals.length})`}</div>` +
       relatedApprovals.map(a => `<div style="font-size:0.8rem;padding:0.3rem 0;border-bottom:1px solid var(--border);">
         <div><code style="background:var(--bg-input);padding:0.1rem 0.3rem;border-radius:3px;">${a.operation || 'N/A'}</code></div>
         <div style="color:var(--text-muted);margin-top:0.1rem;">${a.created_at ? new Date(a.created_at).toLocaleString() : 'N/A'} — 風險等級: ${{ low: '低', medium: '中', high: '高', critical: '嚴重' }[a.risk_level || 'low'] || a.risk_level}</div>
       </div>`).join('') + `</div>`;
   } else if (agent.skill) {
-    html += `<div class="si-section"><div class="si-section-title">⏳ 待審批項目</div><div style="font-size:0.8rem;color:var(--text-muted);">目前無待審批</div></div>`;
+    html += `<div class="si-section"><div class="si-section-title">${isLightweight ? '⏳ 還要你確認的項目' : '⏳ 待審批項目'}</div><div style="font-size:0.8rem;color:var(--text-muted);">${isLightweight ? '目前沒有需要你點頭確認的項目。' : '目前無待審批'}</div></div>`;
   }
 
   if (recentHistory.length > 0) {
-    html += `<div class="si-section"><div class="si-section-title">📋 最近執行紀錄 (${recentHistory.length})</div>` +
+    html += `<div class="si-section"><div class="si-section-title">${isLightweight ? `📋 最近怎麼處理過 (${recentHistory.length})` : `📋 最近執行紀錄 (${recentHistory.length})`}</div>` +
       recentHistory.map(r => `<div style="font-size:0.8rem;padding:0.3rem 0;border-bottom:1px solid var(--border);">
         <span class="badge ${r.status === 'success' ? 'badge-success' : 'badge-error'}" style="margin-right:0.3rem;">${r.status === 'success' ? '成功' : '失敗'}</span>
         <span style="color:var(--text-muted);">${r.timestamp ? new Date(r.timestamp).toLocaleString() : 'N/A'}</span>
         ${r.error_type ? `<br><span style="color:var(--error);font-size:0.75rem;">錯誤: ${r.error_type}</span>` : ''}
       </div>`).join('') + `</div>`;
   } else if (agent.skill) {
-    html += `<div class="si-section"><div class="si-section-title">📋 最近執行紀錄</div><div style="font-size:0.8rem;color:var(--text-muted);">無執行紀錄</div></div>`;
+    html += `<div class="si-section"><div class="si-section-title">${isLightweight ? '📋 最近怎麼處理過' : '📋 最近執行紀錄'}</div><div style="font-size:0.8rem;color:var(--text-muted);">${isLightweight ? '目前還沒有這類處理紀錄。' : '無執行紀錄'}</div></div>`;
   }
 
   if (relatedReceipts.length > 0) {

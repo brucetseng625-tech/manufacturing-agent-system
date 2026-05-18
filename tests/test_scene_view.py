@@ -253,3 +253,8 @@ class WorkspaceModeHTMLTest(unittest.TestCase):
         self.assertIn("今天先處理", self.html)
         self.assertIn("先查待出貨或待回覆", self.html)
         self.assertIn("今日工作台", self.html)
+
+    def test_lightweight_detail_panel_has_plain_language_labels(self):
+        self.assertIn("這一格在幫你做什麼", self.html)
+        self.assertIn("這裡現在發生什麼", self.html)
+        self.assertIn("還要你確認的項目", self.html)
