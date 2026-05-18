@@ -1326,7 +1326,14 @@ function escapeHtmlAttr(value) {
 function renderWorkspaceQuickActions() {
   const container = document.getElementById('scene-quick-actions-content');
   if (!container) return;
+  const shell = container.closest('.scene-sidepanel-section');
   const cfg = getWorkspaceModeConfig();
+  if (SCENE_WORKSPACE_STATE.mode === 'lightweight') {
+    if (shell) shell.style.display = 'none';
+    container.innerHTML = '';
+    return;
+  }
+  if (shell) shell.style.display = '';
   container.innerHTML = cfg.quickActions.map(action => `
     <button class="scene-quick-btn" data-query="${escapeHtmlAttr(action.query)}" onclick="setSceneQuery(this.dataset.query)"><strong>${action.title}</strong><span>${action.subtitle}</span></button>
   `).join('');
@@ -1450,11 +1457,14 @@ function ensureSceneThreadVisible() {
 function renderSceneWorkspaceThread() {
   const thread = document.getElementById('scene-thread');
   if (!thread) return;
-  if (!SCENE_WORKSPACE_STATE.messages.length) {
-    thread.innerHTML = '<div class="scene-thread-empty">目前還沒有查詢紀錄</div>';
+  const shell = thread.closest('.scene-thread-shell');
+  if (SCENE_WORKSPACE_STATE.messages.length <= 1) {
+    if (shell) shell.style.display = 'none';
+    thread.innerHTML = '';
     return;
   }
-  thread.innerHTML = SCENE_WORKSPACE_STATE.messages.map(msg => `
+  if (shell) shell.style.display = '';
+  thread.innerHTML = SCENE_WORKSPACE_STATE.messages.slice(-2).map(msg => `
     <div class="scene-message ${msg.role}">
       <div class="scene-message-meta">${msg.label}</div>
       <div class="scene-message-bubble">${msg.content}</div>
@@ -1467,49 +1477,26 @@ function renderSceneWorkspaceStatus() {
   const el = document.getElementById('scene-workspace-status');
   if (!el) return;
   const isLightweight = SCENE_WORKSPACE_STATE.mode === 'lightweight';
+  const hasActivity = SCENE_WORKSPACE_STATE.messages.length > 1 || SCENE_WORKSPACE_STATE.lastRoute !== '尚未查詢' || SCENE_WORKSPACE_STATE.currentFocusStatus !== '待機';
+  if (!hasActivity) {
+    el.style.display = 'none';
+    el.innerHTML = '';
+    return;
+  }
+  el.style.display = '';
   const cards = isLightweight
     ? [
         {
           title: '今天先處理',
           value: SCENE_WORKSPACE_STATE.lastRoute === '尚未查詢' ? '先查待出貨或待回覆' : SCENE_WORKSPACE_STATE.lastRoute,
-          copy: '不知道從哪開始時，先用左側捷徑查今天要出貨、要回覆或要補料的項目。',
-        },
-        {
-          title: '剛剛整理到哪',
-          value: SCENE_WORKSPACE_STATE.currentFocus,
-          copy: `目前聚焦：${SCENE_WORKSPACE_STATE.currentFocusStatus}`,
-        },
-        {
-          title: '今天資料從哪來',
-          value: getWorkspaceModeConfig().sourceLabel,
-          copy: '通常是 LINE、Google Sheets 或表單整理進來的資料。',
-        },
-        {
-          title: '你現在可以做什麼',
-          value: '查詢、整理、跟進',
-          copy: '先看今天要處理什麼，再決定是否需要人工確認或回覆客戶。',
+          copy: `${SCENE_WORKSPACE_STATE.currentFocus} / ${SCENE_WORKSPACE_STATE.currentFocusStatus}`,
         },
       ]
     : [
         {
-          title: '現在正在看',
+          title: '目前焦點',
           value: SCENE_WORKSPACE_STATE.currentFocus,
-          copy: `狀態：${SCENE_WORKSPACE_STATE.currentFocusStatus}`,
-        },
-        {
-          title: '最近系統分流',
-          value: SCENE_WORKSPACE_STATE.lastRoute,
-          copy: '查詢後會自動帶你看對應區域',
-        },
-        {
-          title: '目前資料來源',
-          value: getWorkspaceModeConfig().sourceLabel,
-          copy: '系統會依模式切換不同的資料入口與提示',
-        },
-        {
-          title: '目前可做的事',
-          value: '查詢與整理',
-          copy: '這裡只會幫你看狀況、整理重點，不會直接改資料',
+          copy: `狀態：${SCENE_WORKSPACE_STATE.currentFocusStatus}｜最近分流：${SCENE_WORKSPACE_STATE.lastRoute}`,
         },
       ];
   el.innerHTML = `
@@ -2683,7 +2670,8 @@ async function renderScene() {
   renderSceneWorkspaceThread();
   restoreWorkspaceMode();
 
-  const [skillsRes, approvalsRes, historyRes, guardrailsRes, incidentRes, receiptsRes, timelineRes, alertsRes] = await Promise.all([
+  try {
+    const [skillsRes, approvalsRes, historyRes, guardrailsRes, incidentRes, receiptsRes, timelineRes, alertsRes] = await Promise.all([
     fetch('/skills').catch(() => null),
     fetch('/approvals?status=pending&limit=50').catch(() => null),
     fetch('/history?last=50').catch(() => null),
@@ -2699,7 +2687,7 @@ async function renderScene() {
   const historyData = historyRes && historyRes.ok ? await historyRes.json() : { runs: [] };
   const guardrailsData = guardrailsRes && guardrailsRes.ok ? await guardrailsRes.json() : { enabled: false, operations: {} };
   const incidentData = incidentRes && incidentRes.ok ? await incidentRes.json() : {};
-  const receiptsData = receiptsRes && receiptsRes.ok ? await receiptsData.json() : { items: [] };
+  const receiptsData = receiptsRes && receiptsRes.ok ? await receiptsRes.json() : { items: [] };
   const timelineData = timelineRes && timelineRes.ok ? await timelineRes.json() : { events: [] };
   const alertsData = alertsRes && alertsRes.ok ? await alertsData.json() : { alerts: [] };
 
@@ -2942,6 +2930,26 @@ async function renderScene() {
     alerts: alertsData.alerts || [],
     guardrails: guardrailsData,
   };
+  } catch (error) {
+    console.error('Scene render failed', error);
+    content.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-title">場景載入失敗</div>
+        <div class="empty-state-copy">${escapeHtml(error.message || '目前無法整理場景資料，請重新整理頁面後再試一次。')}</div>
+      </div>`;
+    const panel = document.getElementById('scene-context-panel');
+    if (panel) {
+      panel.innerHTML = `
+        <div class="scene-context-badge">目前聚焦節點</div>
+        <div class="scene-context-title">場景資料暫時沒整理出來</div>
+        <div class="scene-context-copy">先重新整理這頁，或切換一次使用情境後再試。</div>
+        <div class="scene-context-list">
+          <div class="scene-context-item"><span>現在進度</span><strong>載入失敗</strong></div>
+          <div class="scene-context-item"><span>卡住原因</span><strong>${escapeHtml(error.message || '場景資料回傳不完整')}</strong></div>
+          <div class="scene-context-item"><span>你現在先做</span><strong>重新整理頁面或切換模式後重試</strong></div>
+        </div>`;
+    }
+  }
 }
 
 function updateSceneContextPanel(agent, st, reason, nextAction, relatedApprovals, recentHistory, relatedReceipts) {
