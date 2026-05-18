@@ -263,3 +263,15 @@ class WorkspaceModeHTMLTest(unittest.TestCase):
         self.assertIn("今天的重點整理好了", self.html)
         self.assertIn("你現在先做", self.html)
         self.assertIn("今日整理結果", self.html)
+
+    def test_lightweight_mode_updates_timeline_and_history_labels(self):
+        self.assertIn("最近動態", self.html)
+        self.assertIn("處理紀錄", self.html)
+        self.assertIn("找某個處理項目…", self.html)
+        self.assertIn("最近共 ${data.total} 則動態", self.html)
+
+    def test_lightweight_mode_updates_skills_and_stats_labels(self):
+        self.assertIn("系統會幫你處理哪些事", self.html)
+        self.assertIn("工作概況", self.html)
+        self.assertIn("最近整理次數", self.html)
+        self.assertIn("最近最常整理的事情（前 10 名）", self.html)

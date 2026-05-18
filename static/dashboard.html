@@ -978,15 +978,15 @@ body {
     <!-- Timeline View -->
     <section id="view-timeline" class="view">
       <div class="view-header">
-        <h2>事件時間軸</h2>
-        <p>系統執行、警報與 HTTP 存取的統一事件流，方便追蹤異常與復原</p>
+        <h2 id="timeline-title">事件時間軸</h2>
+        <p id="timeline-copy">系統執行、警報與 HTTP 存取的統一事件流，方便追蹤異常與復原</p>
       </div>
       <div class="filters">
         <select id="timeline-type" class="filter-select" onchange="loadTimeline()">
-          <option value="">全部類型</option>
-          <option value="run">執行</option>
-          <option value="alert">警報</option>
-          <option value="access">存取</option>
+          <option value="" data-default-label="全部類型" data-lightweight-label="全部動態">全部類型</option>
+          <option value="run" data-default-label="執行" data-lightweight-label="處理">執行</option>
+          <option value="alert" data-default-label="警報" data-lightweight-label="提醒">警報</option>
+          <option value="access" data-default-label="存取" data-lightweight-label="系統動作">存取</option>
         </select>
         <select id="timeline-limit" class="filter-select" onchange="loadTimeline()">
           <option value="10">最近 10 筆</option>
@@ -1002,20 +1002,21 @@ body {
     <!-- History View -->
     <section id="view-history" class="view">
       <div class="view-header">
-        <h2>執行紀錄</h2>
-        <p>查看查詢、團隊流程與外部通道的執行結果，適合追查單筆任務處理過程。</p>
+        <h2 id="history-title">執行紀錄</h2>
+        <p id="history-copy">查看查詢、團隊流程與外部通道的執行結果，適合追查單筆任務處理過程。</p>
       </div>
       <div class="filters">
         <select id="filter-status" class="filter-select" onchange="loadHistory()">
-          <option value="">全部狀態</option>
-          <option value="success">成功</option>
-          <option value="error">失敗</option>
+          <option value="" data-default-label="全部狀態" data-lightweight-label="全部進度">全部狀態</option>
+          <option value="success" data-default-label="成功" data-lightweight-label="已整理">成功</option>
+          <option value="error" data-default-label="失敗" data-lightweight-label="卡住">失敗</option>
         </select>
         <input type="text" id="filter-skill" class="filter-input" placeholder="篩選技能…" oninput="loadHistory()" />
         <select id="filter-channel" class="filter-select" onchange="loadHistory()">
-          <option value="">全部來源</option>
-          <option value="cli">命令列</option>
-          <option value="http">HTTP</option>
+          <option value="" data-default-label="全部來源" data-lightweight-label="全部入口">全部來源</option>
+          <option value="cli" data-default-label="命令列" data-lightweight-label="命令列">命令列</option>
+          <option value="http" data-default-label="HTTP" data-lightweight-label="工作台">HTTP</option>
+          <option value="line" data-default-label="LINE" data-lightweight-label="LINE">LINE</option>
         </select>
         <select id="filter-limit" class="filter-select" onchange="loadHistory()">
           <option value="10">最近 10 筆</option>
@@ -1029,8 +1030,8 @@ body {
     <!-- Skills View -->
     <section id="view-skills" class="view">
       <div class="view-header">
-        <h2>技能與流程</h2>
-        <p>查看 AI 可用的分析技能與協作流程，這是理解系統能力的進階頁，而不是主要操作入口。</p>
+        <h2 id="skills-title">技能與流程</h2>
+        <p id="skills-copy">查看 AI 可用的分析技能與協作流程，這是理解系統能力的進階頁，而不是主要操作入口。</p>
       </div>
       <div id="skills-grid" class="grid"><div class="loading">載入技能列表中…</div></div>
     </section>
@@ -1038,8 +1039,8 @@ body {
     <!-- Stats View -->
     <section id="view-stats" class="view">
       <div class="view-header">
-        <h2>使用統計</h2>
-        <p>查看使用量、技能分布與團隊採用情況，屬於管理觀察頁面。</p>
+        <h2 id="stats-title">使用統計</h2>
+        <p id="stats-copy">查看使用量、技能分布與團隊採用情況，屬於管理觀察頁面。</p>
       </div>
       <div class="grid" id="stats-grid">
         <div class="card"><div class="loading">載入使用統計中…</div></div>
@@ -1280,6 +1281,65 @@ function syncWorkspaceModeUI() {
   if (input) input.placeholder = cfg.placeholder;
   renderWorkspaceQuickActions();
   renderSceneWorkspaceStatus();
+  syncModeAwareViewCopy();
+}
+
+function applyModeLabels(selectId) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+  const isLightweight = SCENE_WORKSPACE_STATE.mode === 'lightweight';
+  Array.from(select.options).forEach(option => {
+    const label = isLightweight ? option.dataset.lightweightLabel : option.dataset.defaultLabel;
+    if (label) option.textContent = label;
+  });
+}
+
+function syncModeAwareViewCopy() {
+  const isLightweight = SCENE_WORKSPACE_STATE.mode === 'lightweight';
+  const timelineTitle = document.getElementById('timeline-title');
+  const timelineCopy = document.getElementById('timeline-copy');
+  const historyTitle = document.getElementById('history-title');
+  const historyCopy = document.getElementById('history-copy');
+  const historySkill = document.getElementById('filter-skill');
+  const skillsTitle = document.getElementById('skills-title');
+  const skillsCopy = document.getElementById('skills-copy');
+  const statsTitle = document.getElementById('stats-title');
+  const statsCopy = document.getElementById('stats-copy');
+
+  if (timelineTitle) timelineTitle.textContent = isLightweight ? '最近動態' : '事件時間軸';
+  if (timelineCopy) {
+    timelineCopy.textContent = isLightweight
+      ? '把今天的整理、提醒、跟進與系統動作串起來看，方便知道事情卡在哪一步。'
+      : '系統執行、警報與 HTTP 存取的統一事件流，方便追蹤異常與復原';
+  }
+
+  if (historyTitle) historyTitle.textContent = isLightweight ? '處理紀錄' : '執行紀錄';
+  if (historyCopy) {
+    historyCopy.textContent = isLightweight
+      ? '查看最近系統怎麼整理訂單、提醒跟進與回覆問題，適合回頭追某一筆事情。'
+      : '查看查詢、團隊流程與外部通道的執行結果，適合追查單筆任務處理過程。';
+  }
+  if (historySkill) {
+    historySkill.placeholder = isLightweight ? '找某個處理項目…' : '篩選技能…';
+  }
+
+  if (skillsTitle) skillsTitle.textContent = isLightweight ? '系統會幫你處理哪些事' : '技能與流程';
+  if (skillsCopy) {
+    skillsCopy.textContent = isLightweight
+      ? '這裡會列出系統目前能幫你整理、提醒、跟進的工作項目，平常不用常進來。'
+      : '查看 AI 可用的分析技能與協作流程，這是理解系統能力的進階頁，而不是主要操作入口。';
+  }
+
+  if (statsTitle) statsTitle.textContent = isLightweight ? '工作概況' : '使用統計';
+  if (statsCopy) {
+    statsCopy.textContent = isLightweight
+      ? '看看最近查了多少次、哪些問題最常出現，適合用來回頭整理工作量。'
+      : '查看使用量、技能分布與團隊採用情況，屬於管理觀察頁面。';
+  }
+
+  applyModeLabels('timeline-type');
+  applyModeLabels('filter-status');
+  applyModeLabels('filter-channel');
 }
 
 function setWorkspaceMode(mode) {
@@ -1585,8 +1645,9 @@ async function loadHistory() {
   const skill = document.getElementById('filter-skill').value;
   const channel = document.getElementById('filter-channel').value;
   const limit = document.getElementById('filter-limit').value;
+  const isLightweight = SCENE_WORKSPACE_STATE.mode === 'lightweight';
 
-  content.innerHTML = '<div class="loading">載入執行紀錄中…</div>';
+  content.innerHTML = `<div class="loading">${isLightweight ? '載入最近處理紀錄中…' : '載入執行紀錄中…'}</div>`;
 
   try {
     let url = `/history?last=${limit}`;
@@ -1599,13 +1660,13 @@ async function loadHistory() {
     const data = await res.json();
 
     if (data.total === 0) {
-      content.innerHTML = '<div class="empty-state">找不到符合條件的執行紀錄</div>';
+      content.innerHTML = `<div class="empty-state">${isLightweight ? '目前找不到符合條件的處理紀錄' : '找不到符合條件的執行紀錄'}</div>`;
       return;
     }
 
     let html = `<table class="history-table">
       <thead><tr>
-        <th>時間</th><th>來源</th><th>技能</th><th>查詢</th><th>訂單</th><th>狀態</th><th>錯誤</th>
+        <th>時間</th><th>${isLightweight ? '入口' : '來源'}</th><th>${isLightweight ? '處理項目' : '技能'}</th><th>${isLightweight ? '內容' : '查詢'}</th><th>${isLightweight ? '單號' : '訂單'}</th><th>${isLightweight ? '進度' : '狀態'}</th><th>${isLightweight ? '卡住原因' : '錯誤'}</th>
       </tr></thead><tbody>`;
 
     for (const r of data.runs) {
@@ -1619,21 +1680,22 @@ async function loadHistory() {
         <td>${isTeam ? `<span class="badge badge-team">${skillDisplay}</span>` : skillDisplay}</td>
         <td class="query-cell" title="${r.query || ''}">${r.query || ''}</td>
         <td>${(r.order_ids || []).join(', ') || '-'}</td>
-        <td><span class="badge ${r.status === 'success' ? 'badge-success' : 'badge-error'}">${r.status === 'success' ? '成功' : '失敗'}</span></td>
+        <td><span class="badge ${r.status === 'success' ? 'badge-success' : 'badge-error'}">${r.status === 'success' ? (isLightweight ? '已整理' : '成功') : (isLightweight ? '卡住' : '失敗')}</span></td>
         <td style="font-size:0.85rem;color:${errorType ? 'var(--error)' : 'var(--text-muted)'};">${errorType || '-'}</td>
       </tr>`;
     }
     html += '</tbody></table>';
     content.innerHTML = html;
   } catch (e) {
-    content.innerHTML = `<div class="error-state">載入執行紀錄失敗：${e.message}</div>`;
+    content.innerHTML = `<div class="error-state">${isLightweight ? '載入最近處理紀錄失敗' : '載入執行紀錄失敗'}：${e.message}</div>`;
   }
 }
 
 // Stats View
 async function loadStats() {
   const grid = document.getElementById('stats-grid');
-  grid.innerHTML = '<div class="loading">載入使用統計中…</div>';
+  const isLightweight = SCENE_WORKSPACE_STATE.mode === 'lightweight';
+  grid.innerHTML = `<div class="loading">${isLightweight ? '載入工作概況中…' : '載入使用統計中…'}</div>`;
 
   try {
     const res = await fetch('/metrics');
@@ -1645,17 +1707,17 @@ async function loadStats() {
     let html = `
       <!-- Overview Cards -->
       <div class="card">
-        <div class="card-title">總執行次數</div>
+        <div class="card-title">${isLightweight ? '最近整理次數' : '總執行次數'}</div>
         <div style="font-size:2.5rem;font-weight:700;color:var(--accent-light);margin:0.5rem 0;">${m.total_runs}</div>
         <div style="color:var(--text-muted);font-size:0.85rem;">成功：${m.success_count} | 失敗：${m.error_count}</div>
       </div>
       <div class="card">
-        <div class="card-title">成功率</div>
+        <div class="card-title">${isLightweight ? '整理完成率' : '成功率'}</div>
         <div style="font-size:2.5rem;font-weight:700;color:${rateColor(m.success_rate)};margin:0.5rem 0;">${m.success_rate}%</div>
         <div style="color:var(--text-muted);font-size:0.85rem;">近 ${m.window_hours} 小時：${m.recent_runs} 次（${m.recent_success_rate}%）</div>
       </div>
       <div class="card">
-        <div class="card-title">來源分布</div>
+        <div class="card-title">${isLightweight ? '入口分布' : '來源分布'}</div>
         <div style="margin-top:0.5rem;">
           ${Object.entries(m.channel_distribution || {}).map(([ch, count]) =>
             `<div style="display:flex;justify-content:space-between;padding:0.25rem 0;border-bottom:1px solid var(--border);">
@@ -1666,7 +1728,7 @@ async function loadStats() {
       </div>
       <!-- Skill Distribution -->
       <div class="card" style="grid-column: span 2;">
-        <div class="card-title">技能分布（前 10 名）</div>
+        <div class="card-title">${isLightweight ? '最近最常整理的事情（前 10 名）' : '技能分布（前 10 名）'}</div>
         <div style="margin-top:0.75rem;">
           ${(() => {
             const dist = m.skill_distribution || {};
@@ -1688,7 +1750,7 @@ async function loadStats() {
     `;
     grid.innerHTML = html;
   } catch (e) {
-    grid.innerHTML = `<div class="error-state">載入使用統計失敗：${e.message}</div>`;
+    grid.innerHTML = `<div class="error-state">${isLightweight ? '載入工作概況失敗' : '載入使用統計失敗'}：${e.message}</div>`;
   }
 }
 
@@ -3126,8 +3188,9 @@ async function loadTimeline() {
   const summaryDiv = document.getElementById('timeline-summary');
   const type = document.getElementById('timeline-type').value;
   const limit = document.getElementById('timeline-limit').value;
+  const isLightweight = SCENE_WORKSPACE_STATE.mode === 'lightweight';
 
-  content.innerHTML = '<div class="loading">載入時間軸中…</div>';
+  content.innerHTML = `<div class="loading">${isLightweight ? '載入最近動態中…' : '載入時間軸中…'}</div>`;
   summaryDiv.style.display = 'none';
 
   try {
@@ -3139,14 +3202,14 @@ async function loadTimeline() {
     const data = await res.json();
 
     if (data.total === 0) {
-      content.innerHTML = '<div class="empty-state">找不到事件</div>';
+      content.innerHTML = `<div class="empty-state">${isLightweight ? '目前還沒有最近動態' : '找不到事件'}</div>`;
       return;
     }
 
     // Summary
     summaryDiv.style.display = 'block';
     summaryDiv.innerHTML = `
-      <div class="card-title">摘要：${data.total} 筆事件</div>
+      <div class="card-title">${isLightweight ? `最近共 ${data.total} 則動態` : `摘要：${data.total} 筆事件`}</div>
       <pre style="margin-top:0.5rem;font-size:0.8rem;color:var(--text-secondary);white-space:pre-wrap;">${data.summary}</pre>
     `;
 
@@ -3156,9 +3219,9 @@ async function loadTimeline() {
       return 'var(--text-muted)';
     };
     const typeLabel = (t) => {
-      if (t === 'run') return '執行';
-      if (t === 'alert') return '警報';
-      return '存取';
+      if (t === 'run') return isLightweight ? '處理' : '執行';
+      if (t === 'alert') return isLightweight ? '提醒' : '警報';
+      return isLightweight ? '系統動作' : '存取';
     };
     const typeIcon = (t) => {
       if (t === 'run') return '▶';
@@ -3190,7 +3253,7 @@ async function loadTimeline() {
     }
     content.innerHTML = html;
   } catch (e) {
-    content.innerHTML = `<div class="error-state">載入時間軸失敗：${e.message}</div>`;
+    content.innerHTML = `<div class="error-state">${isLightweight ? '載入最近動態失敗' : '載入時間軸失敗'}：${e.message}</div>`;
   }
 }
 
