@@ -48,6 +48,7 @@ class SceneViewHTMLTest(unittest.TestCase):
         self.assertIn('id="scene-thread"', self.html)
         self.assertIn('id="scene-context-panel"', self.html)
         self.assertIn('id="scene-workspace-status"', self.html)
+        self.assertIn('id="scene-start-guide"', self.html)
         self.assertIn("協作工作台", self.html)
 
     def test_contains_agent_catalog(self):
@@ -282,3 +283,8 @@ class WorkspaceModeHTMLTest(unittest.TestCase):
         self.assertIn("這格角色", self.html)
         self.assertIn("還要確認", self.html)
         self.assertIn("留下幾筆紀錄", self.html)
+
+    def test_workspace_has_start_guide_for_both_modes(self):
+        self.assertIn("從這裡開始", self.html)
+        self.assertIn("先看今天要出貨什麼", self.html)
+        self.assertIn("先輸入單號或問題", self.html)

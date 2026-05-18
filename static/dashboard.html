@@ -375,6 +375,44 @@ body {
 .scene-sidepanel-section {
   margin-top: 0.85rem;
 }
+.scene-start-guide {
+  display: grid;
+  gap: 0.65rem;
+}
+.scene-start-item {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 0.7rem;
+  align-items: start;
+  padding: 0.7rem 0.8rem;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.44);
+  border: 1px solid rgba(99,102,241,0.12);
+}
+.scene-start-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(99,102,241,0.95), rgba(79,70,229,0.82));
+  box-shadow: 0 8px 18px rgba(79,70,229,0.24);
+}
+.scene-start-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.scene-start-copy {
+  margin-top: 0.18rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
 .scene-sidepanel-label {
   font-size: 0.7rem;
   color: #9ca3af;
@@ -930,6 +968,10 @@ body {
             </div>
             <span class="scene-mode-badge">Read-Only Workspace</span>
           </div>
+          <div class="scene-sidepanel-section">
+            <div class="scene-sidepanel-label">從這裡開始</div>
+            <div id="scene-start-guide" class="scene-start-guide"></div>
+          </div>
           <div id="scene-workspace-status" class="scene-workspace-status"></div>
           <div class="scene-thread-shell">
             <div class="scene-sidepanel-label">最近對話與提醒</div>
@@ -1279,6 +1321,7 @@ function syncWorkspaceModeUI() {
   if (note) note.textContent = cfg.note;
   if (desc) desc.textContent = cfg.desc;
   if (input) input.placeholder = cfg.placeholder;
+  renderSceneStartGuide();
   renderWorkspaceQuickActions();
   renderSceneWorkspaceStatus();
   syncModeAwareViewCopy();
@@ -1451,6 +1494,32 @@ function renderSceneWorkspaceStatus() {
       </div>
     `).join('')}
   `;
+}
+
+function renderSceneStartGuide() {
+  const el = document.getElementById('scene-start-guide');
+  if (!el) return;
+  const isLightweight = SCENE_WORKSPACE_STATE.mode === 'lightweight';
+  const items = isLightweight
+    ? [
+        { title: '先看今天要出貨什麼', copy: '直接按左邊快捷卡的「今天要出貨」，先把今天最急的單找出來。'},
+        { title: '再看誰還沒回覆', copy: '如果你先要處理客戶或供應商，就按「哪些客戶還沒回」整理待跟進名單。'},
+        { title: '最後看缺貨與補救', copy: '如果今天卡在備料或缺貨，再查「哪些料不夠」看系統給的補救建議。'},
+      ]
+    : [
+        { title: '先輸入單號或問題', copy: '先查訂單、風險、排程或報價，讓主控把工作分流到正確區域。'},
+        { title: '再看右邊哪一區接手', copy: '查完後右側會亮出對應區域，讓你知道現在是風險、生產還是商務在處理。'},
+        { title: '最後看原因與下一步', copy: '點右邊節點，看卡住原因、待核可項目與建議下一步。'},
+      ];
+  el.innerHTML = items.map((item, index) => `
+    <div class="scene-start-item">
+      <span class="scene-start-num">${index + 1}</span>
+      <div>
+        <div class="scene-start-title">${item.title}</div>
+        <div class="scene-start-copy">${item.copy}</div>
+      </div>
+    </div>
+  `).join('');
 }
 
 function summarizeSceneResponse(data) {
