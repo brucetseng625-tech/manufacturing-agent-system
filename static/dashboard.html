@@ -384,10 +384,28 @@ body {
   grid-template-columns: 32px 1fr;
   gap: 0.7rem;
   align-items: start;
+  width: 100%;
   padding: 0.7rem 0.8rem;
   border-radius: 14px;
   background: rgba(15, 23, 42, 0.44);
   border: 1px solid rgba(99,102,241,0.12);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+}
+.scene-start-item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(129,140,248,0.4);
+  background: rgba(30, 41, 59, 0.72);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.22);
+}
+.scene-start-item:focus {
+  outline: none;
+  border-color: rgba(129,140,248,0.6);
+  box-shadow: 0 0 0 2px rgba(99,102,241,0.18);
+}
+.scene-start-item:active {
+  transform: translateY(0);
 }
 .scene-start-num {
   width: 32px;
@@ -412,6 +430,15 @@ body {
   font-size: 0.8rem;
   color: var(--text-secondary);
   line-height: 1.5;
+}
+.scene-start-action {
+  margin-top: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #c7d2fe;
 }
 .scene-sidepanel-label {
   font-size: 0.7rem;
@@ -1502,24 +1529,30 @@ function renderSceneStartGuide() {
   const isLightweight = SCENE_WORKSPACE_STATE.mode === 'lightweight';
   const items = isLightweight
     ? [
-        { title: '先看今天要出貨什麼', copy: '直接按左邊快捷卡的「今天要出貨」，先把今天最急的單找出來。'},
-        { title: '再看誰還沒回覆', copy: '如果你先要處理客戶或供應商，就按「哪些客戶還沒回」整理待跟進名單。'},
-        { title: '最後看缺貨與補救', copy: '如果今天卡在備料或缺貨，再查「哪些料不夠」看系統給的補救建議。'},
+        { title: '先看今天要出貨什麼', copy: '按這張卡，先把今天最急的單找出來。', action: '立即整理待出貨', query: '今天有哪些待出貨訂單？'},
+        { title: '再看誰還沒回覆', copy: '按這張卡，先把今天要跟進的客戶或供應商整理出來。', action: '立即整理待回覆', query: '哪些客戶或訂單還沒回覆？'},
+        { title: '最後看缺貨與補救', copy: '按這張卡，看今天卡在備料或缺貨的地方。', action: '立即查看缺貨', query: '目前哪些料件低於安全庫存？'},
       ]
     : [
-        { title: '先輸入單號或問題', copy: '先查訂單、風險、排程或報價，讓主控把工作分流到正確區域。'},
-        { title: '再看右邊哪一區接手', copy: '查完後右側會亮出對應區域，讓你知道現在是風險、生產還是商務在處理。'},
-        { title: '最後看原因與下一步', copy: '點右邊節點，看卡住原因、待核可項目與建議下一步。'},
+        { title: '先查一筆訂單或問題', copy: '按這張卡，先帶入常見查詢，再讓主控分流到正確區域。', action: '帶入交期風險查詢', query: 'ORD-2002 有沒有交期風險？'},
+        { title: '再看右邊哪一區接手', copy: '查完後右側會亮出對應區域，讓你知道現在是風險、生產還是商務在處理。', action: '帶入排程查詢', query: 'ORD-2004 排程是否衝突？'},
+        { title: '最後看原因與下一步', copy: '按這張卡，直接看商務與交付要怎麼一起判斷。', action: '帶入商務分析', query: '幫我比較目前報價與交付風險'},
       ];
   el.innerHTML = items.map((item, index) => `
-    <div class="scene-start-item">
+    <button type="button" class="scene-start-item" onclick="runSceneStartGuideQuery('${escapeHtmlAttr(item.query)}')">
       <span class="scene-start-num">${index + 1}</span>
       <div>
         <div class="scene-start-title">${item.title}</div>
         <div class="scene-start-copy">${item.copy}</div>
+        <div class="scene-start-action">${item.action} <span aria-hidden="true">→</span></div>
       </div>
-    </div>
+    </button>
   `).join('');
+}
+
+function runSceneStartGuideQuery(text) {
+  setSceneQuery(text);
+  executeSceneWorkspaceQuery();
 }
 
 function summarizeSceneResponse(data) {

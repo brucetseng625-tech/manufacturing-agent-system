@@ -287,4 +287,7 @@ class WorkspaceModeHTMLTest(unittest.TestCase):
     def test_workspace_has_start_guide_for_both_modes(self):
         self.assertIn("從這裡開始", self.html)
         self.assertIn("先看今天要出貨什麼", self.html)
-        self.assertIn("先輸入單號或問題", self.html)
+        self.assertIn("先查一筆訂單或問題", self.html)
+        self.assertIn("runSceneStartGuideQuery", self.html)
+        self.assertIn("立即整理待出貨", self.html)
+        self.assertIn("帶入交期風險查詢", self.html)
