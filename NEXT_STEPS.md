@@ -1,19 +1,19 @@
 # Manufacturing Agent System Next Steps
 
-Last updated: 2026-05-14
+Last updated: 2026-06-11
 
 Latest `HEAD` on `main`:
-- `432050c` `feat(P16): scene view redesign — compact first-screen control room layout`
+- `9de79d3` `fix(ui): stabilize scene workspace loading and reduce duplication`
 
 Latest verified feature commit on `main`:
-- `432050c` `feat(P16): scene view redesign — compact first-screen control room layout`
+- `9de79d3` `fix(ui): stabilize scene workspace loading and reduce duplication`
 
 Important handoff note:
 - `main` may move to a docs-only sync commit after the latest verified feature commit above. Always confirm exact `HEAD` with `git rev-parse HEAD` before continuing.
-- Full unit test status at handoff: `948 / 948 passed` (+8 from P17-4 Discord approval retry visibility)
+- Full unit test status at handoff: `990 / 990 passed`
 - Smoke test status at handoff: `112 / 112 passed`
-- Setup verification status at handoff: `204 / 204 passed`
-- Working tree at handoff: clean (after P16-3 commit)
+- Setup verification status at handoff: last known `204 / 204 passed`
+- Working tree at handoff: docs pending sync
 
 Accepted P4 completion context:
 - `016a200` `feat: implement configurable rules / policy layer`
@@ -767,7 +767,11 @@ First actions:
 4. Continue from the next unfinished roadmap item, or define the next roadmap phase if everything listed here is complete
 
 Current expected next task:
-P13-4 complete. P13 phase fully delivered (P13-1 through P13-4). Define next roadmap phase or expand P13 scope.
+Finish the documentation sync commit, then run a real lightweight-mode walkthrough:
+1. Configure Google Sheets / CSV source
+2. Configure LINE webhook with allowlist
+3. Verify main workspace, governance view, and LINE command flow with realistic operator steps
+4. Use that walkthrough to drive the next UX cleanup pass instead of speculative redesign
 
 Requirements:
 - Reuse the existing routing, schema, team execution, API, provider, policy, deployment, and observability layers instead of replacing them
@@ -791,3 +795,16 @@ Requirements:
 - LINE lightweight mode: LINE webhook now defaults to Google Sheets data source in lightweight workspace mode, enabling direct LINE + Sheets query handling without ERP.
 - Workspace governance modes: 營運治理頁會依 ERP / 輕量模式切換顯示完整治理卡或 Sheets / LINE 跟進摘要，讓同一套 UI 能服務兩種交付模式。
 - LINE approval-assisted flow: LINE webhook now supports approval list/detail/approve/reject commands with allowlist, audit trace, and replay visibility, matching the lightweight governance flow.
+
+### Documentation Delivery Pack (pending sync commit)
+- Added operator-facing manual: `docs/USER_OPERATION_GUIDE.md`
+- Added delivery / implementation manual: `docs/SYSTEM_DELIVERY_MANUAL.md`
+- Added Google Sheets field mapping reference: `docs/GOOGLE_SHEETS_FIELD_MAPPING.md`
+- Added LINE command reference: `docs/LINE_COMMAND_REFERENCE.md`
+- Added LINE webhook setup guide: `docs/LINE_SETUP_GUIDE.md`
+- Added README documentation links so the handoff set is discoverable from the repo root
+
+### Recommended Next Execution
+- First: commit the documentation pack and README sync so the repo state matches the implemented lightweight / LINE features.
+- Second: perform an end-to-end lightweight-mode operator walkthrough using realistic sample data and LINE commands.
+- Third: trim duplicate UI blocks only after that walkthrough identifies real confusion points.
