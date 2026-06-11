@@ -44,6 +44,7 @@ Operational and delivery documents:
 - [Google Sheets 欄位對照表](/Users/brucetseng/Documents/Codex/2026-05-08/github-repo-https-github-com-brucetseng625/docs/GOOGLE_SHEETS_FIELD_MAPPING.md)
 - [LINE 指令與回覆範例](/Users/brucetseng/Documents/Codex/2026-05-08/github-repo-https-github-com-brucetseng625/docs/LINE_COMMAND_REFERENCE.md)
 - [LINE Webhook 設定教學](/Users/brucetseng/Documents/Codex/2026-05-08/github-repo-https-github-com-brucetseng625/docs/LINE_SETUP_GUIDE.md)
+- [Lightweight 模式實作走查](/Users/brucetseng/Documents/Codex/2026-05-08/github-repo-https-github-com-brucetseng625/docs/LIGHTWEIGHT_OPERATOR_WALKTHROUGH.md)
 
 ## Test
 

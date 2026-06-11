@@ -110,6 +110,26 @@
         "csv_url": "",
         "sheet_id": "",
         "gid": "0"
+      },
+      "machines": {
+        "csv_url": "",
+        "sheet_id": "",
+        "gid": "0"
+      },
+      "operators": {
+        "csv_url": "",
+        "sheet_id": "",
+        "gid": "0"
+      },
+      "schedule": {
+        "csv_url": "",
+        "sheet_id": "",
+        "gid": "0"
+      },
+      "quotes": {
+        "csv_url": "",
+        "sheet_id": "",
+        "gid": "0"
       }
     }
   },

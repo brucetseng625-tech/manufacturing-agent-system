@@ -182,6 +182,16 @@ https://example.com/webhook/line
 - `google_sheets.datasets.orders`
 - `google_sheets.datasets.materials`
 - `google_sheets.datasets.work_orders`
+- 建議補齊：`google_sheets.datasets.machines`
+- 建議補齊：`google_sheets.datasets.operators`
+- 建議補齊：`google_sheets.datasets.schedule`
+- 建議補齊：`google_sheets.datasets.quotes`
+
+說明：
+
+- 若只做最基本的訂單 / 缺料 / 工單查詢，前三項通常已足夠
+- 若要讓系統回答交期、排程、產能、加急、報價比較等完整問題，建議把上面資料集都接齊
+- 若缺少對應資料集，某些查詢可能只能部分回答，或直接失敗
 
 詳細欄位請參考：
 
@@ -346,4 +356,3 @@ reject approval-4 不建議現在執行
 3. Google Sheets 欄位對照表
 4. 主工作台畫面截圖
 5. 輕量模式操作手冊
-

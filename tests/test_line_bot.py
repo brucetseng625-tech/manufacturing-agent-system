@@ -64,11 +64,12 @@ class LineMessageTest(unittest.TestCase):
         self.assertIn("未經授權", result["message"])
 
     @patch("integrations.line_bot.route_query")
+    @patch("integrations.line_bot.log_run")
     @patch("integrations.line_bot.set_data_source")
     @patch("integrations.line_bot.create_provider")
     @patch("integrations.line_bot.get_provider_name")
     @patch("integrations.line_bot.get_config_value")
-    def test_handle_line_message_uses_sheets_in_lightweight_mode(self, mock_get_config, mock_provider_name, mock_create_provider, mock_set_data_source, mock_route):
+    def test_handle_line_message_uses_sheets_in_lightweight_mode(self, mock_get_config, mock_provider_name, mock_create_provider, mock_set_data_source, mock_log_run, mock_route):
         values = {
             "line.allowed_user_ids": [],
             "line.default_data_source": "",
@@ -90,13 +91,15 @@ class LineMessageTest(unittest.TestCase):
         self.assertEqual(mock_create_provider.call_args[0][0], "sheets")
         mock_set_data_source.assert_called_once()
         mock_route.assert_called_once()
+        mock_log_run.assert_called_once()
 
     @patch("integrations.line_bot.route_query")
+    @patch("integrations.line_bot.log_run")
     @patch("integrations.line_bot.set_data_source")
     @patch("integrations.line_bot.create_provider")
     @patch("integrations.line_bot.get_provider_name")
     @patch("integrations.line_bot.get_config_value")
-    def test_handle_line_message_respects_explicit_line_data_source(self, mock_get_config, mock_provider_name, mock_create_provider, mock_set_data_source, mock_route):
+    def test_handle_line_message_respects_explicit_line_data_source(self, mock_get_config, mock_provider_name, mock_create_provider, mock_set_data_source, mock_log_run, mock_route):
         values = {
             "line.allowed_user_ids": [],
             "line.default_data_source": "local",
@@ -114,6 +117,7 @@ class LineMessageTest(unittest.TestCase):
         self.assertEqual(result["data_source"], "local")
         self.assertIn("資料來源：local", result["message"])
         self.assertEqual(mock_create_provider.call_args[0][0], "local")
+        mock_log_run.assert_called_once()
 
     def test_format_line_response_includes_explainability(self):
         text = format_line_response("測試", {"status": "error", "error_type": "rollout_gated", "message": "blocked", "reason": "capability disabled", "next_action": "enable it", "decision_state": "rollout_gated"})

@@ -207,16 +207,44 @@ class LocalFileProvider(DataProvider):
     @staticmethod
     def _coerce_row_types(row):
         row = dict(row)
+        def _to_bool(value):
+            if isinstance(value, bool):
+                return value
+            if isinstance(value, str):
+                lowered = value.strip().lower()
+                if lowered in ("true", "1", "yes", "y"):
+                    return True
+                if lowered in ("false", "0", "no", "n"):
+                    return False
+            return value
         if "quantity" in row and row["quantity"] not in (None, ""):
             row["quantity"] = int(row["quantity"])
+        if "penalty_per_day" in row and row["penalty_per_day"] not in (None, ""):
+            row["penalty_per_day"] = float(row["penalty_per_day"])
+        if "expedite_cost" in row and row["expedite_cost"] not in (None, ""):
+            row["expedite_cost"] = float(row["expedite_cost"])
         if "progress_percent" in row and row["progress_percent"] not in (None, ""):
             row["progress_percent"] = int(row["progress_percent"])
         if "required_qty" in row and row["required_qty"] not in (None, ""):
             row["required_qty"] = int(row["required_qty"])
         if "available_qty" in row and row["available_qty"] not in (None, ""):
             row["available_qty"] = int(row["available_qty"])
+        if "safety_stock" in row and row["safety_stock"] not in (None, ""):
+            row["safety_stock"] = int(row["safety_stock"])
+        if "supplier_lead_time_days" in row and row["supplier_lead_time_days"] not in (None, ""):
+            row["supplier_lead_time_days"] = int(row["supplier_lead_time_days"])
+        if "supplier_reliability" in row and row["supplier_reliability"] not in (None, ""):
+            row["supplier_reliability"] = float(row["supplier_reliability"])
+        if "unit_cost" in row and row["unit_cost"] not in (None, ""):
+            row["unit_cost"] = float(row["unit_cost"])
         if "load_percent" in row and row["load_percent"] not in (None, ""):
             row["load_percent"] = int(row["load_percent"])
+        if "max_capacity_percent" in row and row["max_capacity_percent"] not in (None, ""):
+            row["max_capacity_percent"] = int(row["max_capacity_percent"])
+        if "backup_available" in row and row["backup_available"] not in (None, ""):
+            row["backup_available"] = _to_bool(row["backup_available"])
+        if "overtime_available" in row and row["overtime_available"] not in (None, ""):
+            row["overtime_available"] = _to_bool(row["overtime_available"])
         if "unit_price" in row and row["unit_price"] not in (None, ""):
             row["unit_price"] = float(row["unit_price"])
         if "lead_time_days" in row and row["lead_time_days"] not in (None, ""):
@@ -225,6 +253,8 @@ class LocalFileProvider(DataProvider):
             row["moq"] = int(row["moq"])
         if "quality_rating" in row and row["quality_rating"] not in (None, ""):
             row["quality_rating"] = float(row["quality_rating"])
+        if "supplier_reliability" in row and row["supplier_reliability"] not in (None, ""):
+            row["supplier_reliability"] = float(row["supplier_reliability"])
         return row
 
     def name(self) -> str:

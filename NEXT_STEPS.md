@@ -802,9 +802,15 @@ Requirements:
 - Added Google Sheets field mapping reference: `docs/GOOGLE_SHEETS_FIELD_MAPPING.md`
 - Added LINE command reference: `docs/LINE_COMMAND_REFERENCE.md`
 - Added LINE webhook setup guide: `docs/LINE_SETUP_GUIDE.md`
+- Added verified lightweight walkthrough: `docs/LIGHTWEIGHT_OPERATOR_WALKTHROUGH.md`
 - Added README documentation links so the handoff set is discoverable from the repo root
 
 ### Recommended Next Execution
 - First: commit the documentation pack and README sync so the repo state matches the implemented lightweight / LINE features.
 - Second: perform an end-to-end lightweight-mode operator walkthrough using realistic sample data and LINE commands.
 - Third: trim duplicate UI blocks only after that walkthrough identifies real confusion points.
+
+### Lightweight Walkthrough Findings (fixed)
+- LINE webhook queries now write to `/history?channel=line`, so lightweight governance cards can show actual LINE activity.
+- Google Sheets CSV type coercion now covers lightweight delivery-risk fields such as `penalty_per_day`, `expedite_cost`, `safety_stock`, `supplier_lead_time_days`, `unit_cost`, `supplier_reliability`, and machine capacity flags.
+- Docs and config example now make it explicit that `machines`, `operators`, `schedule`, and `quotes` should be configured when the team expects full delivery / planning / quote analysis in Sheets mode.

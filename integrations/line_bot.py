@@ -17,6 +17,7 @@ import urllib.error
 import urllib.request
 
 from audit_chain import append_audit_entry
+from audit_logger import log_run
 from approval_queue import list_pending, get_item, approve_item, reject_item, serialize_item_for_api
 from config import get_config_value, resolve_repo_path
 from data_source import create_provider, get_provider_name, set_data_source
@@ -343,6 +344,9 @@ def handle_line_message(message_payload):
         result = {"status": "error", "error_type": "route_error", "message": str(exc)}
 
     result.setdefault("data_source", get_provider_name())
+    result.setdefault("query", content)
+    result.setdefault("data_dir", data_dir)
+    result.setdefault("order_ids", order_ids)
     line_message = format_line_response(content, result)
     audit_entry = append_audit_entry(
         "line_query",
@@ -356,6 +360,20 @@ def handle_line_message(message_payload):
             "result_status": result.get("status"),
         },
         result=result.get("status", "failed"),
+    )
+    log_run(
+        {
+            "status": result.get("status"),
+            "query": content,
+            "data_dir": data_dir,
+            "order_ids": order_ids,
+            "intent": result.get("intent"),
+            "skill": result.get("skill"),
+            "run_id": result.get("run_id"),
+            "type": result.get("error_type") or result.get("type"),
+            "data": result.get("data") if result.get("status") == "success" else None,
+        },
+        "line",
     )
     return {
         "status": "success",

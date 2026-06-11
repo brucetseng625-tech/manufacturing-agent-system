@@ -15,6 +15,10 @@
 - `orders`
 - `materials`
 - `work_orders`
+- `machines`
+- `operators`
+- `schedule`
+- `quotes`
 
 ---
 
@@ -30,6 +34,10 @@ Google Sheets 來源設定請參考：
 - `google_sheets.datasets.orders`
 - `google_sheets.datasets.materials`
 - `google_sheets.datasets.work_orders`
+- `google_sheets.datasets.machines`
+- `google_sheets.datasets.operators`
+- `google_sheets.datasets.schedule`
+- `google_sheets.datasets.quotes`
 
 支援兩種設定方式：
 
@@ -186,6 +194,13 @@ Google Sheets 來源設定請參考：
 2. `materials`
 3. `work_orders`
 
+如果要支援較完整的交期、產能、排程、報價與加急分析，建議再補：
+
+4. `machines`
+5. `operators`
+6. `schedule`
+7. `quotes`
+
 ### 7.2 若目前資料很亂
 
 建議先做：
@@ -208,4 +223,3 @@ Google Sheets 來源設定請參考：
 - 三張表欄位名稱一致
 - 資料格式可被穩定讀取
 - 主工作台在輕量模式下查得到資料
-

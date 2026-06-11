@@ -109,7 +109,10 @@ class GoogleSheetsProviderTest(unittest.TestCase):
         from http.server import BaseHTTPRequestHandler, HTTPServer
         self._old_cfg = get_config(raw=True)
 
-        csv_payload = b"order_id,customer,quantity\nGS-001,Lightweight Co,7\n"
+        csv_payload = (
+            b"order_id,customer,quantity,penalty_per_day,expedite_cost\n"
+            b"GS-001,Lightweight Co,7,3000.0,10000.0\n"
+        )
 
         class Handler(BaseHTTPRequestHandler):
             def do_GET(self):
@@ -149,6 +152,8 @@ class GoogleSheetsProviderTest(unittest.TestCase):
         data = self.provider.load('/tmp', 'orders.json')
         self.assertEqual(data[0]['order_id'], 'GS-001')
         self.assertEqual(data[0]['quantity'], 7)
+        self.assertEqual(data[0]['penalty_per_day'], 3000.0)
+        self.assertEqual(data[0]['expedite_cost'], 10000.0)
 
     def test_name(self):
         self.assertEqual(self.provider.name(), 'google_sheets')
