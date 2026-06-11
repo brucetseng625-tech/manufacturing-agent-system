@@ -64,6 +64,70 @@
 
 - `line.allowed_user_ids`
 
+### 3.4 `webhook_url`
+
+用途：
+
+- 讓 LINE 把使用者訊息送進本系統
+
+對應 LINE 後台：
+
+- Messaging API > Webhook settings > Webhook URL
+
+---
+
+## 3.5 這些值要去哪裡拿
+
+### `channel_access_token`
+
+取得位置：
+
+1. 登入 LINE Developers Console
+2. 選擇你的 Provider
+3. 進入 Messaging API channel
+4. 打開 `Messaging API` 頁
+5. 在 Channel access token 區塊產生並複製 token
+
+### `channel_secret`
+
+取得位置：
+
+1. 登入 LINE Developers Console
+2. 選擇你的 Provider
+3. 進入 Messaging API channel
+4. 打開 `Basic settings`
+5. 複製 `Channel secret`
+
+### `allowed_user_ids`
+
+這個值不是在後台直接列給你挑，而是要從實際互動取得。
+
+最簡單的方式：
+
+1. 先讓測試使用者加 bot 好友
+2. 讓他傳一則訊息給 bot
+3. 本系統收到 webhook 後，從 event 的 `source.userId` 取得該使用者 ID
+4. 把這個值填回 `line.allowed_user_ids`
+
+若目前先做測試，也可先暫時留空，代表不限制。
+
+### `webhook_url`
+
+取得方式：
+
+1. 先決定你的系統實際對外網址
+2. 本系統 endpoint 固定為：
+
+```text
+/webhook/line
+```
+
+例如：
+
+```text
+https://example.com/webhook/line
+```
+
 ---
 
 ## 4. 設定檔位置
@@ -356,3 +420,16 @@ reject approval-4 不建議現在執行
 3. Google Sheets 欄位對照表
 4. 主工作台畫面截圖
 5. 輕量模式操作手冊
+
+---
+
+## 13. 官方參考
+
+- LINE Messaging API getting started  
+  [https://developers.line.biz/en/docs/messaging-api/getting-started/](https://developers.line.biz/en/docs/messaging-api/getting-started/)
+- Channel access token  
+  [https://developers.line.biz/en/docs/basics/channel-access-token/](https://developers.line.biz/en/docs/basics/channel-access-token/)
+- Receive messages (webhook)  
+  [https://developers.line.biz/en/docs/messaging-api/receiving-messages/](https://developers.line.biz/en/docs/messaging-api/receiving-messages/)
+- Messaging API reference  
+  [https://developers.line.biz/en/reference/messaging-api/](https://developers.line.biz/en/reference/messaging-api/)
