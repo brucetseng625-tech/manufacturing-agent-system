@@ -39,6 +39,7 @@ DEFAULT_CONFIG = {
         "default_data_source": "local",
         "history_last": 10,
         "metrics_window_hours": 24,
+        "workspace_mode": "erp",
     },
     "paths": {
         "policy_config": "policies/active.json",
@@ -46,6 +47,7 @@ DEFAULT_CONFIG = {
     },
     "security": {
         "api_token": None,
+        "discord_webhook_token": "mas-secret-token-2026",
     },
     "llm": {
         "openai_api_key": None,
@@ -98,6 +100,8 @@ _ENV_OVERRIDES = {
     "MAS_LLM_LOCAL_API_URL": ("llm", "local_api_url", str),
     "MAS_LLM_LOCAL_MODEL": ("llm", "local_model", str),
     "MAS_LLM_CLOUD_MODEL": ("llm", "cloud_model", str),
+    "MAS_ROLLOUT_SHEETS_ENABLED": ("rollout", "sheets", "enabled", bool),
+    "MAS_DISCORD_WEBHOOK_TOKEN": ("security", "discord_webhook_token", str),
 }
 
 
@@ -128,8 +132,8 @@ def validate_config(config):
     server = config.get("server", {})
 
     data_source = runtime.get("default_data_source", "local")
-    if data_source not in ("local", "live", "auto"):
-        raise ValueError("runtime.default_data_source must be one of: local, live, auto")
+    if data_source not in ("local", "live", "auto", "sheets"):
+        raise ValueError("runtime.default_data_source must be one of: local, live, auto, sheets")
 
     port = server.get("port", 8000)
     if not isinstance(port, int) or port <= 0 or port > 65535:

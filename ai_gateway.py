@@ -265,6 +265,22 @@ class AIGateway:
                 output += f"時間軸重疊檢查：偵測到 {len(conflicts)} 個排程時間交叉衝突。\n"
                 for c in conflicts[:3]:
                     output += f" - [衝突事件] 工單 {c.get('work_order_id')} 佔用機台 {c.get('machine_id')} ({c.get('date')})\n"
+
+            elif intent == "auto_scheduler":
+                decision = tool_data.get("decision", "排程優化完成")
+                before = tool_data.get("before", [])
+                after = tool_data.get("after", [])
+                output += "【排程優化報告 (Schedule Optimization)】已成功載入排程優化求解器。\n\n"
+                output += f"決策結果：{decision}\n\n"
+                output += "排程重分配對比：\n"
+                for idx, (b, a) in enumerate(zip(before, after)):
+                    output += f"【排程調整 {idx+1}】\n"
+                    if "wo_id" in b:
+                        output += f" - 調整前：工單 {b['wo_id']} 原定於停機機台 {b['machine_id']} ({b['status']})\n"
+                        output += f" - 調整後：工單 {a['wo_id']} 重新調配至備用機台 {a['machine_id']} ({a['status']}) | {a['load']}\n"
+                    else:
+                        output += f" - 調整前：時間交叉衝突 {', '.join(b['orders'])} 重疊佔用機台 {b['machine_id']} ({b['overlap_start']} 至 {b['overlap_end']})\n"
+                        output += f" - 調整後：排程衝突已解決 ({a['status']}) | {a['reason']}\n"
             
             elif intent == "general_query":
                 output += "【系統營運快照 (Operational Snapshot)】已載入工廠即時數據。\n\n"

@@ -18,7 +18,7 @@ import json
 import os
 import urllib.request
 import urllib.error
-from config import get_config_value
+from config import get_config_value, resolve_repo_path
 from audit_chain import append_audit_entry
 from orchestrator import route_query, extract_order_ids
 from approval_queue import list_pending, approve_item, reject_item, get_item, serialize_item_for_api
@@ -168,8 +168,10 @@ def handle_discord_message(message_payload):
     dry_run = True
     order_ids = extract_order_ids(content)
 
+    data_dir = resolve_repo_path(get_config_value("runtime.default_data_dir", "mock_data"))
+
     try:
-        result = route_query(content, order_ids, dry_run=dry_run)
+        result = route_query(content, data_dir)
     except Exception as e:
         result = {"status": "error", "error_type": "route_error", "message": str(e)}
 

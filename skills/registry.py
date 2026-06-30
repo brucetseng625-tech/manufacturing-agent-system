@@ -48,7 +48,7 @@ class SkillRegistry:
         self.register({
             "name": "delivery-risk-analysis",
             "intent": "delivery_risk_analysis",
-            "keywords": ["準時", "出貨", "delivery", "ship", "risk", "交期", "狀況", "狀態", "進度", "如何", "怎麼樣", "status", "progress", "情況", "分析"],
+            "keywords": ["準時", "出貨", "delivery", "ship", "risk", "交期", "狀況", "狀態", "進度", "情況"],
             "exact_keywords": ["交期風險", "delivery risk", "訂單狀況", "訂單進度", "訂單狀態"],
             "handler": self._handle_delivery_risk,
             "requires_order_id": True,
@@ -162,6 +162,21 @@ class SkillRegistry:
             "data_files": ["orders.json", "materials.json", "quotes.json"]
         })
 
+        # 10. Auto-Scheduler Optimizer
+        # Resolves schedule conflicts and machine downtime bottlenecks.
+        self.register({
+            "name": "auto-scheduler",
+            "intent": "auto_scheduler",
+            "keywords": ["重排", "排程優化", "優化排程", "排程調整", "reschedule", "re-schedule", "scheduler", "reorder"],
+            "exact_keywords": ["重新排程", "自動重排", "自動排程優化", "解決排程衝突"],
+            "handler": self._handle_auto_scheduler,
+            "requires_order_id": True,
+            "triggers_on_multi_order": False,
+            "passes_query": True,
+            "priority": 12,
+            "data_files": ["orders.json", "work_orders.json", "machines.json"]
+        })
+
     def _register_teams(self):
         """Register team workflows that chain multiple skills."""
         
@@ -171,8 +186,8 @@ class SkillRegistry:
         self.register_team({
             "name": "comprehensive-analysis",
             "intent": "comprehensive_analysis",
-            "keywords": ["全面分析", "comprehensive", "all reports", "完整報告", "全方位", "狀況", "狀態", "進度", "如何", "怎麼樣", "status", "progress", "情況", "分析"],
-            "exact_keywords": ["comprehensive analysis", "完整報告", "全面分析", "整體狀況", "所有進度"],
+            "keywords": ["全面分析", "comprehensive", "all reports", "完整報告", "全方位"],
+            "exact_keywords": ["comprehensive analysis", "完整報告", "全面分析"],
             "steps": [
                 {"skill": "delivery-risk-analysis", "alias": "risk"},
                 {"skill": "sales-response-draft", "alias": "sales"},
@@ -450,6 +465,10 @@ class SkillRegistry:
             return {"error": "Order ID is required for delivery risk analysis."}
         result = analyze_delivery_risk(order_ids[0], data_dir)
         return result
+
+    def _handle_auto_scheduler(self, order_ids, data_dir, query=None):
+        from skills.auto_scheduler import execute_auto_scheduler
+        return execute_auto_scheduler(order_ids, data_dir, query)
 
 # Global singleton
 registry = SkillRegistry()

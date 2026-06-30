@@ -401,11 +401,19 @@ class GoogleSheetsProvider(DataProvider):
     def load(self, data_dir: str, filename: str) -> list:
         import urllib.request
         import urllib.error
+        from cache import get_sheets_cache
 
         if not self._is_enabled():
             raise RuntimeError("Google Sheets provider disabled — set google_sheets.enabled=true")
 
         base_name = os.path.splitext(filename)[0]
+        
+        # Check local cache first
+        cache = get_sheets_cache()
+        cached_data = cache.get(base_name)
+        if cached_data is not None:
+            return cached_data
+
         url = self._dataset_url(base_name)
         if not url:
             raise RuntimeError(f"No Google Sheets dataset configured for {base_name}")
@@ -420,7 +428,11 @@ class GoogleSheetsProvider(DataProvider):
             raise RuntimeError(f"Failed to reach {url}: {e.reason}") from e
 
         reader = csv.DictReader(io.StringIO(body))
-        return [LocalFileProvider._coerce_row_types(row) for row in reader]
+        result = [LocalFileProvider._coerce_row_types(row) for row in reader]
+        
+        # Save to local cache
+        cache.set(base_name, result)
+        return result
 
     def health_check(self, data_dir: str = None) -> dict:
         if not self._is_enabled():

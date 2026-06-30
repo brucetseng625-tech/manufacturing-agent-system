@@ -1799,6 +1799,23 @@ function renderSkillResult(data) {
   if (tradeoffs?.length) {
     html += `<p style="margin-top:0.5rem;color:var(--info);"><strong>權衡：</strong> ${tradeoffs.join(' ')}</p>`;
   }
+  if (data.before && data.after) {
+    html += `<div style="margin-top:1rem; border-top:1px dashed var(--border); padding-top:0.75rem;">`;
+    html += `<strong style="display:block; margin-bottom:0.5rem; font-size:0.85rem; text-transform:uppercase; color:var(--text-secondary);">排程重分配對比 (Before vs. After Comparison)：</strong>`;
+    data.before.forEach((b, idx) => {
+      const a = data.after[idx];
+      html += `<div style="background:var(--bg-primary); border:1px solid var(--border); border-radius:4px; padding:0.5rem 0.75rem; margin-bottom:0.5rem; font-size:0.85rem;">`;
+      if (b.wo_id) {
+        html += `<div style="color:var(--error); margin-bottom:0.25rem;">❌ 調整前：工單 ${b.wo_id} 分配於停機機台 ${b.machine_id} (${b.status})</div>`;
+        html += `<div style="color:var(--success);">✅ 調整後：工單 ${a.wo_id} 重新分配至備用機台 ${a.machine_id} (${a.status})</div>`;
+      } else {
+        html += `<div style="color:var(--error); margin-bottom:0.25rem;">❌ 調整前：機台 ${b.machine_id} 時間交叉衝突 (${b.overlap_start} 至 ${b.overlap_end})</div>`;
+        html += `<div style="color:var(--success);">✅ 調整後：排程已順延排序以避開重疊 (${a.status})</div>`;
+      }
+      html += `</div>`;
+    });
+    html += `</div>`;
+  }
   return html;
 }
 
@@ -1861,12 +1878,48 @@ async function loadStats() {
   const isLightweight = SCENE_WORKSPACE_STATE.mode === 'lightweight';
   grid.innerHTML = `<div class="loading">${isLightweight ? '載入工作概況中…' : '載入使用統計中…'}</div>`;
 
-  try {
-    const res = await fetch('/metrics');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const m = await res.json();
-
-    const rateColor = (rate) => rate >= 80 ? 'var(--success)' : rate >= 50 ? 'var(--warning)' : 'var(--error)';
+    // Fetch channels health status
+    let healthHtml = '';
+    try {
+      const healthRes = await fetch('/api/channels/health');
+      if (healthRes.ok) {
+        const healthData = await healthRes.json();
+        healthHtml += `
+          <!-- External Channels Health Monitor -->
+          <div class="card" style="grid-column: span 2; margin-top: 1.5rem;">
+            <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>🔌 外部渠道狀態監控 (External Channels Monitor)</span>
+              <span style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono); font-weight:normal;">即時連線健康診斷</span>
+            </div>
+            <div style="margin-top: 1rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+              ${Object.entries(healthData.channels || {}).map(([chKey, ch]) => {
+                const isOk = ch.status === 'ok';
+                const statusLight = isOk 
+                  ? '<span class="status-indicator online" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--success);margin-right:0.4rem;box-shadow:0 0 8px var(--success);"></span>' 
+                  : '<span class="status-indicator offline" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--text-muted);margin-right:0.4rem;"></span>';
+                const statusLabel = isOk ? '正常運作 (Active)' : ch.status === 'disabled' ? '未啟用 (Disabled)' : '未配置 (Not Configured)';
+                const borderStyle = isOk ? '1px solid var(--success)' : '1px solid var(--border)';
+                const bgStyle = isOk ? 'rgba(27,67,50,0.02)' : 'rgba(0,0,0,0.01)';
+                
+                return `
+                  <div style="border:${borderStyle}; background:${bgStyle}; padding:1rem; border-radius:6px; display:flex; flex-direction:column; gap:0.5rem;">
+                    <div style="font-weight:600; font-size:0.9rem; color:var(--text-primary); display:flex; align-items:center;">
+                      ${statusLight} ${ch.name}
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--text-secondary);">${statusLabel}</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono); border-top:1px dashed var(--border); padding-top:0.4rem; margin-top:0.25rem;">
+                      系統細節：${ch.details}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+    } catch (err) {
+      console.warn("Failed to load channel health", err);
+    }
 
     let html = `
       <!-- Overview Cards -->
@@ -1911,6 +1964,7 @@ async function loadStats() {
           })()}
         </div>
       </div>
+      ${healthHtml}
     `;
     grid.innerHTML = html;
   } catch (e) {

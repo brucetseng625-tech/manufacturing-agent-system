@@ -242,6 +242,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_config(parsed_path)
         elif path == "/metrics":
             self._handle_metrics()
+        elif path == "/api/channels/health" or path == "/channels/health":
+            self._handle_channels_health()
         elif path == "/data/status":
             self._handle_data_status(parsed_path)
         elif path == "/provider/status":
@@ -433,6 +435,46 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._send_json_response(200, result)
         except Exception as e:
             self._send_error_response(500, "internal_error", "Failed to compute metrics", str(e))
+
+    def _handle_channels_health(self):
+        """Handle GET /api/channels/health — Return connectivity and configurations for Discord, LINE, and Google Sheets."""
+        try:
+            # 1. Google Sheets Status
+            sheets_enabled = get_config_value("google_sheets.enabled", False)
+            sheets_datasets = get_config_value("google_sheets.datasets", {}) or {}
+            sheets_status = "ok" if sheets_enabled and sheets_datasets else "disabled"
+            
+            # 2. LINE Webhook Status
+            line_secret = get_config_value("line.channel_secret", "")
+            line_token = get_config_value("line.channel_access_token", "")
+            line_status = "ok" if line_secret and line_token else "not_configured"
+            
+            # 3. Discord Status
+            discord_token = get_config_value("security.discord_webhook_token", "")
+            discord_status = "ok" if discord_token else "not_configured"
+            
+            self._send_json_response(200, {
+                "status": "success",
+                "channels": {
+                    "google_sheets": {
+                        "name": "Google Sheets (試算表輕量ERP)",
+                        "status": sheets_status,
+                        "details": f"已配置 {len(sheets_datasets)} 個資料集" if sheets_datasets else "未啟用"
+                    },
+                    "line": {
+                        "name": "LINE Webhook 渠道",
+                        "status": line_status,
+                        "details": "連線安全已啟用 (已配置金鑰)" if line_status == "ok" else "未設定金鑰"
+                    },
+                    "discord": {
+                        "name": "Discord Webhook 渠道",
+                        "status": discord_status,
+                        "details": "安全權杖驗證已啟用" if discord_status == "ok" else "未配置權杖"
+                    }
+                }
+            })
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to serve channels health check", str(e))
 
     def _handle_data_status(self, parsed_path):
         """Handle GET /data/status — return data directory metadata."""
@@ -1235,6 +1277,15 @@ class AgentHandler(BaseHTTPRequestHandler):
 
     def _handle_discord_webhook(self):
         """Handle POST /webhook/discord — Receive Discord messages and process as queries or approval commands."""
+        parsed_url = urlparse(self.path)
+        query_params = parse_qs(parsed_url.query)
+        token = query_params.get("token", [None])[0] or self.headers.get("X-Discord-Token", "")
+        
+        expected_token = get_config_value("security.discord_webhook_token", "")
+        if expected_token and token != expected_token:
+            self._send_error_response(401, "invalid_signature", "Invalid or missing Discord webhook token")
+            return
+
         try:
             content_length = int(self.headers.get("Content-Length", 0))
             if content_length > 0:
