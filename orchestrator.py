@@ -75,8 +75,9 @@ def validate_data_dir(data_dir, data_files=None):
             errors.extend(errs)
     return errors
 
-def route_query(query, data_dir):
+def route_query(query, data_dir, user_id=None, env_context=None):
     """
+    Main orchestrator logic using Skill Registry with context-aware scenarios.
     Main orchestrator logic using Skill Registry.
     1. Validates data.
     2. Extracts order IDs.
@@ -185,7 +186,14 @@ def route_query(query, data_dir):
                         order_ids=order_ids)
             # Call AI Gateway to synthesize response
             gateway = AIGateway()
-            gateway_res = gateway.route_query(query, team_result, order_ids)
+            gateway_res = gateway.route_query(query, team_result, order_ids, user_id=user_id, env_context=env_context)
+            if gateway_res.get("route") == "blocked":
+                return {
+                    **response_base,
+                    "status": "error",
+                    "type": "security_blocked",
+                    "details": gateway_res["response"]
+                }
             return {
                 **response_base,
                 "status": "success",
@@ -213,10 +221,23 @@ def route_query(query, data_dir):
     matched_skill = get_registry().match_skill(query, order_ids)
 
     if matched_skill is None:
-        # Check if the query is a general query about orders, production, machines, or materials
+        # Check if the query is a general query or matches custom scenarios
+        from ai_gateway import AIGateway
+        gateway = AIGateway()
+        matched_sc = False
+        try:
+            if user_id:
+                sc_info = gateway._check_scenarios(query, user_id, env_context)
+                if sc_info:
+                    matched_sc = True
+        except PermissionError:
+            matched_sc = True
+        except Exception:
+            pass
+
         query_lower = query.lower()
         general_triggers = ["生產", "訂單", "工廠", "製造", "排程", "機台", "物料", "報價", "list", "orders", "production", "schedule"]
-        if any(w in query_lower for w in general_triggers):
+        if matched_sc or any(w in query_lower for w in general_triggers):
             try:
                 orders_data = load_json_or_csv(data_dir, "orders.json")
                 work_orders_data = load_json_or_csv(data_dir, "work_orders.json")
@@ -232,7 +253,14 @@ def route_query(query, data_dir):
                 log_routing("general_query", skill_name="general-query-fallback", order_ids=order_ids)
                 
                 gateway = AIGateway()
-                gateway_res = gateway.route_query(query, fallback_result, order_ids)
+                gateway_res = gateway.route_query(query, fallback_result, order_ids, user_id=user_id, env_context=env_context)
+                if gateway_res.get("route") == "blocked":
+                    return {
+                        **response_base,
+                        "status": "error",
+                        "type": "security_blocked",
+                        "details": gateway_res["response"]
+                    }
                 return {
                     **response_base,
                     "status": "success",
@@ -316,7 +344,14 @@ def route_query(query, data_dir):
     gateway = AIGateway()
     result_data["intent"] = matched_skill["intent"]
     result_data["order_id"] = order_ids[0] if order_ids else None
-    gateway_res = gateway.route_query(query, result_data, order_ids)
+    gateway_res = gateway.route_query(query, result_data, order_ids, user_id=user_id, env_context=env_context)
+    if gateway_res.get("route") == "blocked":
+        return {
+            **response_base,
+            "status": "error",
+            "type": "security_blocked",
+            "details": gateway_res["response"]
+        }
     return {
         **response_base,
         "status": "success",
