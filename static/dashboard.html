@@ -6,21 +6,21 @@
 <title>製造業 AI 協作系統工作台</title>
 <style>
 :root {
-  --bg-primary: #f4f4f2;      /* Warm chalky bone */
-  --bg-secondary: #ffffff;  /* Pure white sidebar for editorial layout */
-  --bg-card: #ffffff;
-  --bg-input: #ffffff;
-  --border: #dcdcd8;        /* Warm grey borders */
-  --text-primary: #171717;
-  --text-secondary: #52525b;
-  --text-muted: #8e8e93;
-  --accent: #171717;       /* Pure dark charcoal as accent - zero bright colors */
-  --accent-light: #262626;
-  --accent-glow: rgba(23, 23, 23, 0.04);
-  --success: #1b4332;      /* Deep forest green */
-  --warning: #7f5539;      /* Burnt clay/earth */
-  --error: #780000;        /* Deep brick red */
-  --info: #1a365d;         /* Deep corporate navy */
+  --bg-primary: #0f0f1a;
+  --bg-secondary: #1a1a2e;
+  --bg-card: #16213e;
+  --bg-input: #1e1e3a;
+  --border: #2a2a4a;
+  --text-primary: #e8e8f0;
+  --text-secondary: #a0a0b8;
+  --text-muted: #6a6a8a;
+  --accent: #6366f1;
+  --accent-light: #818cf8;
+  --accent-glow: rgba(99, 102, 241, 0.3);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -40,13 +40,31 @@ body {
   flex-shrink: 0;
 }
 .sidebar h1 {
-  font-size: 1.1rem;
-  padding: 0 1.25rem 1.25rem;
-  color: var(--accent-light);
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0 1.25rem 1rem;
+  color: var(--text-primary);
   border-bottom: 1px solid var(--border);
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
-.sidebar h1 span { font-weight: 300; color: var(--text-secondary); }
+.sidebar h1 .sidebar-brand { display: flex; justify-content: space-between; align-items: center; }
+.sidebar h1 .sidebar-en { font-size: 0.72rem; font-weight: 400; color: var(--text-muted); letter-spacing: 0.08em; }
+.sidebar-status {
+  display: flex; align-items: center; gap: 0.4rem;
+  font-size: 0.72rem; font-weight: 400; color: var(--success);
+  padding: 0 1.25rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.5rem;
+}
+.sidebar-status .status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--success);
+  animation: pulse-green 2s infinite;
+}
+.nav-item span { font-weight: 300; color: var(--text-secondary); }
 .nav-item {
   display: flex;
   align-items: center;
@@ -951,15 +969,24 @@ body {
 <body>
 <div class="app">
   <nav class="sidebar">
-    <h1>智造中控台 <span>Dashboard</span></h1>
-    <div class="nav-item active" data-view="workspace">
-      <span class="nav-icon">🏠</span><span class="nav-text">主工作台</span>
+    <h1>
+      <div class="sidebar-brand">代理 主控台 <span class="sidebar-en">EN</span></div>
+    </h1>
+    <div class="sidebar-status">
+      <span class="status-dot"></span>連線中
+    </div>
+    <div class="nav-item active" data-view="query">
+      <span class="nav-icon">▶</span><span class="nav-text">查詢執行器</span>
+    </div>
+    <div class="nav-item" data-view="workspace">
+      <span class="nav-icon">🏭</span><span class="nav-text">協作場景</span>
     </div>
     <div class="nav-item" data-view="ops">
       <span class="nav-icon">🛡️</span><span class="nav-text">營運治理</span>
     </div>
     <div class="nav-item" data-view="timeline">
-      <span class="nav-icon">📅</span><span class="nav-text">事件時間軸</span>
+      <span class="nav-icon">📅</span><span class="nav-text">事件時間軸
+      </span>
     </div>
     <div class="nav-item" data-view="history">
       <span class="nav-icon">📋</span><span class="nav-text">執行紀錄</span>
@@ -973,8 +1000,21 @@ body {
   </nav>
 
   <main class="main">
-    <!-- Workspace View -->
-    <section id="view-workspace" class="view active">
+    <!-- Query View (operator-first) -->
+    <section id="view-query" class="view active">
+      <div class="view-header">
+        <h2>查詢執行器</h2>
+        <p>輸入訂單編號或需求描述，AI 自動分析交期風險、缺料狀況、排程衝突等問題，並顯示完整決策說明</p>
+      </div>
+      <div class="query-box">
+        <input type="text" id="query-input" class="query-input" placeholder="例如：ORD-1001 能否準時出貨呢？" />
+        <button id="query-btn" class="btn" onclick="executeQuery()">執行查詢 ▶</button>
+      </div>
+      <div id="query-result" class="result-panel"></div>
+    </section>
+
+    <!-- Workspace / Scene View -->
+    <section id="view-workspace" class="view">
       <div class="view-header">
         <h2>主工作台</h2>
         <p>把提問、協作分流、節點原因與下一步放在同一個工作台，先看主控如何協調，再決定後續處理。</p>
@@ -1130,6 +1170,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
     const view = item.dataset.view;
     document.getElementById(`view-${view}`).classList.add('active');
     if (view === 'workspace') renderScene();
+    if (view === 'query') { /* query result resets on nav */ document.getElementById('query-result').innerHTML = ''; }
     if (view === 'skills') loadSkills();
     if (view === 'history') loadHistory();
     if (view === 'stats') loadStats();
@@ -1140,6 +1181,9 @@ document.querySelectorAll('.nav-item').forEach(item => {
 
 // Enter key support
 document.addEventListener('keydown', e => {
+  if (e.target && e.target.id === 'query-input' && e.key === 'Enter') {
+    executeQuery();
+  }
   if (e.target && e.target.id === 'scene-query-input' && e.key === 'Enter') {
     executeSceneWorkspaceQuery();
   }
@@ -3497,8 +3541,9 @@ async function loadTimeline() {
   }
 }
 
-// Initial load - load query view first (operator-first)
-loadSkills();
+// Initial load - query view is first, no pre-load needed
+// Skills / stats load lazily on tab click
+document.getElementById('query-input') && document.getElementById('query-input').focus();
 </script>
 </body>
 </html>
