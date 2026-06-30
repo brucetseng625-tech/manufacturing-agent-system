@@ -1709,8 +1709,22 @@ function renderSkillResult(data) {
     }
     html += `</div></div>`;
   }
-  if (tradeoffs?.length) {
-    html += `<div style="margin-top:0.4rem;color:var(--info);font-size:0.9rem;"><strong>Tradeoffs Evaluated:</strong> ${tradeoffs.join(' ')}</div>`;
+  if (data.before && data.after) {
+    html += `<div style="margin-top:1rem; border-top:1px dashed var(--border-subtle); padding-top:0.75rem;">`;
+    html += `<strong style="display:block; margin-bottom:0.5rem; font-size:0.85rem; text-transform:uppercase; color:var(--text-secondary);">排程重分配對比 (Before vs. After Comparison)：</strong>`;
+    data.before.forEach((b, idx) => {
+      const a = data.after[idx];
+      html += `<div style="background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:4px; padding:0.5rem 0.75rem; margin-bottom:0.5rem; font-size:0.85rem;">`;
+      if (b.wo_id) {
+        html += `<div style="color:var(--error); margin-bottom:0.25rem;">❌ 調整前：工單 ${b.wo_id} 分配於停機機台 ${b.machine_id} (${b.status})</div>`;
+        html += `<div style="color:var(--success);">✅ 調整後：工單 ${a.wo_id} 重新分配至備用機台 ${a.machine_id} (${a.status})</div>`;
+      } else {
+        html += `<div style="color:var(--error); margin-bottom:0.25rem;">❌ 調整前：機台 ${b.machine_id || 'CNC-01'} 時間交叉衝突 (${b.overlap_start || ''} 至 ${b.overlap_end || ''})</div>`;
+        html += `<div style="color:var(--success);">✅ 調整後：排程已順延排序以避開重疊 (${a.status})</div>`;
+      }
+      html += `</div>`;
+    });
+    html += `</div>`;
   }
   html += '</div>';
   return html;
@@ -1830,6 +1844,45 @@ async function loadStats() {
       `;
     }).join('');
 
+    let healthHtml = '';
+    try {
+      const healthRes = await fetch('/api/channels/health');
+      if (healthRes.ok) {
+        const healthData = await healthRes.json();
+        healthHtml = `
+          <div class="card" style="margin-top: 1.5rem;">
+            <div class="card-header">
+              <span class="card-title">🔌 外部渠道狀態監控 (External Channels Monitor)</span>
+              <span class="badge badge-team" style="font-family:var(--font-mono); font-size:0.7rem;">HEALTH</span>
+            </div>
+            <div style="margin-top: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+              ${Object.entries(healthData.channels || {}).map(([chKey, ch]) => {
+                const isOk = ch.status === 'ok';
+                const statusLight = isOk 
+                  ? '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--success);margin-right:0.4rem;box-shadow:0 0 6px var(--success);"></span>' 
+                  : '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--text-muted);margin-right:0.4rem;"></span>';
+                const statusLabel = isOk ? '正常運作 (Active)' : ch.status === 'disabled' ? '未啟用 (Disabled)' : '未配置 (Not Configured)';
+                
+                return `
+                  <div style="border:1px solid var(--border-subtle); background:var(--bg-panel-hover); padding:1rem; border-radius:6px; display:flex; flex-direction:column; gap:0.4rem;">
+                    <div style="font-weight:600; font-size:0.9rem; color:var(--text-primary); display:flex; align-items:center;">
+                      ${statusLight} ${ch.name}
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--text-secondary);">${statusLabel}</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono); border-top:1px dashed var(--border-subtle); padding-top:0.4rem; margin-top:0.25rem;">
+                      ${ch.details}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+    } catch (err) {
+      console.warn("Failed to load channel health", err);
+    }
+
     detailGrid.innerHTML = `
       <div class="card">
         <div class="card-header">
@@ -1840,6 +1893,7 @@ async function loadStats() {
           ${distributionHtml || '<div class="empty-state">No runs recorded for skill matching</div>'}
         </div>
       </div>
+      ${healthHtml}
     `;
   } catch (e) {
     overviewGrid.innerHTML = `<div class="error-state">Failed to load statistics: ${e.message}</div>`;
