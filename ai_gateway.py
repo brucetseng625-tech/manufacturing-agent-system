@@ -23,30 +23,114 @@ class AIGateway:
             raw=True
         )
 
-    def route_query(self, query, tool_data, order_ids=None):
-        """
-        Classify, route, and execute LLM inference.
-        Returns: {
-            "response": str (LLM response),
-            "route": str ("local" or "cloud"),
-            "model_used": str,
-            "sensitivity": str ("high" or "low"),
-            "reason": str,
-            "simulated": bool
-        }
-        """
-        # 1. Sensitivity Classification
-        sensitivity, reason = self._classify_sensitivity(query, order_ids)
+    def _check_scenarios(self, query, user_id, env_context):
+        """Check if query matches any custom ZTNA/IAM scenarios, returning restrictions."""
+        import os
+        import json
         
-        # 2. Select Route
-        route = "local" if sensitivity == "high" else "cloud"
+        sc_path = os.path.join(os.path.dirname(__file__), "policies", "scenarios.json")
+        if not os.path.exists(sc_path):
+            return None
+            
+        try:
+            with open(sc_path, "r", encoding="utf-8") as f:
+                sc_data = json.load(f)
+        except Exception:
+            return None
+            
+        # 1. Lookup user role
+        user_info = None
+        for u in sc_data.get("users", []):
+            if u["id"] == user_id:
+                user_info = u
+                break
+                
+        user_role = user_info["role"] if user_info else "Guest"
+        user_name = user_info["name"] if user_info else "未知用戶"
+        
+        # 2. Check keyword triggers
+        query_lower = query.lower()
+        matched_sc = None
+        for sc in sc_data.get("scenarios", []):
+            for kw in sc.get("trigger_keywords", []):
+                if kw.lower() in query_lower:
+                    matched_sc = sc
+                    break
+            if matched_sc:
+                break
+                
+        if not matched_sc:
+            return None
+            
+        # 3. IAM Role permission check
+        if user_role not in matched_sc.get("allowed_roles", []):
+            raise PermissionError(
+                f"【資安拒絕】用戶 '{user_name}' ({user_role}) 的角色權限不足，無法執行安全場景：{matched_sc['name']}。"
+            )
+            
+        # 4. Context-Aware / Environment check & Dynamic Privileges Degradation
+        restricted = False
+        notes = []
+        if matched_sc["id"] == "scenario_1_agv_repair" and env_context == "external":
+            restricted = True
+            notes.append("【動態權限降級】偵測到您處於外網環境，已依據 ZTNA/IAM 規則過濾機密設計圖紙與 AMR 核心原始碼，僅開放調閱維修日誌、出貨BOM與工程除錯指南。")
+            
+        return {
+            "scenario": matched_sc,
+            "user_name": user_name,
+            "user_role": user_role,
+            "restricted": restricted,
+            "notes": notes,
+            "routing": matched_sc.get("gateway_routing"),
+            "dlp": matched_sc.get("dlp_actions", [])
+        }
+
+    def route_query(self, query, tool_data, order_ids=None, user_id=None, env_context=None):
+        """
+        Classify, route, and execute LLM inference with context-aware security scenarios.
+        """
+        import datetime
+
+        # 1. Check scenarios registry (ZTNA & IAM)
+        sc_result = None
+        try:
+            if user_id:
+                sc_result = self._check_scenarios(query, user_id, env_context)
+        except PermissionError as pe:
+            return {
+                "response": str(pe),
+                "route": "blocked",
+                "model_used": "Security Gateway Router",
+                "sensitivity": "critical",
+                "reason": "IAM Role Blocked",
+                "simulated": True,
+                "blocked": True,
+                "scenario_matched": None,
+                "restricted_notes": []
+            }
+
+        # 2. Select Route & Sensitivity
+        if sc_result and sc_result["routing"]:
+            route = "local" if sc_result["routing"] == "force_local" else "cloud"
+            sensitivity = "high" if route == "local" else "low"
+            reason = f"Scenarios Registry: {sc_result['scenario']['name']} ({sc_result['routing']})"
+        else:
+            sensitivity, reason = self._classify_sensitivity(query, order_ids)
+            route = "local" if sensitivity == "high" else "cloud"
+            
         model_name = self.local_model if route == "local" else self.cloud_model
         
-        # 3. Compile System Prompt & Context
+        # 3. Add Scenario Context if restricted
+        if sc_result and sc_result["restricted"]:
+            tool_data["restricted_context"] = sc_result["notes"]
+            
+        # 4. Compile System Prompt & Context
         system_prompt = self._get_system_prompt(route)
         user_prompt = f"User Query: {query}\n\nRetrieved Context (from internal tools):\n{json.dumps(tool_data, ensure_ascii=False, indent=2)}"
-
-        # 4. Try Actual Call, fallback to Simulator if it fails
+        if sc_result:
+            user_prompt += f"\nActive Security Profile: {sc_result['user_name']} ({sc_result['user_role']}) via {env_context or 'internal'}"
+            
+        # 5. Try Actual Call, fallback to Simulator if it fails
         response = None
         is_simulated = False
         
@@ -56,11 +140,40 @@ class AIGateway:
             response = self._call_local_llm(system_prompt, user_prompt)
             
         if not response:
-            response = self._simulate_llm_response(query, tool_data, route, model_name, reason)
+            # Custom simulation responses for scenarios 1 and 2
+            if sc_result and sc_result["scenario"]["id"] == "scenario_1_agv_repair":
+                response = (
+                    "【地端 AI 推論核心報告】\n\n"
+                    "已完成客製化頂升式 AGV 安全感測器異常診斷分析。\n"
+                    "● 設備維修履歷：該設備上月共發生 3 次安全感測器異常 (E-102: Lidar Timeout)。\n"
+                    "● 出貨BOM表比對：安全感測器型號為 SE-SEN-LID-02，出貨日期為 2026-01-12。\n"
+                    "● 工程除錯建議：\n"
+                    "  1. 檢查安全感測器供電線路是否有訊號衰減，重啟通訊連線。\n"
+                    "  2. 清潔感測器鏡面，排除塵埃或油污遮擋。\n"
+                    "  3. 依據工程指南 Section 4.2 重置安全迴路參數。\n\n"
+                    "⚠️ 本次分析包含機密 Log 與 BOM，且發出請求人員位於外網，已強制分流至地端推論伺服器，資料未上傳雲端。"
+                )
+            elif sc_result and sc_result["scenario"]["id"] == "scenario_2_sales_draft":
+                response = (
+                    "【雲端高級商務 API 回傳】\n\n"
+                    "件名：標準型潜伏昇降式AMRのご紹介と導入のご提案\n\n"
+                    "拝啓\n貴社におかれましては、ますますご清栄のこととお慶び申し上げます。\n"
+                    "この度、弊社の標準型潜伏昇降式AMR（自律走行搬送ロボット）についてご紹介させていただきたくご連絡いたしました。\n\n"
+                    "本システムは、建物内の複数フロア（跨樓層）を跨ぐ自動マッピング構築機能、および既存の倉庫管理システム（WMS/WCS）とのシームレスな自動統合に強みを持っております。\n\n"
+                    "資料請求やデモ走行のご要望がございましたら、いつでもお気軽にお申し付けください。\n\n"
+                    "敬具\n営業部"
+                )
+            else:
+                response = self._simulate_llm_response(query, tool_data, route, model_name, reason)
             is_simulated = True
 
-        # 5. DLP Post-Processing (Data Loss Prevention)
+        # 6. DLP Post-Processing (Data Loss Prevention)
         response = self._apply_dlp_filters(response)
+        
+        # Add secure watermark if configured
+        if sc_result and "add_digital_watermark" in sc_result["dlp"]:
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            response += f"\n\n[🛡️ SECURE WATERMARK: {sc_result['user_name']}_{timestamp}_ZTNA_VERIFIED]"
 
         return {
             "response": response,
@@ -68,7 +181,9 @@ class AIGateway:
             "model_used": model_name,
             "sensitivity": sensitivity,
             "reason": reason,
-            "simulated": is_simulated
+            "simulated": is_simulated,
+            "scenario_matched": sc_result["scenario"]["name"] if sc_result else None,
+            "restricted_notes": sc_result["notes"] if sc_result else []
         }
 
     def _classify_sensitivity(self, query, order_ids):
@@ -81,9 +196,7 @@ class AIGateway:
                 return "high", f"Query context triggers security keyword: '{kw}'"
 
         # Rule B: VIP Order Classification (Forced Local)
-        # Check if the order belongs to a high-penalty/VIP customer (Global Tech is marked as VIP)
         if order_ids:
-            # VIP Check based on order ID strings or loading order metadata
             for oid in order_ids:
                 if oid == "ORD-1001":
                     return "high", "Forced Local route: target ORD-1001 contains highly-classified Global Tech (VIP) order info"
