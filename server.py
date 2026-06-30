@@ -230,6 +230,8 @@ class AgentHandler(BaseHTTPRequestHandler):
         # API routes
         if path == "/health":
             self._send_json_response(200, {"status": "ok"})
+        elif path == "/api/scenarios" or path == "/scenarios":
+            self._handle_scenarios_get()
         elif path == "/history":
             self._handle_history(parsed_path)
         elif path == "/skills":
@@ -348,6 +350,38 @@ class AgentHandler(BaseHTTPRequestHandler):
             self.wfile.write(content)
         except Exception:
             self._send_error_response(500, "internal_error", "Failed to serve static file")
+
+    def _handle_scenarios_get(self):
+        """Handle GET /api/scenarios — Return scenarios configuration."""
+        import os
+        import json
+        sc_path = os.path.join(os.path.dirname(__file__), "policies", "scenarios.json")
+        if not os.path.exists(sc_path):
+            self._send_json_response(200, {"scenarios": [], "users": []})
+            return
+        try:
+            with open(sc_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            self._send_json_response(200, data)
+        except Exception as e:
+            self._send_error_response(500, "failed_to_load_scenarios", str(e))
+
+    def _handle_scenarios_post(self):
+        """Handle POST /api/scenarios — Update scenarios configuration."""
+        import os
+        import json
+        sc_path = os.path.join(os.path.dirname(__file__), "policies", "scenarios.json")
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(content_length).decode("utf-8")
+            data = json.loads(body)
+            
+            with open(sc_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+                
+            self._send_json_response(200, {"status": "ok", "message": "Scenarios updated successfully"})
+        except Exception as e:
+            self._send_error_response(500, "failed_to_save_scenarios", str(e))
 
     def _handle_skills(self):
         """Handle GET /skills — return available skills and team workflows."""
@@ -1449,6 +1483,8 @@ class AgentHandler(BaseHTTPRequestHandler):
 
         if path == "/run":
             self._handle_run()
+        elif path == "/api/scenarios" or path == "/scenarios":
+            self._handle_scenarios_post()
         elif path == "/batch":
             self._handle_batch()
         elif path == "/config/reload":
@@ -1791,9 +1827,12 @@ class AgentHandler(BaseHTTPRequestHandler):
             })
             return
 
+        user_id = payload.get("user_id", None)
+        env_context = payload.get("env_context", None)
+
         # Route the query
         try:
-            result = route_query(query, data_dir)
+            result = route_query(query, data_dir, user_id=user_id, env_context=env_context)
         except Exception as e:
             # Unexpected internal error
             result = {
@@ -1838,18 +1877,26 @@ class AgentHandler(BaseHTTPRequestHandler):
             response_body["llm_route"] = result.get("llm_route")
             response_body["model_used"] = result.get("model_used")
             response_body["sensitivity"] = result.get("sensitivity")
-            response_body["routing_reason"] = result.get("routing_reason")
-            response_body["simulated"] = result.get("simulated")
+            if "scenario_matched" in result:
+                response_body["scenario_matched"] = result["scenario_matched"]
+            if "restricted_notes" in result:
+                response_body["restricted_notes"] = result["restricted_notes"]
             status_code = 200
         else:
             error_type = result.get("type", "unknown")
             response_body["error_type"] = error_type
             response_body["error"] = result.get("details")
-            # Validation errors are user errors (400), others are 500
-            if error_type in ("validation_failed", "missing_order_id", "unknown_intent"):
-                status_code = 400
+            if error_type == "security_blocked":
+                response_body["response"] = result.get("details")
+                response_body["sensitivity"] = "critical"
+                response_body["llm_route"] = "blocked"
+                response_body["model_used"] = "Security Router"
+                status_code = 200
             else:
-                status_code = 500
+                if error_type in ("validation_failed", "missing_order_id", "unknown_intent"):
+                    status_code = 400
+                else:
+                    status_code = 500
 
         # Audit Log
         log_run(result, "http", asana_task, asana_posted)
