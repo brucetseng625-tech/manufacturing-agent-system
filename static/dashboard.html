@@ -972,6 +972,10 @@ body {
         <svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         <span class="nav-text" data-i18n="nav_timeline">Timeline</span>
       </div>
+      <div class="nav-item" data-view="scenarios">
+        <svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span class="nav-text" data-i18n="nav_scenarios">Security Scenarios</span>
+      </div>
     </div>
     
     <div class="sidebar-footer">
@@ -1088,6 +1092,75 @@ body {
         <div class="loading" data-i18n="timeline_loading">Loading timeline</div>
       </div>
     </section>
+
+    <!-- Scenarios View -->
+    <section id="view-scenarios" class="view">
+      <div class="view-header">
+        <h2 data-i18n="scenarios_title">Security Scenarios & ZTNA / IAM Control</h2>
+        <p data-i18n="scenarios_desc">Manage context-aware security scenarios, allowed operator roles, and simulate access control routing.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 1.5rem; align-items: start;">
+        <!-- Scenario List -->
+        <div>
+          <h3 style="font-family:var(--font-display); font-weight:600; margin-bottom:1rem; font-size:1.15rem; color:var(--text-primary);" data-i18n="sc_list_title">Active Security Scenarios</h3>
+          <div id="scenarios-list" style="display:flex; flex-direction:column; gap:1rem;">
+            <div class="loading">Loading security policies...</div>
+          </div>
+        </div>
+
+        <!-- Simulation Panel -->
+        <div class="card" style="background:#ffffff; border:1px solid var(--border-subtle); padding:1.25rem;">
+          <h3 style="font-family:var(--font-display); font-weight:600; margin-bottom:1rem; font-size:1.1rem; color:var(--text-primary);" data-i18n="sim_title">Access Simulator</h3>
+          
+          <div style="display:flex; flex-direction:column; gap:0.85rem;">
+            <div>
+              <label style="font-size:0.8rem; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:0.3rem;" data-i18n="sim_user">Select User Profile</label>
+              <select id="sim-user-select" class="filter-select" style="width:100%; font-size:0.85rem; height:34px;">
+                <!-- populated dynamically -->
+              </select>
+            </div>
+            
+            <div>
+              <label style="font-size:0.8rem; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:0.3rem;" data-i18n="sim_env">Access Environment (Context)</label>
+              <select id="sim-env-select" class="filter-select" style="width:100%; font-size:0.85rem; height:34px;">
+                <option value="internal" data-i18n="sim_env_internal">Internal Company Network (公司內網)</option>
+                <option value="external" data-i18n="sim_env_external">External Client Site (外網環境/VPN)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style="font-size:0.8rem; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:0.3rem;" data-i18n="sim_query">Test Query (Trigger Keywords)</label>
+              <textarea id="sim-query-input" class="filter-input" style="width:100%; height:80px; resize:none; font-family:inherit; font-size:0.85rem; padding:0.4rem 0.6rem;" placeholder="e.g., AGV安全感測器異常, or AMR公版規格書"></textarea>
+            </div>
+
+            <button id="sim-btn" class="btn btn-primary" style="width:100%; display:flex; justify-content:center; align-items:center; gap:0.4rem;" onclick="runSimulation()">
+              <span data-i18n="sim_run_btn">Run Security Simulation</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </button>
+          </div>
+
+          <!-- Simulation Result Output -->
+          <div id="sim-output" style="margin-top:1.25rem; display:none; border-top:1px dashed var(--border-subtle); padding-top:1rem;">
+            <h4 style="font-family:var(--font-display); font-weight:600; font-size:0.95rem; display:flex; align-items:center; gap:0.4rem; margin-bottom:0.5rem;">
+              <span id="sim-result-indicator" style="display:inline-block; width:8px; height:8px; border-radius:50%;"></span>
+              <span id="sim-result-status">ALLOWED</span>
+            </h4>
+            <div style="font-size:0.82rem; color:var(--text-secondary); display:flex; flex-direction:column; gap:0.4rem;">
+              <div><strong>Matched Scenario:</strong> <span id="sim-result-scenario">-</span></div>
+              <div><strong>Route Selected:</strong> <span id="sim-result-route" style="font-family:var(--font-mono); font-weight:600;">-</span></div>
+              <div><strong>Model Enforced:</strong> <span id="sim-result-model" style="font-family:var(--font-mono);">-</span></div>
+              <div id="sim-result-degradation-box" style="display:none; background:rgba(120,0,0,0.03); border:1px solid var(--error); border-radius:4px; padding:0.4rem 0.6rem; color:var(--error); font-size:0.78rem; line-height:1.35; margin-top:0.25rem;">
+                <!-- notes -->
+              </div>
+              <div id="sim-result-response" style="background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:6px; padding:0.6rem; margin-top:0.5rem; font-family:inherit; color:var(--text-primary); line-height:1.45; overflow-y:auto; max-height:160px; font-size:0.82rem; white-space:pre-wrap;">
+                <!-- response -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -1104,6 +1177,19 @@ const TRANSLATIONS = {
     nav_stats: "Stats",
     nav_ops: "Operations",
     nav_timeline: "Timeline",
+    nav_scenarios: "Security Scenarios",
+    
+    // Scenarios View
+    scenarios_title: "Security Scenarios & ZTNA / IAM Control",
+    scenarios_desc: "Manage context-aware security scenarios, allowed operator roles, and simulate access control routing.",
+    sc_list_title: "Active Security Scenarios",
+    sim_title: "Access Simulator",
+    sim_user: "Select User Profile",
+    sim_env: "Access Environment (Context)",
+    sim_env_internal: "Internal Network (Company LAN)",
+    sim_env_external: "External Client Site (ZTNA Zoned)",
+    sim_query: "Test Query (Trigger Keywords)",
+    sim_run_btn: "Run Security Simulation",
     
     // Skills View
     skills_title: "Skills & Teams",
@@ -1234,6 +1320,19 @@ const TRANSLATIONS = {
     nav_stats: "系統統計",
     nav_ops: "營運管理",
     nav_timeline: "事件時間軸",
+    nav_scenarios: "安全情境",
+    
+    // Scenarios View
+    scenarios_title: "安全防護與情境管控 (Security Scenarios)",
+    scenarios_desc: "管理上下文感知 (Context-Aware) 的安全情境與 IAM 角色，模擬外網 ZTNA 權限降級與 AI Gateway 路由分流。",
+    sc_list_title: "目前啟動之安全防護情境",
+    sim_title: "防護分流模擬器",
+    sim_user: "選擇使用者帳戶與角色",
+    sim_env: "訪問環境 (Context)",
+    sim_env_internal: "公司內部網絡 (公司內網 - 驗證通過)",
+    sim_env_external: "客戶廠房現場 (外部環境 - 權限降級)",
+    sim_query: "輸入提問指令 (觸發關鍵字)",
+    sim_run_btn: "執行安全防護模擬",
     
     // Skills View
     skills_title: "技能與工作流",
@@ -1404,6 +1503,7 @@ function setLanguage(lang) {
     if (view === 'stats') loadStats();
     if (view === 'ops') loadOps();
     if (view === 'timeline') loadTimeline();
+    if (view === 'scenarios') loadScenarios();
   }
 }
 
@@ -1437,6 +1537,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
     if (view === 'stats') loadStats();
     if (view === 'ops') loadOps();
     if (view === 'timeline') loadTimeline();
+    if (view === 'scenarios') loadScenarios();
   });
 });
 
@@ -2565,6 +2666,169 @@ async function loadTimeline() {
     content.innerHTML = html;
   } catch (e) {
     content.innerHTML = `<div class="error-state">Failed to load timeline events: ${e.message}</div>`;
+  }
+}
+
+// Scenarios View & Simulation
+let scenarioData = { scenarios: [], users: [] };
+
+async function loadScenarios() {
+  const listDiv = document.getElementById('scenarios-list');
+  const userSelect = document.getElementById('sim-user-select');
+  listDiv.innerHTML = '<div class="loading">Loading security policies...</div>';
+
+  try {
+    const res = await fetch('/api/scenarios');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    scenarioData = await res.json();
+
+    // Render Scenario cards
+    if (!scenarioData.scenarios || scenarioData.scenarios.length === 0) {
+      listDiv.innerHTML = '<div class="empty-state">No custom scenarios configured</div>';
+      return;
+    }
+
+    listDiv.innerHTML = scenarioData.scenarios.map(sc => {
+      const routingLabel = sc.gateway_routing === 'force_local' 
+        ? '<span class="badge badge-error">強制地端推論 (Force Local LLM)</span>' 
+        : '<span class="badge badge-success">允許雲端推論 (Allow Cloud LLM)</span>';
+
+      const contextLabel = sc.env_context === 'external' 
+        ? '<span>外網 ZTNA 降級 (External context required)</span>' 
+        : '<span>內外網適用 (Any Context)</span>';
+
+      return `
+        <div class="card" style="background:#ffffff; border:1px solid var(--border-subtle); padding:1.25rem;">
+          <div class="card-header" style="margin-bottom:0.75rem;">
+            <span class="card-title" style="font-size:1rem; font-weight:600; color:var(--text-primary);">${currentLang === 'en' ? sc.name_en : sc.name}</span>
+            ${routingLabel}
+          </div>
+          <div style="font-size:0.82rem; color:var(--text-secondary); display:flex; flex-direction:column; gap:0.4rem;">
+            <div><strong>觸發關鍵字 (Keywords):</strong> ${sc.trigger_keywords.map(kw => `<code style="font-family:var(--font-mono); background:var(--bg-app); padding:0.1rem 0.35rem; border-radius:4px; border:1px solid var(--border-subtle); margin-right:0.25rem; font-size:0.78rem;">${kw}</code>`).join('')}</div>
+            <div><strong>允許訪問角色 (Allowed Roles):</strong> ${sc.allowed_roles.map(r => `<span class="badge badge-skill" style="padding:0.1rem 0.4rem; font-size:0.72rem; margin-right:0.25rem;">${r}</span>`).join('')}</div>
+            <div><strong>訪問環境約束 (Context):</strong> <span style="font-family:var(--font-mono); font-weight:600; color:var(--info);">${contextLabel}</span></div>
+            
+            <div style="margin-top:0.5rem; border-top:1px dashed var(--border-subtle); padding-top:0.5rem; display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+              <div>
+                <strong style="color:var(--text-primary); display:block; margin-bottom:0.2rem; font-size:0.8rem;">IAM 授權範圍 (Allowed):</strong>
+                <ul style="margin-left:1.2rem; color:var(--success); font-size:0.78rem; line-height:1.4;">
+                  ${sc.iam_policy.allowed_resources.map(res => `<li>${res}</li>`).join('')}
+                </ul>
+              </div>
+              <div>
+                <strong style="color:var(--text-primary); display:block; margin-bottom:0.2rem; font-size:0.8rem;">IAM 排除範圍 (Blocked):</strong>
+                <ul style="margin-left:1.2rem; color:var(--error); font-size:0.78rem; line-height:1.4;">
+                  ${sc.iam_policy.denied_resources.map(res => `<li>${res}</li>`).join('')}
+                </ul>
+              </div>
+            </div>
+            
+            ${sc.dlp_actions.length > 0 ? `
+              <div style="margin-top:0.35rem; font-size:0.78rem; color:var(--text-muted);">
+                <strong>DLP 敏感過濾動作 (DLP Actions):</strong> ${sc.dlp_actions.map(act => `<span style="border:1px solid var(--border-subtle); border-radius:3px; padding:0.05rem 0.3rem; margin-right:0.25rem;">${act}</span>`).join('')}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Populate user profile selector
+    userSelect.innerHTML = (scenarioData.users || []).map(u => 
+      `<option value="${u.id}">${u.name} (角色: ${u.role})</option>`
+    ).join('');
+
+  } catch (e) {
+    listDiv.innerHTML = `<div class="error-state">Failed to load scenarios: ${e.message}</div>`;
+  }
+}
+
+async function runSimulation() {
+  const userId = document.getElementById('sim-user-select').value;
+  const envContext = document.getElementById('sim-env-select').value;
+  const query = document.getElementById('sim-query-input').value.trim();
+  const outputDiv = document.getElementById('sim-output');
+  const simBtn = document.getElementById('sim-btn');
+  
+  if (!query) {
+    alert("Please enter a query to simulate security routing.");
+    return;
+  }
+
+  simBtn.disabled = true;
+  simBtn.textContent = 'Simulating Checks...';
+  outputDiv.style.display = 'none';
+
+  try {
+    const res = await fetch('/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, user_id: userId, env_context: envContext })
+    });
+    
+    const data = await res.json();
+    outputDiv.style.display = 'block';
+
+    const statusIndicator = document.getElementById('sim-result-indicator');
+    const statusText = document.getElementById('sim-result-status');
+    const scenarioSpan = document.getElementById('sim-result-scenario');
+    const routeSpan = document.getElementById('sim-result-route');
+    const modelSpan = document.getElementById('sim-result-model');
+    const notesBox = document.getElementById('sim-result-degradation-box');
+    const responseBox = document.getElementById('sim-result-response');
+
+    if (data.status === 'success') {
+      statusIndicator.style.background = 'var(--success)';
+      statusIndicator.style.boxShadow = '0 0 8px var(--success)';
+      statusText.textContent = 'ACCESS ALLOWED';
+      statusText.style.color = 'var(--success)';
+      
+      scenarioSpan.textContent = data.scenario_matched || '無安全情境觸發 (Standard User Input)';
+      routeSpan.textContent = data.llm_route.toUpperCase();
+      routeSpan.style.color = data.llm_route === 'local' ? 'var(--warning)' : 'var(--info)';
+      modelSpan.textContent = data.model_used;
+
+      // Handle ZTNA Privileges Degradation Notes
+      if (data.restricted_notes && data.restricted_notes.length > 0) {
+        notesBox.style.display = 'block';
+        notesBox.style.background = 'rgba(217,119,6,0.03)';
+        notesBox.style.borderColor = 'var(--warning)';
+        notesBox.style.color = 'var(--warning)';
+        notesBox.textContent = data.restricted_notes.join('\n');
+      } else {
+        notesBox.style.display = 'none';
+      }
+
+      responseBox.textContent = data.response;
+    } else {
+      // Access Denied / Blocked
+      statusIndicator.style.background = 'var(--error)';
+      statusIndicator.style.boxShadow = '0 0 8px var(--error)';
+      statusText.textContent = 'ACCESS DENIED';
+      statusText.style.color = 'var(--error)';
+      
+      scenarioSpan.textContent = data.scenario_matched || '資安防護攔截';
+      routeSpan.textContent = 'BLOCKED';
+      routeSpan.style.color = 'var(--error)';
+      modelSpan.textContent = 'Security Router';
+
+      notesBox.style.display = 'block';
+      notesBox.style.background = 'rgba(120,0,0,0.03)';
+      notesBox.style.borderColor = 'var(--error)';
+      notesBox.style.color = 'var(--error)';
+      notesBox.textContent = '❌ ZTNA/IAM 規則攔截拒絕此外部請求：發起角色權限不足。';
+
+      responseBox.textContent = data.response || '存取被拒。';
+    }
+  } catch (e) {
+    alert("Simulation failed: " + e.message);
+  } finally {
+    simBtn.disabled = false;
+    simBtn.innerHTML = `
+      <span data-i18n="sim_run_btn">Run Security Simulation</span>
+      <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    `;
+    setLanguage(currentLang); // Re-apply current language tags to reset button texts if needed
   }
 }
 
