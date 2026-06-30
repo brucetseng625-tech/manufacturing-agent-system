@@ -1,0 +1,37 @@
+{
+  "users": [
+    { "id": "user-eng-01", "name": "王工", "name_en": "Engineer Wang", "role": "Engineer" },
+    { "id": "user-sales-01", "name": "李經理", "name_en": "Sales Mgr Li", "role": "Sales" },
+    { "id": "user-admin-01", "name": "張廠長", "name_en": "Director Zhang", "role": "Admin" }
+  ],
+  "scenarios": [
+    {
+      "id": "scenario_1_agv_repair",
+      "name": "客製化設備現場維修與除錯",
+      "name_en": "Custom Equipment Field Maintenance & Debugging",
+      "trigger_keywords": ["agv", "維修", "除錯", "sensor", "sensor error", "頂升", "履歷", "bom", "除錯手冊"],
+      "allowed_roles": ["Engineer", "Admin"],
+      "env_context": "external",
+      "iam_policy": {
+        "allowed_resources": ["維修日誌 (maintenance_logs)", "出貨BOM表 (shipping_bom)", "工程除錯指南 (internal_guide)"],
+        "denied_resources": ["核心原始碼 (core_source_code)", "設計圖紙 (design_drawings)"]
+      },
+      "gateway_routing": "force_local",
+      "dlp_actions": ["遮蔽敏感參數 (mask_credentials)", "附加數位浮水印 (add_digital_watermark)"]
+    },
+    {
+      "id": "scenario_2_sales_draft",
+      "name": "標準型產品商務行銷推廣",
+      "name_en": "Standard Product Commercial Marketing Draft",
+      "trigger_keywords": ["amr", "規格書", "推廣", "email", "日文", "英文", "翻譯"],
+      "allowed_roles": ["Sales", "Admin"],
+      "env_context": "any",
+      "iam_policy": {
+        "allowed_resources": ["標準規格書 (public_specs)", "公版文宣 (marketing_flyers)"],
+        "denied_resources": ["內部成本底線 (internal_costs)", "議價底標 (negotiation_margins)"]
+      },
+      "gateway_routing": "force_cloud",
+      "dlp_actions": []
+    }
+  ]
+}
