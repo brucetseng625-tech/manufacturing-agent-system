@@ -48,8 +48,8 @@ class SkillRegistry:
         self.register({
             "name": "delivery-risk-analysis",
             "intent": "delivery_risk_analysis",
-            "keywords": ["準時", "出貨", "delivery", "ship", "risk", "交期"],
-            "exact_keywords": ["交期風險", "delivery risk"],
+            "keywords": ["準時", "出貨", "delivery", "ship", "risk", "交期", "狀況", "狀態", "進度", "如何", "怎麼樣", "status", "progress", "情況", "分析"],
+            "exact_keywords": ["交期風險", "delivery risk", "訂單狀況", "訂單進度", "訂單狀態"],
             "handler": self._handle_delivery_risk,
             "requires_order_id": True,
             "triggers_on_multi_order": False,
@@ -171,8 +171,8 @@ class SkillRegistry:
         self.register_team({
             "name": "comprehensive-analysis",
             "intent": "comprehensive_analysis",
-            "keywords": ["全面分析", "comprehensive", "all reports", "完整報告", "全方位"],
-            "exact_keywords": ["comprehensive analysis", "完整報告", "全面分析"],
+            "keywords": ["全面分析", "comprehensive", "all reports", "完整報告", "全方位", "狀況", "狀態", "進度", "如何", "怎麼樣", "status", "progress", "情況", "分析"],
+            "exact_keywords": ["comprehensive analysis", "完整報告", "全面分析", "整體狀況", "所有進度"],
             "steps": [
                 {"skill": "delivery-risk-analysis", "alias": "risk"},
                 {"skill": "sales-response-draft", "alias": "sales"},

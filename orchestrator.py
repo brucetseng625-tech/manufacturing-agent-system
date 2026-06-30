@@ -5,6 +5,7 @@ from data_loader import load_json_or_csv
 from data_validator import validate_dataset
 from skills.registry import get_registry
 from skills.observability import generate_run_id, set_run_id, log_routing, log_error
+from ai_gateway import AIGateway
 
 SCHEMA_MAP = {
     "orders.json": "orders", "orders.csv": "orders",
@@ -87,6 +88,33 @@ def route_query(query, data_dir):
     set_run_id(run_id)
 
     order_ids = extract_order_ids(query)
+    
+    # Resolve typos in order IDs (e.g., ORD-OO1 or ORD-001 -> ORD-1001)
+    resolved_ids = []
+    if order_ids:
+        try:
+            orders_data = load_json_or_csv(data_dir, "orders.json")
+            valid_ids = [o["order_id"] for o in orders_data]
+            for oid in order_ids:
+                if oid in valid_ids:
+                    resolved_ids.append(oid)
+                else:
+                    norm = oid.replace('O', '0')
+                    if norm in valid_ids:
+                        resolved_ids.append(norm)
+                    else:
+                        suffix = norm[-1]
+                        matched = False
+                        for vid in valid_ids:
+                            if vid.endswith(suffix):
+                                resolved_ids.append(vid)
+                                matched = True
+                                break
+                        if not matched:
+                            resolved_ids.append(oid)
+            order_ids = resolved_ids
+        except Exception:
+            pass
 
     response_base = {
         "query": query,
@@ -155,13 +183,22 @@ def route_query(query, data_dir):
                 }
             log_routing(matched_team["intent"], team_name=matched_team["name"],
                         order_ids=order_ids)
+            # Call AI Gateway to synthesize response
+            gateway = AIGateway()
+            gateway_res = gateway.route_query(query, team_result, order_ids)
             return {
                 **response_base,
                 "status": "success",
                 "intent": matched_team["intent"],
                 "skill": f"team:{matched_team['name']}",
                 "data": team_result,
-                "is_team": True
+                "is_team": True,
+                "response": gateway_res["response"],
+                "llm_route": gateway_res["route"],
+                "model_used": gateway_res["model_used"],
+                "sensitivity": gateway_res["sensitivity"],
+                "routing_reason": gateway_res["reason"],
+                "simulated": gateway_res["simulated"]
             }
         except Exception as e:
             log_error("team_error", str(e), run_id=run_id,
@@ -176,6 +213,43 @@ def route_query(query, data_dir):
     matched_skill = get_registry().match_skill(query, order_ids)
 
     if matched_skill is None:
+        # Check if the query is a general query about orders, production, machines, or materials
+        query_lower = query.lower()
+        general_triggers = ["生產", "訂單", "工廠", "製造", "排程", "機台", "物料", "報價", "list", "orders", "production", "schedule"]
+        if any(w in query_lower for w in general_triggers):
+            try:
+                orders_data = load_json_or_csv(data_dir, "orders.json")
+                work_orders_data = load_json_or_csv(data_dir, "work_orders.json")
+                machines_data = load_json_or_csv(data_dir, "machines.json")
+                
+                fallback_result = {
+                    "intent": "general_query",
+                    "orders": orders_data,
+                    "work_orders": work_orders_data,
+                    "machines": machines_data
+                }
+                
+                log_routing("general_query", skill_name="general-query-fallback", order_ids=order_ids)
+                
+                gateway = AIGateway()
+                gateway_res = gateway.route_query(query, fallback_result, order_ids)
+                return {
+                    **response_base,
+                    "status": "success",
+                    "intent": "general_query",
+                    "skill": "general-query-fallback",
+                    "data": fallback_result,
+                    "is_team": False,
+                    "response": gateway_res["response"],
+                    "llm_route": gateway_res["route"],
+                    "model_used": gateway_res["model_used"],
+                    "sensitivity": gateway_res["sensitivity"],
+                    "routing_reason": gateway_res["reason"],
+                    "simulated": gateway_res["simulated"]
+                }
+            except Exception as e:
+                pass
+
         log_error("unknown_intent", "No skill matched", run_id=run_id, query=query)
         return {
             **response_base,
@@ -238,10 +312,21 @@ def route_query(query, data_dir):
 
     log_routing(matched_skill["intent"], skill_name=matched_skill["name"],
                 order_ids=order_ids)
+    # Call AI Gateway to synthesize response
+    gateway = AIGateway()
+    result_data["intent"] = matched_skill["intent"]
+    result_data["order_id"] = order_ids[0] if order_ids else None
+    gateway_res = gateway.route_query(query, result_data, order_ids)
     return {
         **response_base,
         "status": "success",
         "intent": matched_skill["intent"],
         "skill": matched_skill["name"],
-        "data": result_data
+        "data": result_data,
+        "response": gateway_res["response"],
+        "llm_route": gateway_res["route"],
+        "model_used": gateway_res["model_used"],
+        "sensitivity": gateway_res["sensitivity"],
+        "routing_reason": gateway_res["reason"],
+        "simulated": gateway_res["simulated"]
     }

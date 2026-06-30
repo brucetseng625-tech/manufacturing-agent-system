@@ -1782,6 +1782,13 @@ class AgentHandler(BaseHTTPRequestHandler):
         
         if result["status"] == "success":
             response_body["data"] = result.get("data")
+            response_body["skill"] = result.get("skill")
+            response_body["response"] = result.get("response")
+            response_body["llm_route"] = result.get("llm_route")
+            response_body["model_used"] = result.get("model_used")
+            response_body["sensitivity"] = result.get("sensitivity")
+            response_body["routing_reason"] = result.get("routing_reason")
+            response_body["simulated"] = result.get("simulated")
             status_code = 200
         else:
             error_type = result.get("type", "unknown")

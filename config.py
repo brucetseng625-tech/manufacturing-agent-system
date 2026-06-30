@@ -37,7 +37,6 @@ DEFAULT_CONFIG = {
     "runtime": {
         "default_data_dir": "mock_data",
         "default_data_source": "local",
-        "workspace_mode": "erp",
         "history_last": 10,
         "metrics_window_hours": 24,
     },
@@ -47,6 +46,13 @@ DEFAULT_CONFIG = {
     },
     "security": {
         "api_token": None,
+    },
+    "llm": {
+        "openai_api_key": None,
+        "local_api_url": "http://localhost:11434/v1",
+        "local_model": "qwen2.5-7b",
+        "cloud_model": "gpt-4o",
+        "sensitivity_keywords": ["log", "safety", "sensor", "異常", "BOM", "code", "原始碼", "感測器", "安全", "除錯", "手冊"],
     },
     "integrations": {
         "default_asana_task": None,
@@ -59,9 +65,6 @@ DEFAULT_CONFIG = {
             "enabled": True,
         },
         "auto": {
-            "enabled": True,
-        },
-        "sheets": {
             "enabled": True,
         },
     },
@@ -91,7 +94,10 @@ _ENV_OVERRIDES = {
     "MAS_ROLLOUT_LOCAL_ENABLED": ("rollout", "local", "enabled", bool),
     "MAS_ROLLOUT_LIVE_ENABLED": ("rollout", "live", "enabled", bool),
     "MAS_ROLLOUT_AUTO_ENABLED": ("rollout", "auto", "enabled", bool),
-    "MAS_ROLLOUT_SHEETS_ENABLED": ("rollout", "sheets", "enabled", bool),
+    "MAS_LLM_OPENAI_API_KEY": ("llm", "openai_api_key", str),
+    "MAS_LLM_LOCAL_API_URL": ("llm", "local_api_url", str),
+    "MAS_LLM_LOCAL_MODEL": ("llm", "local_model", str),
+    "MAS_LLM_CLOUD_MODEL": ("llm", "cloud_model", str),
 }
 
 
@@ -122,8 +128,8 @@ def validate_config(config):
     server = config.get("server", {})
 
     data_source = runtime.get("default_data_source", "local")
-    if data_source not in ("local", "live", "auto", "sheets"):
-        raise ValueError("runtime.default_data_source must be one of: local, live, auto, sheets")
+    if data_source not in ("local", "live", "auto"):
+        raise ValueError("runtime.default_data_source must be one of: local, live, auto")
 
     port = server.get("port", 8000)
     if not isinstance(port, int) or port <= 0 or port > 65535:
@@ -199,7 +205,7 @@ def get_config_value(key_path, default=None, raw=True):
 def reload_config(config_path=None):
     global DEFAULT_CONFIG  # noqa: PLW0603
 
-    now = datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z")
+    now = datetime.datetime.now(datetime.UTC).isoformat().replace("+00:00", "Z")
     result = {
         "success": False,
         "source": None,

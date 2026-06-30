@@ -6,21 +6,22 @@
 <title>製造業 AI 協作系統工作台</title>
 <style>
 :root {
-  --bg-primary: #0f0f1a;
-  --bg-secondary: #1a1a2e;
-  --bg-card: #16213e;
-  --bg-input: #1e1e3a;
-  --border: #2a2a4a;
-  --text-primary: #e8e8f0;
-  --text-secondary: #a0a0b8;
-  --text-muted: #6a6a8a;
-  --accent: #6366f1;
-  --accent-light: #818cf8;
-  --accent-glow: rgba(99, 102, 241, 0.3);
-  --success: #10b981;
-  --warning: #f59e0b;
-  --error: #ef4444;
-  --info: #3b82f6;
+  --bg-primary: #f4f4f2;      /* Warm chalky bone */
+  --bg-secondary: #ffffff;  /* Pure white sidebar for editorial layout */
+  --bg-card: #ffffff;
+  --bg-input: #ffffff;
+  --border: #dcdcd8;        /* Warm grey borders */
+  --text-primary: #171717;
+  --text-secondary: #52525b;
+  --text-muted: #8e8e93;
+  --accent: #171717;       /* Pure dark charcoal as accent - zero bright colors */
+  --accent-light: #262626;
+  --accent-glow: rgba(23, 23, 23, 0.04);
+  --success: #1b4332;      /* Deep forest green */
+  --warning: #7f5539;      /* Burnt clay/earth */
+  --error: #780000;        /* Deep brick red */
+  --info: #1a365d;         /* Deep corporate navy */
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -1213,13 +1214,76 @@ async function executeQuery() {
 
     // Success
     let html = '';
+
+    // AI Router Telemetry Panel
+    if (data.llm_route) {
+      const isLocal = data.llm_route === 'local';
+      const nodeVal = isLocal ? '企業級私有安全核心 (Secure Private Core)' : '全球通用商業大模型 (Global Commercial LLM)';
+      const encryptVal = isLocal ? '零信任隔離通道 (ZTNA Isolated)' : '商用加密傳輸 (TLS Encrypted)';
+      const sensClass = isLocal ? 'badge-error' : 'badge-success';
+      const sensLabel = isLocal ? '機密數據 (Confidential)' : '一般數據 (Standard)';
+      const modelVal = isLocal ? 'Engine-Secure-v1' : 'Global-Advanced-v4';
+      const simVal = data.simulated ? '已啟用 (沙箱環境)' : '未啟用 (即時鏈接)';
+      
+      html += `
+        <div class="card" style="margin-bottom: 1.5rem; border-top: 3px solid var(--accent); background: var(--bg-card);">
+          <div class="card-header" style="margin-bottom: 0.75rem; padding-bottom: 0.25rem;">
+            <span class="card-title" style="font-size:0.85rem; letter-spacing:0.05em; color:var(--text-muted);">數據防護與分流稽核 (SECURITY & ROUTING AUDIT)</span>
+            <span class="badge ${isLocal ? 'badge-error' : 'badge-success'}" style="font-size:0.7rem; padding:0.15rem 0.45rem;">${isLocal ? 'CONFIDENTIAL' : 'PUBLIC'}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem 1.5rem; font-size: 0.85rem; color: var(--text-primary);">
+            <div>
+              <span style="color: var(--text-muted); font-family:var(--font-mono); display:inline-block; width:90px;">決策核心：</span>
+              <strong style="color: var(--text-primary); font-weight:600;">${nodeVal}</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-muted); font-family:var(--font-mono); display:inline-block; width:90px;">傳輸防護：</span>
+              <strong style="color: var(--text-primary); font-weight:600;">${encryptVal}</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-muted); font-family:var(--font-mono); display:inline-block; width:90px;">安全評級：</span>
+              <span class="badge ${sensClass}" style="font-size:0.7rem; padding:0.1rem 0.40rem; line-height:1;">${sensLabel}</span>
+            </div>
+            <div>
+              <span style="color: var(--text-muted); font-family:var(--font-mono); display:inline-block; width:90px;">智算模型：</span>
+              <code style="color: var(--accent-light); font-family:var(--font-mono);">${modelVal}</code>
+            </div>
+            <div style="grid-column: span 2;">
+              <span style="color: var(--text-muted); font-family:var(--font-mono); display:inline-block; width:90px;">模擬模式：</span>
+              <strong style="color: var(--warning);">${simVal}</strong>
+            </div>
+            <div style="grid-column: span 2; border-top: 1px solid var(--border); padding-top: 0.5rem; margin-top: 0.25rem;">
+              <span style="color: var(--text-muted); font-family:var(--font-mono); display:block; margin-bottom: 0.25rem;">安全分流決策說明：</span>
+              <p style="color: var(--text-secondary); line-height: 1.4; font-size: 0.8rem;">${data.routing_reason || 'N/A'}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // AI Response text card
+    if (data.response) {
+      html += `
+        <div class="card" style="margin-bottom: 1.5rem; border-left: 3px solid var(--accent); background: var(--bg-card);">
+          <div class="card-header" style="margin-bottom: 0.5rem; padding-bottom: 0.25rem;">
+            <span class="card-title" style="font-size:0.95rem; text-transform:uppercase; letter-spacing:0.02em; font-family:var(--font-mono); color:var(--text-secondary);">分析報告 (ANALYSIS REPORT)</span>
+            <span class="badge badge-success">已解析</span>
+          </div>
+          <div style="font-size:0.95rem; line-height:1.55; color:var(--text-primary); white-space:pre-wrap; font-family:var(--font-body); letter-spacing: 0.01em;">${data.response}</div>
+        </div>
+      `;
+    }
+
+    // Collapsible original tool calculations
+    const toolTitle = '顯示底層數據演算細節 (Show Technical Diagnostics)';
+    let diagHtml = '';
     const isTeam = data.skill && data.skill.startsWith('team:');
     const summary = isTeam ? data.data.summary : null;
 
     if (isTeam) {
-      html += `<div class="card">
+      diagHtml += `<div class="card">
         <div class="card-header">
-          <span class="card-title">團隊：${data.data.team_name}</span>
+          <span class="card-title">團隊流程：${data.data.team_name}</span>
           <div>
             ${summary?.parallel ? '<span class="badge badge-parallel">⚡ 平行執行</span> ' : ''}
             <span class="badge badge-success">${summary.success_count}/${summary.total_steps} 成功</span>
@@ -1228,10 +1292,10 @@ async function executeQuery() {
         </div>`;
 
       // Steps
-      html += '<div style="margin-top:1rem;">';
+      diagHtml += '<div style="margin-top:1rem;">';
       for (const [alias, step] of Object.entries(data.data.results)) {
         const isError = step.error;
-        html += `<div class="step-result ${isError ? 'error' : 'success'}">
+        diagHtml += `<div class="step-result ${isError ? 'error' : 'success'}">
           <div class="step-header">
             <span class="step-title">${alias}</span>
             <span class="badge ${isError ? 'badge-error' : 'badge-success'}">${isError ? '失敗' : '成功'}</span>
@@ -1239,15 +1303,15 @@ async function executeQuery() {
           ${isError ? `<p style="color:var(--error);">${step.error}</p>` : renderSkillResult(step)}
         </div>`;
       }
-      html += '</div>';
+      diagHtml += '</div>';
 
       // Trace
       if (data.data.trace?.length) {
-        html += `<div class="trace-box">${data.data.trace.map(t => `<div>${t}</div>`).join('')}</div>`;
+        diagHtml += `<div class="trace-box">${data.data.trace.map(t => `<div>${t}</div>`).join('')}</div>`;
       }
-      html += '</div>';
+      diagHtml += '</div>';
     } else {
-      html += `<div class="card">
+      diagHtml += `<div class="card">
         <div class="card-header">
           <span class="card-title">${data.skill}</span>
           <span class="badge badge-success">成功</span>
@@ -1256,6 +1320,17 @@ async function executeQuery() {
         ${data.data.trace?.length ? `<div class="trace-box">${data.data.trace.map(t => `<div>${t}</div>`).join('')}</div>` : ''}
       </div>`;
     }
+
+    html += `
+      <details style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+        <summary style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); cursor: pointer; user-select: none; outline: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+          <span>⚙️ ${toolTitle}</span>
+        </summary>
+        <div style="margin-top: 1rem;">
+          ${diagHtml}
+        </div>
+      </details>
+    `;
     result.innerHTML = html;
   } catch (e) {
     result.innerHTML = `<div class="error-state">請求失敗：${e.message}</div>`;
