@@ -2818,7 +2818,7 @@ async function renderScene() {
   const incidentData = incidentRes && incidentRes.ok ? await incidentRes.json() : {};
   const receiptsData = receiptsRes && receiptsRes.ok ? await receiptsRes.json() : { items: [] };
   const timelineData = timelineRes && timelineRes.ok ? await timelineRes.json() : { events: [] };
-  const alertsData = alertsRes && alertsRes.ok ? await alertsData.json() : { alerts: [] };
+  const alertsData = alertsRes && alertsRes.ok ? await alertsRes.json() : { alerts: [] };
 
   const recentSkills = (historyData.runs || []).filter(r => r.status === 'success').map(r => r.skill);
   const recentSkillsAll = (historyData.runs || []).map(r => ({ skill: r.skill, status: r.status, timestamp: r.timestamp, error_type: r.error_type }));
@@ -3082,6 +3082,7 @@ async function renderScene() {
 }
 
 function updateSceneContextPanel(agent, st, reason, nextAction, relatedApprovals, recentHistory, relatedReceipts) {
+  const isLightweight = isLightweightWorkspace();
   const panel = document.getElementById('scene-context-panel');
   if (!panel || !agent) return;
   SCENE_WORKSPACE_STATE.currentFocus = displayAgentName(agent);
