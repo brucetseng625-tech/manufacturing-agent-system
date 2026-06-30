@@ -305,8 +305,10 @@ class SkillRegistry:
             if len(order_ids) > 1 and skill.get("triggers_on_multi_order"):
                 score += multi_w
                 
-            # Base priority ONLY applies if there's at least one keyword match or explicit trigger
-            if score > 0:
+            # Disqualify if order ID is required but none provided
+            if skill.get("requires_order_id") and not order_ids:
+                score = 0
+            elif score > 0:
                 score += skill.get("priority", 0)
                 
             candidates.append((skill, score, idx))
@@ -349,8 +351,10 @@ class SkillRegistry:
                 if kw.lower() in query_lower:
                     score += kw_w
                     
-            # Base priority ONLY applies if there's at least one keyword match
-            if score > 0:
+            # Disqualify if order ID is required but none provided
+            if team.get("requires_order_id") and not order_ids:
+                score = 0
+            elif score > 0:
                 score += team.get("priority", 0)
                 
             candidates.append((team, score, idx))
