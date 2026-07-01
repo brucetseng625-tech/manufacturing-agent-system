@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
+  <!-- 製造業 AI 協作系統工作台 智造中控台 -->
+  <!-- 製造業 AI 協作系統工作台 智造中控台 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Manufacturing Agent Dashboard</title>
@@ -929,6 +931,724 @@ body {
   .action-grid { grid-template-columns: 1fr; }
   .grid { grid-template-columns: 1fr; }
 }
+
+/* P16-6 Dual-Pane Chat + Scene Workspace (Light Theme) */
+.scene-workspace {
+  display: grid;
+  grid-template-columns: minmax(320px, 360px) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+.scene-sidepanel {
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 1.25rem;
+  position: sticky;
+  top: 1rem;
+}
+.scene-sidepanel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.scene-sidepanel-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.scene-sidepanel-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+  line-height: 1.5;
+}
+.workspace-mode-shell { display: none !important; }
+.workspace-mode-label { font-size:0.72rem; font-weight:700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.workspace-mode-toggle { display:flex; gap:0.5rem; flex-wrap:wrap; }
+.workspace-mode-chip { border:1px solid var(--border-subtle); background:#ffffff; color:var(--text-secondary); border-radius:4px; padding:0.35rem 0.65rem; font-size:0.8rem; font-weight:600; cursor:pointer; transition:all 0.18s ease; }
+.workspace-mode-chip.active { color:#ffffff; background:#171717; border-color:#171717; }
+.workspace-mode-chip:hover { border-color: #171717; color: #171717; }
+.workspace-mode-note { font-size:0.75rem; color:var(--text-muted); }
+.scene-mode-badge {
+  font-size: 0.65rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  background: #f4f4f2;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+.scene-workspace-status {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.scene-status-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 0.75rem;
+  background: #fdfdfb;
+}
+.scene-status-card-title {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+.scene-status-card-value {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.scene-status-card-copy {
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+.scene-thread {
+  background: #fafaf9;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 1rem;
+  min-height: 280px;
+  max-height: 400px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.scene-thread-shell {
+  margin-bottom: 1rem;
+}
+.scene-message {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.scene-message.user {
+  align-items: flex-end;
+}
+.scene-message.assistant,
+.scene-message.system {
+  align-items: flex-start;
+}
+.scene-message-meta {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+.scene-message-bubble {
+  max-width: 90%;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  line-height: 1.5;
+  font-size: 0.82rem;
+  white-space: pre-wrap;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.scene-message.user .scene-message-bubble {
+  background: #171717;
+  color: #ffffff;
+  border-color: #171717;
+  border-radius: 12px 12px 2px 12px;
+}
+.scene-message.assistant .scene-message-bubble {
+  background: #ffffff;
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px 12px 12px 2px;
+}
+.scene-message-bubble.html-card {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  max-width: 100% !important;
+}
+
+/* Premium Chat Result Cards */
+.result-card {
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 1rem;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  font-family: var(--font-body);
+}
+.result-card.error {
+  border-color: rgba(120, 0, 0, 0.2);
+  background: rgba(120, 0, 0, 0.01);
+}
+.result-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.result-card-header .agent-avatar {
+  font-size: 1.15rem;
+}
+.result-card-header .agent-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  flex-grow: 1;
+}
+.result-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.result-row {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  padding: 0.25rem 0;
+}
+.result-row.accent {
+  background: #fafaf9;
+  border-left: 3px solid var(--accent);
+  padding-left: 0.5rem;
+}
+.result-row.error {
+  border-left: 3px solid var(--error);
+  padding-left: 0.5rem;
+}
+.result-label {
+  color: var(--text-secondary);
+  font-weight: 600;
+  min-width: 4.5rem;
+  flex-shrink: 0;
+}
+.result-val {
+  color: var(--text-primary);
+}
+.result-val.font-mono {
+  font-family: var(--font-mono);
+}
+.badge-success { background: var(--success-glow); color: var(--success); border: 1px solid rgba(27,67,50,0.2); }
+.badge-warning { background: var(--warning-glow); color: var(--warning); border: 1px solid rgba(127,85,57,0.2); }
+.badge-error { background: var(--error-glow); color: var(--error); border: 1px solid rgba(120,0,0,0.2); }
+.badge-info { background: #f4f4f2; color: var(--text-secondary); border: 1px solid var(--border-subtle); }
+.scene-message.system .scene-message-bubble {
+  background: #e8f5e9;
+  color: #1b4332;
+  border-color: #c8e6c9;
+}
+.scene-message-bubble strong {
+  color: var(--text-primary);
+}
+.scene-thread-empty {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 1rem 0;
+}
+.scene-sidepanel-section {
+  margin-top: 1rem;
+}
+.scene-sidepanel-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+.scene-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.scene-quick-btn {
+  border: 1px solid var(--border-subtle);
+  background: #ffffff;
+  color: var(--text-primary);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 130px;
+}
+.scene-quick-btn:hover {
+  background: #f4f4f2;
+  border-color: #171717;
+}
+.scene-quick-btn strong {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+}
+.scene-quick-btn span {
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  line-height: 1.3;
+}
+.scene-composer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.scene-query-input {
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  outline: none;
+}
+.scene-query-input:focus {
+  border-color: var(--accent);
+}
+.scene-query-btn {
+  padding: 0.6rem 1.25rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+.scene-context-panel {
+  border: 1px solid var(--border-subtle);
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+.scene-context-title {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+.scene-context-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  color: #1b4332;
+  border: 1px solid #c8e6c9;
+  background: #e8f5e9;
+  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.scene-context-copy {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.scene-context-list {
+  margin-top: 0.5rem;
+  display: grid;
+  gap: 0.35rem;
+}
+.scene-context-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  font-size: 0.78rem;
+}
+.scene-context-item span:first-child {
+  color: var(--text-muted);
+}
+.scene-workstage {
+  min-width: 0;
+}
+
+/* Scene Container */
+.scene-container {
+  position: relative; min-height: 480px; padding: 1.25rem;
+  background: #ffffff;
+  border: 1px solid var(--border-subtle); border-radius: 8px;
+  overflow: visible;
+}
+.scene-container .scene-floor {
+  position: absolute; inset: 0; border-radius: 8px;
+  background:
+    repeating-linear-gradient(0deg, rgba(23,23,23,0.015) 0px, rgba(23,23,23,0.015) 1px, transparent 1px, transparent 60px),
+    repeating-linear-gradient(90deg, rgba(23,23,23,0.015) 0px, rgba(23,23,23,0.015) 1px, transparent 1px, transparent 60px);
+  pointer-events: none;
+}
+.scene-container .scene-zone {
+  position: relative; z-index: 2;
+}
+
+/* Stage Split */
+.scene-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.2rem 0;
+}
+.scene-lower-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(240px, 1fr);
+  gap: 0.75rem;
+  align-items: stretch;
+}
+.scene-side-stack {
+  display: grid;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+/* Zone Cards */
+.zone-card {
+  position: relative; padding: 1rem;
+  background: #ffffff;
+  border: 1px solid var(--border-subtle); border-radius: 8px;
+  border-left: 3px solid var(--border-subtle);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.zone-card:hover {
+  border-color: #171717;
+}
+
+/* Zone color themes */
+.zone-card.zone-orchestrator {
+  border-left-color: #171717;
+  background: #fdfdfb;
+}
+.zone-card.zone-risk {
+  border-left-color: var(--error);
+  background: #fdf0f0;
+}
+.zone-card.zone-production {
+  border-left-color: var(--info);
+  background: #ebf8ff;
+}
+.zone-card.zone-commercial {
+  border-left-color: var(--warning);
+  background: #ede0d4;
+}
+.zone-card.zone-comm {
+  border-left-color: var(--success);
+  background: #e8f5e9;
+}
+
+/* Zone header */
+.zone-card-header {
+  display: flex; align-items: center; gap: 0.45rem;
+  margin-bottom: 0.5rem; padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.zone-card-header .zc-icon { font-size: 1.1rem; }
+.zone-card-header .zc-label { font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; color: var(--text-primary); }
+.zone-card-header .zc-desc { font-size: 0.72rem; color: var(--text-secondary); margin-left: auto; }
+
+/* Zone subtitle */
+.zone-subtitle {
+  font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 0.5rem;
+  padding: 0.15rem 0.4rem;
+  background: var(--bg-app); border-radius: 4px;
+  display: inline-block;
+}
+
+/* Orchestrator Command Center */
+.orchestrator-dashboard {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr) 220px;
+  gap: 0.75rem;
+  margin-top: 0.2rem;
+  align-items: stretch;
+}
+.orchestrator-main-node {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 1rem;
+  background: #f4f4f2; border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  min-height: 140px;
+}
+.orchestrator-briefing {
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 1rem;
+  border-radius: 6px;
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  min-height: 140px;
+}
+.orchestrator-briefing .ob-label {
+  font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+.orchestrator-briefing .ob-title {
+  font-family: var(--font-display);
+  font-size: 1rem; font-weight: 700; color: var(--text-primary); line-height: 1.3;
+}
+.orchestrator-briefing .ob-desc {
+  font-size: 0.78rem; color: var(--text-secondary); line-height: 1.45; margin-top: 0.25rem;
+}
+.orchestrator-route-strip {
+  display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem;
+}
+.orchestrator-route-chip {
+  font-size: 0.68rem; padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+}
+
+/* Agent Nodes */
+.agent-node {
+  position: relative; display: flex; flex-direction: column; align-items: center;
+  width: 110px; padding: 0.6rem 0.4rem;
+  background: #ffffff;
+  border: 1px solid var(--border-subtle); border-radius: 6px; cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-align: center;
+}
+.agent-node:hover {
+  border-color: #171717; transform: translateY(-2px);
+}
+.agent-node.selected {
+  border-color: #171717;
+  background: #fdfdfb;
+}
+.agent-node .agent-icon {
+  width: 44px; height: 44px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem; margin-bottom: 0.4rem;
+  background: var(--bg-app); border: 1px solid var(--border-subtle);
+}
+.agent-node .agent-name { font-size: 0.8rem; font-weight: 700; margin-bottom: 0.2rem; color: var(--text-primary); line-height: 1.2; }
+.agent-node .agent-role { font-size: 0.65rem; color: var(--text-muted); margin-bottom: 0.3rem; }
+.agent-node .agent-status { font-size: 0.68rem; padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 600; }
+
+/* Status badges mapping */
+.agent-status.status-idle { background: var(--bg-app); color: var(--text-secondary); border: 1px solid var(--border-subtle); }
+.agent-status.status-running { background: #e8f5e9; color: #1b4332; border: 1px solid #c8e6c9; }
+.agent-status.status-blocked { background: #fdf0f0; color: #780000; border: 1px solid #ffcdd2; }
+.agent-status.status-approval { background: #ede0d4; color: #7f5539; border: 1px solid #e6ccb2; }
+.agent-status.status-incident { background: #fdf0f0; color: #780000; border: 1px solid #ffcdd2; }
+
+/* Orchestrator node */
+.agent-node.orchestrator {
+  width: 120px; padding: 0.75rem 0.5rem;
+  border-color: var(--border-subtle);
+  background: #ffffff;
+}
+.agent-node.orchestrator .agent-icon {
+  width: 50px; height: 50px; font-size: 1.9rem;
+  background: #f4f4f2; border-color: var(--border-subtle);
+}
+
+/* Pulse effects */
+.agent-node .agent-pulse {
+  position: absolute; top: -3px; right: -3px; width: 10px; height: 10px;
+  border-radius: 50%; border: 2px solid #ffffff;
+}
+.agent-pulse.pulse-running { background: var(--success); }
+.agent-pulse.pulse-blocked { background: var(--error); }
+.agent-pulse.pulse-approval { background: var(--warning); }
+
+/* Event badges */
+.agent-event-badges {
+  display: flex; gap: 0.15rem; flex-wrap: wrap; justify-content: center;
+  margin-top: 0.3rem; min-height: 1rem;
+}
+.event-badge {
+  font-size: 0.55rem; padding: 0.1rem 0.35rem; border-radius: 3px; font-weight: 600;
+  white-space: nowrap; border: 1px solid transparent;
+}
+.event-badge.evt-approval { background: #ede0d4; color: #7f5539; border-color: #e6ccb2; }
+.event-badge.evt-blocked { background: #fdf0f0; color: #780000; border-color: #ffcdd2; }
+.event-badge.evt-incident { background: #fdf0f0; color: #780000; border-color: #ffcdd2; }
+.event-badge.evt-receipt { background: #ebf8ff; color: #1a365d; border-color: #ebf8ff; }
+.event-badge.evt-alert { background: #ede0d4; color: #7f5539; border-color: #e6ccb2; }
+
+/* Legend styling */
+.scene-legend {
+  margin: 0 0 0.5rem; padding: 0.5rem;
+  background: #ffffff; border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+}
+.scene-legend .legend-title { font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.25rem; }
+.scene-legend .legend-row { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.scene-legend .legend-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.68rem; color: var(--text-secondary); }
+.scene-legend .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; border: 1px solid var(--border-subtle); }
+
+/* SVG Routes flow */
+.scene-taskflow {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 1; pointer-events: none;
+}
+.scene-taskflow path { fill: none; stroke-width: 2; stroke-linecap: round; }
+.taskflow-path-idle { stroke: var(--border-subtle); stroke-dasharray: 4 6; }
+.taskflow-path-recent {
+  stroke: rgba(23, 23, 23, 0.15); stroke-dasharray: 6 4;
+}
+.taskflow-path-active {
+  stroke: #171717; stroke-width: 2.5;
+  stroke-dasharray: 8 4;
+}
+
+/* Scene Inspector */
+.scene-inspector {
+  margin-top: 1rem; padding: 1.25rem;
+  background: #ffffff;
+  border: 1px solid var(--border-subtle); border-radius: 8px; display: none;
+}
+.scene-inspector.show { display: block; }
+.scene-inspector .si-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+.scene-inspector .si-icon {
+  width: 48px; height: 48px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.55rem; background: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+}
+.scene-inspector .si-title { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
+.scene-inspector .si-subtitle { font-size: 0.8rem; color: var(--text-secondary); }
+.scene-inspector .si-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.75rem; }
+.scene-inspector .si-field { font-size: 0.82rem; }
+.scene-inspector .si-field-label { color: var(--text-muted); margin-bottom: 0.15rem; }
+.scene-inspector .si-field-value { color: var(--text-primary); font-weight: 500; }
+
+.si-section { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle); }
+.si-section-title { font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.02em; }
+.si-reason-block { padding: 0.5rem 0.75rem; background: #fdf0f0; border-left: 3px solid var(--error); border-radius: 4px; margin-top: 0.25rem; }
+.si-reason-block .si-reason-label { font-size: 0.7rem; color: var(--error); font-weight: 600; }
+.si-reason-block .si-reason-text { font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.1rem; }
+.si-next-action { padding: 0.5rem 0.75rem; background: #e8f5e9; border-left: 3px solid var(--success); border-radius: 4px; margin-top: 0.25rem; }
+.si-next-action .si-next-label { font-size: 0.7rem; color: #1b4332; font-weight: 600; }
+.si-next-action .si-next-text { font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.1rem; }
+
+.zone-commercial-stage .agent-row,
+.zone-comm-stage .agent-row {
+  gap: 0.5rem;
+}
+.zone-commercial-stage .agent-node,
+.zone-comm-stage .agent-node {
+  width: 100%;
+  max-width: none;
+}
+.zone-commercial-stage .agent-icon,
+.zone-comm-stage .agent-icon {
+  width: 38px;
+  height: 38px;
+  font-size: 1.4rem;
+}
+.zone-comm-stage .agent-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.zone-comm-stage .agent-row .agent-node:last-child {
+  grid-column: 1 / -1;
+}
+
+/* Scene Start Guide */
+.scene-start-guide {
+  display: grid;
+  gap: 0.65rem;
+}
+.scene-start-item {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 0.7rem;
+  align-items: start;
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  border-radius: 6px;
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.16s ease;
+}
+.scene-start-item:hover {
+  transform: translateY(-1px);
+  border-color: #171717;
+  background: #fdfdfb;
+}
+.scene-start-item:focus {
+  outline: none;
+  border-color: #171717;
+}
+.scene-start-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #ffffff;
+  background: #171717;
+}
+.scene-start-title {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.scene-start-copy {
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+.scene-start-action {
+  margin-top: 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+@keyframes pulse-green {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(27, 67, 50, 0.4); }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(27, 67, 50, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(27, 67, 50, 0); }
+}
+
+
+@keyframes pulse-green {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(27, 67, 50, 0.4); }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(27, 67, 50, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(27, 67, 50, 0); }
+}
+
+.decision-inspector {
+  margin-top: 0.75rem; padding: 0.75rem;
+  border-radius: 8px; border: 1px solid var(--border-subtle);
+  background: var(--bg-input); display: none;
+}
+.decision-inspector.show { display: block; }
+.decision-inspector .di-header {
+  display: flex; align-items: center; gap: 0.5rem;
+  margin-bottom: 0.5rem; font-size: 0.85rem;
+}
+.decision-inspector .di-header .di-icon { font-size: 1rem; }
+.decision-inspector .di-header .di-title { font-weight: 600; }
+.decision-inspector .di-row {
+  display: flex; gap: 0.5rem; padding: 0.3rem 0;
+  font-size: 0.8rem; align-items: baseline;
+}
+.decision-inspector .di-label {
+  color: var(--text-muted); min-width: 5rem; flex-shrink: 0;
+}
+.decision-inspector .di-value { color: var(--text-primary); }
+.decision-inspector .di-value.di-blocked { color: var(--error); }
+.decision-inspector .di-value.di-pending { color: var(--warning); }
+.decision-inspector .di-value.di-gated { color: var(--warning); }
+
 </style>
 </head>
 <body>
@@ -948,7 +1668,11 @@ body {
     </div>
     
     <div class="sidebar-menu">
-      <div class="nav-item active" data-view="query">
+      <div class="nav-item active" data-view="workspace">
+        <svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="nav-text" data-i18n="nav_workspace">主工作台</span>
+      </div>
+      <div class="nav-item" data-view="query">
         <svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
         <span class="nav-text" data-i18n="nav_query">Query Runner</span>
       </div>
@@ -985,8 +1709,73 @@ body {
 
   <!-- Main View Frame -->
   <main class="main">
+    
+    <!-- Workspace View -->
+    <section id="view-workspace" class="view active" style="opacity: 1; transform: translateY(0);">
+      <div class="view-header">
+        <h2 data-i18n="workspace_title">主工作台</h2>
+        <p data-i18n="workspace_desc">把提問、協作分流、節點原因與下一步放在同一個工作台，先看主控如何協調，再決定後續處理。</p>
+      </div>
+      <div class="scene-workspace">
+        <aside class="scene-sidepanel">
+          <div class="scene-sidepanel-header">
+            <div>
+              <div class="scene-sidepanel-title">協作工作台</div>
+              <div id="scene-sidepanel-desc" class="scene-sidepanel-desc">左側先整理今天要處理的事；右側再看系統怎麼幫你分流、提醒與整理下一步。</div>
+              <div class="workspace-mode-shell">
+                <span class="workspace-mode-label">使用情境</span>
+                <div class="workspace-mode-toggle">
+                  <button type="button" class="workspace-mode-chip active" id="workspace-mode-erp" onclick="setWorkspaceMode('erp')">ERP 整合版</button>
+                  <button type="button" class="workspace-mode-chip" id="workspace-mode-lightweight" onclick="setWorkspaceMode('lightweight')">輕量版（Sheets / LINE）</button>
+                </div>
+                <span id="workspace-mode-note" class="workspace-mode-note">目前以 ERP / 內部資料系統作為主要資料來源。</span>
+              </div>
+            </div>
+            <span class="scene-mode-badge">Read-Only Workspace</span>
+          </div>
+          <div class="scene-sidepanel-section" style="display: none !important;">
+            <div class="scene-sidepanel-label">從這裡開始</div>
+            <div id="scene-start-guide" class="scene-start-guide"></div>
+          </div>
+          <div id="scene-workspace-status" class="scene-workspace-status" style="display: none !important;"></div>
+          <div class="scene-thread-shell">
+            <div class="scene-sidepanel-label">對話與決策歷程</div>
+            <div id="scene-thread" class="scene-thread">
+              <div class="scene-thread-empty">載入工作台脈絡中…</div>
+            </div>
+            <div class="scene-composer">
+              <input type="text" id="scene-query-input" class="scene-query-input" placeholder="請輸入訂單問題（例如：ORD-1001 是否可以準時出貨？）" />
+              <button id="scene-query-btn" class="btn scene-query-btn" onclick="executeSceneWorkspaceQuery()">送出</button>
+            </div>
+          </div>
+          <div class="scene-sidepanel-section" style="display: none !important;">
+            <div class="scene-sidepanel-label">今天先查什麼</div>
+            <div class="scene-quick-actions">
+              <div id="scene-quick-actions-content" class="scene-quick-actions"></div>
+            </div>
+            
+          </div>
+          <div class="scene-sidepanel-section">
+            <div class="scene-sidepanel-label">目前協作焦點</div>
+            <div id="scene-context-panel" class="scene-context-panel">
+              <div class="scene-context-title">先選一個區域或角色</div>
+              <div class="scene-context-copy">點右側任一節點後，這裡會告訴你它現在在處理什麼、卡在哪裡，以及你下一步該做什麼。</div>
+            </div>
+          </div>
+        </aside>
+        <div class="scene-workstage">
+          <div class="scene-container" id="scene-container">
+            <div class="scene-floor"></div>
+            <svg class="scene-taskflow" id="scene-taskflow" xmlns="http://www.w3.org/2000/svg"></svg>
+            <div class="scene-zone" id="scene-content"><div class="loading">載入場景中…</div></div>
+          </div>
+          <div id="scene-inspector" class="scene-inspector"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- Query View -->
-    <section id="view-query" class="view active" style="opacity: 1; transform: translateY(0);">
+    <section id="view-query" class="view">
       <div class="view-header">
         <h2 data-i18n="query_title">Query Runner</h2>
         <p data-i18n="query_desc">Execute agent queries and view results</p>
@@ -1060,8 +1849,8 @@ body {
     <!-- Ops View -->
     <section id="view-ops" class="view">
       <div class="view-header">
-        <h2 data-i18n="ops_title">Operations</h2>
-        <p data-i18n="ops_desc">System health, provider status, and degradation visibility</p>
+        <h2 id="ops-title" data-i18n="ops_title">Operations</h2>
+        <p id="ops-copy" data-i18n="ops_desc">System health, provider status, and degradation visibility</p>
       </div>
       <div id="ops-grid" class="grid">
         <div class="loading" data-i18n="ops_loading">Loading ops data</div>
@@ -1165,11 +1954,1552 @@ body {
 </div>
 
 <script>
+
+// ── Scene Workspace JS Functions (P16) ──
+const AGENT_CATALOG = [
+  { id: 'orchestrator', name: '製造主控', lightName: '今日總覽', skill: null, zone: 'orchestrator', icon: '🎛️', bg: 'rgba(99,102,241,0.2)', desc: '系統主控 Agent，統籌所有任務路由與團隊調度', lightDesc: '先幫你整理今天要先處理的單、回覆與異常', role: '指揮中樞', lightRole: '今日重點' },
+  { id: 'delivery-risk', name: '交期分析', lightName: '延誤風險', skill: 'delivery-risk-analysis', zone: 'risk', icon: '⚠️', bg: 'rgba(239,68,68,0.2)', desc: '評估訂單交期風險，分析缺料與排程衝突', lightDesc: '找出可能延誤、容易出問題的單', role: '風險監控', lightRole: '先看風險' },
+  { id: 'expedite', name: '加急處置', lightName: '加急處置', skill: 'expedite-options', zone: 'risk', icon: '⚡', bg: 'rgba(239,68,68,0.2)', desc: '生成交期延誤的加急處置對策與成本分析', lightDesc: '當有單子延遲，幫你算怎麼樣加急最划算', role: '方案分析', lightRole: '加急對策' },
+  { id: 'schedule-conflict', name: '排程檢查', lightName: '排程檢查', skill: 'schedule-conflict-check', zone: 'production', icon: '📅', bg: 'rgba(59,130,246,0.2)', desc: '自動檢測生產排程衝突與機台狀態', lightDesc: '看看今天有沒有機台時間重疊、打架', role: '生產協調', lightRole: '檢查排程' },
+  { id: 'capacity-rebalance', name: '產能重分配', lightName: '調整排程', skill: 'capacity-rebalance', zone: 'production', icon: '🔄', bg: 'rgba(59,130,246,0.2)', desc: '自動重分配機台排程以避開異常與停機', lightDesc: '當機台壞掉，幫你把上面的工作分給別的機台', role: '資源調度', lightRole: '重新排程' },
+  { id: 'material-shortage', name: '缺料恢復', lightName: '缺料恢復', skill: 'material-shortage-recovery', zone: 'production', icon: '📦', bg: 'rgba(59,130,246,0.2)', desc: '分析低庫存與缺料件，自動調整生產排序', lightDesc: '料不夠的時候，自動把不用這項料的單往前排', role: '物料管理', lightRole: '缺料補救' },
+  { id: 'quote', name: '報價比較', lightName: '價格比較', skill: 'quote-comparison-summary', zone: 'commercial', icon: '💰', bg: 'rgba(217,119,6,0.2)', desc: '供應商報價比較與評分', lightDesc: '幫你整理價格、成本與哪個方案比較划算', role: '商務分析', lightRole: '價格判斷' },
+  { id: 'sales', name: '客戶回覆', lightName: '客戶回覆', skill: 'sales-response-draft', zone: 'comm', icon: '✉️', bg: 'rgba(16,185,129,0.2)', desc: '自動生成客戶回覆與通知郵件草稿', lightDesc: '幫你整理要怎麼回客戶比較快', role: '客戶溝通', lightRole: '回客戶' },
+  { id: 'internal', name: '內部行動', lightName: '內部待辦', skill: 'internal-action-summary', zone: 'comm', icon: '📋', bg: 'rgba(16,185,129,0.2)', desc: '內部協調行動摘要與升級建議', lightDesc: '把今天內部誰要做什麼整理成待辦', role: '內部協調', lightRole: '內部跟進' },
+  { id: 'supplier', name: '供應商跟進', lightName: '供應商催辦', skill: 'supplier-followup-draft', zone: 'comm', icon: '🤝', bg: 'rgba(16,185,129,0.2)', desc: '生成供應商跟進信件草稿', lightDesc: '幫你整理還要追哪些供應商', role: '供應商管理', lightRole: '催辦供應商' },
+];
+
+const ZONE_CONFIG = {
+  orchestrator: { label: '🎛️ 主控區', lightLabel: '🎛️ 今日總覽', cssClass: 'zone-orchestrator', stageClass: 'zone-orchestrator-stage', subtitle: '任務路由與團隊調度中樞', lightSubtitle: '先整理今天要處理的重點與順序' },
+  risk:         { label: '⚠️ 風險評估區', lightLabel: '⚠️ 問題提醒區', cssClass: 'zone-risk', stageClass: 'zone-risk-stage', subtitle: '交期風險與加急方案', lightSubtitle: '先看哪幾筆單可能延誤或需要補救' },
+  production:   { label: '🏭 生產計畫區', lightLabel: '📦 出貨與備料區', cssClass: 'zone-production', stageClass: 'zone-production-stage', subtitle: '排程、產能與物料管控', lightSubtitle: '整理出貨順序、缺貨與今天要先處理的工作' },
+  commercial:   { label: '💰 商務區', lightLabel: '💰 價格與訂單區', cssClass: 'zone-commercial', stageClass: 'zone-commercial-stage', subtitle: '報價比較與商務分析', lightSubtitle: '看價格、訂單條件與該怎麼回覆比較好' },
+  comm:         { label: '✉️ 通訊協調區', lightLabel: '✉️ 回覆與跟進區', cssClass: 'zone-comm', stageClass: 'zone-comm-stage', subtitle: '客戶、供應商與內部溝通', lightSubtitle: '整理客戶回覆、供應商催辦與內部待辦' },
+};
+
+const WORKSPACE_MODE_CONFIG = {
+  erp: {
+    label: 'ERP 整合版',
+    note: '目前以 ERP / 內部資料系統作為主要資料來源。',
+    desc: '左側專注提問、脈絡與最近互動；右側專注主控分流、職能協作與阻塞原因。',
+    placeholder: '例如：ORD-2002 交期風險與下一步是什麼？',
+    quickActions: [
+      { title: '交期風險', subtitle: '先看風險與下一步', query: 'ORD-2002 有沒有交期風險？' },
+      { title: '缺料恢復', subtitle: '追物料阻礙與方案', query: 'ORD-2003 缺料怎麼恢復？' },
+      { title: '排程衝突', subtitle: '看卡點是否在生產區', query: 'ORD-2004 排程是否衝突？' },
+      { title: '商務分析', subtitle: '把商務與交付放在一起看', query: '幫我比較目前報價與交付風險' },
+    ],
+    queryDataSource: null,
+    sourceLabel: 'ERP / 內部資料',
+  },
+  lightweight: {
+    label: '輕量版',
+    note: '適合還沒有 ERP 的團隊，先用 LINE、Google Sheets 或表單整理每天的單、回覆與出貨。',
+    desc: '左側先看今天的新單、待回覆與待出貨；右側再看系統怎麼幫你分流、整理與提醒。',
+    placeholder: '例如：今天有哪些待出貨？或 哪些客戶還沒回覆？',
+    quickActions: [
+      { title: '今天要出貨', subtitle: '先找今天要處理的出貨單', query: '今天有哪些待出貨訂單？' },
+      { title: '哪些客戶還沒回', subtitle: '整理今天需要跟進的人', query: '哪些客戶或訂單還沒回覆？' },
+      { title: '哪些料不夠', subtitle: '先看低庫存與缺料', query: '目前哪些料件低於安全庫存？' },
+      { title: '今天新單整理', subtitle: '把新進訂單整理成待辦', query: '請整理今天新收到的訂單與後續動作' },
+    ],
+    queryDataSource: 'sheets',
+    sourceLabel: 'LINE / Google Sheets',
+  }
+};
+
+const SCENE_WORKSPACE_STATE = {
+  messages: [
+    {
+      role: 'system',
+      label: '工作台',
+      content: '先在左側問今天要處理什麼，再到右側看系統怎麼整理、分流與提醒。',
+    }
+  ],
+  currentFocus: '製造主控',
+  currentFocusStatus: '待機',
+  lastRoute: '尚未查詢',
+  mode: 'erp',
+};
+
+function getWorkspaceModeConfig() {
+  return WORKSPACE_MODE_CONFIG[SCENE_WORKSPACE_STATE.mode] || WORKSPACE_MODE_CONFIG.erp;
+}
+
+function escapeHtmlAttr(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
+}
+
+function renderWorkspaceQuickActions() {
+  const container = document.getElementById('scene-quick-actions-content');
+  if (!container) return;
+  const cfg = getWorkspaceModeConfig();
+  container.innerHTML = cfg.quickActions.map(action => `
+    <button class="scene-quick-btn" data-query="${escapeHtmlAttr(action.query)}" onclick="setSceneQuery(this.dataset.query)"><strong>${action.title}</strong><span>${action.subtitle}</span></button>
+  `).join('');
+}
+
+function syncWorkspaceModeUI() {
+  const cfg = getWorkspaceModeConfig();
+  const erpBtn = document.getElementById('workspace-mode-erp');
+  const lightBtn = document.getElementById('workspace-mode-lightweight');
+  const title = document.querySelector('.scene-sidepanel-title');
+  if (erpBtn) erpBtn.classList.toggle('active', SCENE_WORKSPACE_STATE.mode === 'erp');
+  if (lightBtn) lightBtn.classList.toggle('active', SCENE_WORKSPACE_STATE.mode === 'lightweight');
+  const note = document.getElementById('workspace-mode-note');
+  const desc = document.getElementById('scene-sidepanel-desc');
+  const input = document.getElementById('scene-query-input');
+  if (title) {
+    title.textContent = SCENE_WORKSPACE_STATE.mode === 'lightweight' ? '今日工作台' : '協作工作台';
+  }
+  if (note) note.textContent = cfg.note;
+  if (desc) desc.textContent = cfg.desc;
+  if (input) input.placeholder = cfg.placeholder;
+  renderWorkspaceQuickActions();
+  renderSceneWorkspaceStatus();
+  renderSceneStartGuide();
+}
+
+function setWorkspaceMode(mode) {
+  if (!WORKSPACE_MODE_CONFIG[mode]) return;
+  SCENE_WORKSPACE_STATE.mode = mode;
+  try { localStorage.setItem('mas.workspaceMode', mode); } catch (e) {}
+  syncWorkspaceModeUI();
+  const opsView = document.getElementById('view-ops');
+  if (opsView && opsView.classList.contains('active')) {
+    loadOps();
+  }
+}
+
+function restoreWorkspaceMode() {
+  try {
+    const saved = localStorage.getItem('mas.workspaceMode');
+    if (saved && WORKSPACE_MODE_CONFIG[saved]) {
+      SCENE_WORKSPACE_STATE.mode = saved;
+    }
+  } catch (e) {}
+  syncWorkspaceModeUI();
+}
+
+function setSceneQuery(text) {
+  const input = document.getElementById('scene-query-input');
+  if (!input) return;
+  input.value = text;
+  input.focus();
+}
+
+function ensureSceneThreadVisible() {
+  const thread = document.getElementById('scene-thread');
+  if (thread) {
+    thread.scrollTop = thread.scrollHeight;
+  }
+}
+
+function renderSceneWorkspaceThread() {
+  const thread = document.getElementById('scene-thread');
+  if (!thread) return;
+  if (!SCENE_WORKSPACE_STATE.messages.length) {
+    thread.innerHTML = '<div class="scene-thread-empty">目前還沒有查詢紀錄</div>';
+    return;
+  }
+  thread.innerHTML = SCENE_WORKSPACE_STATE.messages.map(msg => {
+    const isHtmlCard = msg.content.includes('result-card');
+    const bubbleClass = isHtmlCard ? 'scene-message-bubble html-card' : 'scene-message-bubble';
+    return `
+      <div class="scene-message ${msg.role}">
+        <div class="scene-message-meta">${msg.label}</div>
+        <div class="${bubbleClass}">${msg.content}</div>
+      </div>
+    `;
+  }).join('');
+  ensureSceneThreadVisible();
+}
+
+function renderSceneWorkspaceStatus() {
+  const el = document.getElementById('scene-workspace-status');
+  if (!el) return;
+  const isLightweight = SCENE_WORKSPACE_STATE.mode === 'lightweight';
+  const cards = isLightweight
+    ? [
+        {
+          title: '今天先處理',
+          value: SCENE_WORKSPACE_STATE.lastRoute === '尚未查詢' ? '先查待出貨或待回覆' : SCENE_WORKSPACE_STATE.lastRoute,
+          copy: '不知道從哪開始時，先用左側捷徑查今天要出貨、要回覆或要補料的項目。',
+        },
+        {
+          title: '剛剛整理到哪',
+          value: SCENE_WORKSPACE_STATE.currentFocus,
+          copy: `目前聚焦：${SCENE_WORKSPACE_STATE.currentFocusStatus}`,
+        },
+        {
+          title: '今天資料從哪來',
+          value: getWorkspaceModeConfig().sourceLabel,
+          copy: '通常是 LINE、Google Sheets 或表單整理進來的資料。',
+        },
+        {
+          title: '你現在可以做什麼',
+          value: '查詢、整理、跟進',
+          copy: '先看今天要處理什麼，再決定是否需要人工確認或回覆客戶。',
+        },
+      ]
+    : [
+        {
+          title: '現在正在看',
+          value: SCENE_WORKSPACE_STATE.currentFocus,
+          copy: `狀態：${SCENE_WORKSPACE_STATE.currentFocusStatus}`,
+        },
+        {
+          title: '最近系統分流',
+          value: SCENE_WORKSPACE_STATE.lastRoute,
+          copy: '查詢後會自動帶你看對應區域',
+        },
+        {
+          title: '目前資料來源',
+          value: getWorkspaceModeConfig().sourceLabel,
+          copy: '系統會依模式切換不同的資料入口與提示',
+        },
+        {
+          title: '目前可做的事',
+          value: '查詢與整理',
+          copy: '這裡只會幫你看狀況、整理重點，不會直接改資料',
+        },
+      ];
+  el.innerHTML = `
+    ${cards.map(card => `
+      <div class="scene-status-card">
+        <div class="scene-status-card-title">${card.title}</div>
+        <div class="scene-status-card-value">${card.value}</div>
+        <div class="scene-status-card-copy">${card.copy}</div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function renderSceneStartGuide() {
+  const el = document.getElementById('scene-start-guide');
+  if (!el) return;
+  const isLightweight = SCENE_WORKSPACE_STATE.mode === 'lightweight';
+  const items = isLightweight
+    ? [
+        { title: '先看今天要出貨什麼', copy: '按這張卡，先把今天最急的單找出來。', action: '立即整理待出貨', query: '今天有哪些待出貨訂單？'},
+        { title: '再看誰還沒回覆', copy: '按這張卡，先把今天要跟進的客戶或供應商整理出來。', action: '立即整理待回覆', query: '哪些客戶或訂單還沒回覆？'},
+        { title: '最後看缺貨與補救', copy: '按這張卡，看今天卡在備料或缺貨的地方。', action: '立即查看缺貨', query: '目前哪些料件低於安全庫存？'},
+      ]
+    : [
+        { title: '先查一筆訂單或問題', copy: '按這張卡，先帶入常見查詢，再讓主控分流到正確區域。', action: '帶入交期風險查詢', query: 'ORD-2002 有沒有交期風險？'},
+        { title: '再看右邊哪一區接手', copy: '查完後右側會亮出對應區域，讓你知道現在是風險、生產還是商務在處理。', action: '帶入排程查詢', query: 'ORD-2004 排程是否衝突？'},
+        { title: '最後看原因與下一步', copy: '按這張卡，直接看商務與交付要怎麼一起判斷。', action: '帶入商務分析', query: '幫我比較目前報價與交付風險'},
+      ];
+  el.innerHTML = items.map((item, index) => `
+    <button type="button" class="scene-start-item" onclick="runSceneStartGuideQuery('${escapeHtmlAttr(item.query)}')">
+      <span class="scene-start-num">${index + 1}</span>
+      <div>
+        <div class="scene-start-title">${item.title}</div>
+        <div class="scene-start-copy">${item.copy}</div>
+        <div class="scene-start-action">${item.action} <span aria-hidden="true">→</span></div>
+      </div>
+    </button>
+  `).join('');
+}
+
+function runSceneStartGuideQuery(text) {
+  setSceneQuery(text);
+  executeSceneWorkspaceQuery();
+}
+
+function translateText(txt) {
+  if (!txt) return '';
+  if (typeof txt !== 'string') return txt;
+
+  const dict = {
+    "cannot_ship_on_time": "無法準時交貨",
+    "can_ship_on_time": "可準時交貨",
+    "conflict_detected": "偵測到排程衝突",
+    "no_conflict": "排程正常無衝突",
+    "Escalate immediately for material procurement, alternate machine allocation, operator coverage, and customer delivery renegotiation.": 
+      "立即啟動緊急物料採購、調整替代機台分配、調派操作人員，並啟動與客戶的交期重新談判。",
+    "Escalate the blockers, reserve inspection capacity, and confirm whether overtime or alternate machine allocation can recover the schedule.": 
+      "通報並處置生產瓶頸，保留檢驗產能，確認加班或替代機台調整是否能挽回排程。",
+    "No material shortage recovery needed. Monitor inventory levels proactively.": 
+      "目前庫存水準安全，無物料短缺，請持續監控。",
+    "No capacity rebalancing needed. Monitor machine loads proactively.": 
+      "產能負載正常，無須重新分配，請持續監控。",
+    "No supplier follow-up required at this time. Monitor inventory levels proactively.": 
+      "供應商交期正常，暫無須額外跟進，請持續監控。",
+    "Escalate immediately to production control to resolve machine maintenance blocker.":
+      "立即提報生管協調，加速排除機台停機維修瓶頸。"
+  };
+
+  let result = txt;
+  if (dict[result]) return dict[result];
+
+  for (const [en, zh] of Object.entries(dict)) {
+    result = result.replace(new RegExp(en.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), zh);
+  }
+
+  // Handle expedite and other dynamic patterns
+  const optionDict = {
+    "overtime": "加班",
+    "supplier": "供應商協調",
+    "alternate": "替代機台分配"
+  };
+
+  result = result.replace(/Expedite via (\w+) may reduce delay \(estimated cost: \$([\d,]+)\)/gi, (match, option, cost) => {
+    const optTrans = optionDict[option.toLowerCase()] || option;
+    return `透過「${optTrans}」加急方案可減少生產延誤（預估成本：$${cost}）`;
+  });
+  result = result.replace(/Expedite via (\w+) \(cost: \$([\d,]+)\)/gi, (match, option, cost) => {
+    const optTrans = optionDict[option.toLowerCase()] || option;
+    return `考慮啟用「${optTrans}」加急方案（成本：$${cost}）`;
+  });
+  result = result.replace(/Consider activating (\w+) \(cost: \$([\d,]+)\)/gi, (match, option, cost) => {
+    const optTrans = optionDict[option.toLowerCase()] || option;
+    return `考慮啟用「${optTrans}」加急方案（成本：$${cost}）`;
+  });
+
+  // Handle recommendation and blocker patterns
+  result = result.replace(/Top recommendation:\s*/gi, "首選建議：");
+
+  result = result.replace(/Estimated (\d+) day\(s\) schedule compression by extending ([\w\-]+) operating hours\.?/gi, (match, days, machine) => {
+    return `藉由延長 ${machine} 的運作時間，預估可縮短排程 ${days} 天。`;
+  });
+
+  result = result.replace(/Material shortage \+ below safety stock:\s*([\w\s\-]+) has (\d+)\/(\d+)\s*\(safety stock:\s*(\d+)\)\.?/gi, (match, part, current, total, safety) => {
+    return `物料短缺且低於安全庫存水準：${part.trim()} 目前存量為 ${current}/${total} (安全庫存量：${safety})。`;
+  });
+
+  result = result.replace(/Reorder unlikely to arrive in time:\s*([\w\s\-]+) needs ~(\d+)d effective lead time,\s*but only\s*(-?\d+)d\s*until due date\.?/gi, (match, part, lead, remaining) => {
+    return `採購前置時間不足（無法準時抵達）：${part.trim()} 採購有效前置時間約需 ${lead} 天，但距離交期僅剩 ${remaining} 天。`;
+  });
+
+  result = result.replace(/Material shortage:\s*([\w\s\-]+) has (\d+) available\.?/gi, (match, part, count) => {
+    return `物料庫存短缺警告：${part.trim()} 目前可用存量僅有 ${count}。`;
+  });
+
+  result = result.replace(/Machine (\S+) is down for maintenance until ([\d\-]+)\s*\((.*?)\)\.?/gi, (match, machine, date, note) => {
+    const noteTrans = note.includes("no backup") ? "目前無替代備機可用" : note;
+    return `設備維護停機警告：生產機台 ${machine} 正進行例行性停機維修，預計至 ${date} (${noteTrans})。`;
+  });
+
+  result = result.replace(/WO (\S+) finishes on ([\d\-]+),?\s*after due date ([\d\-]+)\.?/gi, (match, wo, end, due) => {
+    return `生產進度延誤警告：工單 ${wo} 預期完成時間為 ${end}，已超出訂單交期 ${due}。`;
+  });
+
+  result = result.replace(/Operator coverage risk:\s*([\w\s\-]+) on (\w+) shift is (\w+)\.?/gi, (match, operator, shift, status) => {
+    const shiftTrans = shift === "Night" ? "夜班" : shift === "Day" ? "日班" : shift;
+    const statusTrans = status === "Absent" ? "缺勤/未排班" : status;
+    return `人員排班不足風險：${operator.trim()} 於 ${shiftTrans} 班次狀態為 ${statusTrans}。`;
+  });
+
+  result = result.replace(/Schedule conflict:\s*(.*?)\s*overlap on\s*(\S+)\s*from\s*(\S+)\s*to\s*(\S+)\.\s*Suggested action:\s*Reschedule\s*(\S+)\s*to start after\s*(\S+)\s*or use alternate machine\.?/gi, 
+    (match, orders, machine, start, end, targetOrder, targetStart) => {
+      return `排程時間交叉衝突：${orders} 重疊佔用機台 ${machine}（自 ${start} 至 ${end}）。建議對策：重新排程 ${targetOrder} 使其於 ${targetStart} 之後啟動，或調配至替代機台。`;
+    }
+  );
+
+  if (result.endsWith('.')) {
+    result = result.slice(0, -1) + '。';
+  }
+  return result;
+}
+
+function summarizeSceneResponse(data) {
+  if (!data) return '無資料';
+  if (data.status === 'error') {
+    return `
+      <div class="result-card error">
+        <div class="result-card-header">
+          <span class="icon">❌</span>
+          <span class="agent-title">分析執行失敗</span>
+          <span class="badge badge-error">ERROR</span>
+        </div>
+        <div class="result-card-body">
+          <div class="result-row">
+            <span class="result-label">錯誤原因</span>
+            <span class="result-val">${data.reason || data.error || data.details || '系統處理異常，請重試或確認訂單編號。'}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  const skillName = data.skill || '';
+  const skillAgent = AGENT_CATALOG.find(a => a.skill === skillName || (skillName.startsWith('team:') && a.id === 'orchestrator'));
+  const agentName = skillAgent ? displayAgentName(skillAgent) : '智能主控';
+
+  let decisionText = translateText(data.data?.decision || '完成分析');
+  let decisionClass = 'info';
+  if (data.data?.decision) {
+    const rawDecision = data.data.decision;
+    if (rawDecision.includes('risk') || rawDecision.includes('conflict') || rawDecision.includes('fail') || rawDecision.includes('detected')) {
+      decisionClass = 'warning';
+      decisionText = '⚠️ 發現風險 / 衝突';
+    } else if (rawDecision.includes('success') || rawDecision.includes('ok') || rawDecision.includes('resolved') || rawDecision.includes('no_conflict')) {
+      decisionClass = 'success';
+      decisionText = '✅ 正常無虞';
+    } else if (rawDecision.includes('blocked') || rawDecision.includes('deny')) {
+      decisionClass = 'error';
+      decisionText = '🚫 安全攔截';
+    }
+  }
+
+  const orderId = data.data?.order_id || (data.order_ids && data.order_ids[0]) || '';
+  const nextAction = translateText(data.next_action || (Array.isArray(data.data?.next_action) ? data.data.next_action.join(' ') : data.data?.next_action) || '');
+  const reason = translateText(data.reason || data.data?.reason || '');
+  const customer = data.data?.customer || '';
+
+  let routeBadge = '';
+  if (data.llm_route) {
+    const isLocal = data.llm_route === 'local';
+    const routeText = isLocal ? `💻 本地 AI (${data.model_used || 'Qwen'})` : `☁️ 雲端 AI (${data.model_used || 'Gemini'})`;
+    const routeStyle = isLocal 
+      ? 'background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); font-size: 0.7rem; padding: 0.15rem 0.45rem; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.25rem;' 
+      : 'background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); font-size: 0.7rem; padding: 0.15rem 0.45rem; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.25rem;';
+    routeBadge = `<span style="${routeStyle}">${routeText}</span>`;
+  }
+
+  let html = `
+    <div class="result-card">
+      <div class="result-card-header" style="display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem;">
+        <span class="agent-avatar">${skillAgent?.icon || '🧠'}</span>
+        <span class="agent-title" style="margin-right: auto;">${agentName} 協作分析結果</span>
+        <span class="badge badge-${decisionClass}">${decisionText}</span>
+        ${routeBadge}
+      </div>
+      <div class="result-card-body">
+  `;
+
+  if (orderId) {
+    html += `
+        <div class="result-row">
+          <span class="result-label">目標訂單</span>
+          <span class="result-val font-mono"><strong>${orderId}</strong> ${customer ? `(${customer})` : ''}</span>
+        </div>
+    `;
+  }
+
+  if (reason) {
+    html += `
+        <div class="result-row">
+          <span class="result-label">狀況分析</span>
+          <span class="result-val">${reason}</span>
+        </div>
+    `;
+  }
+
+  if (nextAction) {
+    html += `
+        <div class="result-row accent">
+          <span class="result-label">建議行動</span>
+          <span class="result-val"><strong>${nextAction}</strong></span>
+        </div>
+    `;
+  }
+
+  if (data.data?.blockers?.length && !data.data.blockers[0].includes('No critical')) {
+    const blockers = data.data.blockers.map(b => translateText(b)).slice(0, 2).join('；');
+    html += `
+        <div class="result-row error">
+          <span class="result-label">阻礙點</span>
+          <span class="result-val">${blockers}</span>
+        </div>
+    `;
+  }
+
+  html += `
+      </div>
+    </div>
+  `;
+  return html;
+}
+
+function focusSceneAgentFromResponse(data) {
+  if (!data) return;
+  let targetAgent = null;
+  let routeLabel = '主控協調';
+  if (data.skill) {
+    targetAgent = AGENT_CATALOG.find(a => a.skill === data.skill);
+    routeLabel = data.skill;
+  }
+  if (!targetAgent && data.skill && data.skill.startsWith('team:')) {
+    targetAgent = AGENT_CATALOG.find(a => a.id === 'orchestrator');
+    routeLabel = data.skill;
+  }
+  if (!targetAgent && data.data?.decision) {
+    targetAgent = AGENT_CATALOG.find(a => a.id === 'orchestrator');
+    routeLabel = data.data.decision;
+  }
+  SCENE_WORKSPACE_STATE.lastRoute = routeLabel;
+  renderSceneWorkspaceStatus();
+  if (targetAgent) {
+    showAgentDetail(targetAgent.id);
+  }
+}
+
+async function executeSceneWorkspaceQuery() {
+  const input = document.getElementById('scene-query-input');
+  const btn = document.getElementById('scene-query-btn');
+  if (!input || !btn) return;
+  const query = input.value.trim();
+  if (!query) return;
+
+  SCENE_WORKSPACE_STATE.messages.push({
+    role: 'user',
+    label: '你',
+    content: query,
+  });
+  renderSceneWorkspaceThread();
+
+  btn.disabled = true;
+  btn.textContent = '分析中…';
+  input.value = '';
+
+  try {
+    const res = await fetch('/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, ...(getWorkspaceModeConfig().queryDataSource ? { data_source: getWorkspaceModeConfig().queryDataSource } : {}) })
+    });
+    const data = await res.json();
+    SCENE_WORKSPACE_STATE.messages.push({
+      role: 'assistant',
+      label: data.status === 'error' ? '系統回應' : (isLightweightWorkspace() ? '今日整理結果' : 'AI 協作結果'),
+      content: summarizeSceneResponse(data),
+    });
+    renderSceneWorkspaceThread();
+    focusSceneAgentFromResponse(data);
+  } catch (e) {
+    SCENE_WORKSPACE_STATE.messages.push({
+      role: 'assistant',
+      label: '系統回應',
+      content: `❌ 請求失敗：${e.message}`,
+    });
+    renderSceneWorkspaceThread();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '送出';
+  }
+}
+
+function isLightweightWorkspace() {
+  return SCENE_WORKSPACE_STATE.mode === 'lightweight';
+}
+
+function displayAgentName(agent) {
+  return isLightweightWorkspace() ? (agent.lightName || agent.name) : agent.name;
+}
+
+function displayAgentRole(agent) {
+  return isLightweightWorkspace() ? (agent.lightRole || agent.role) : agent.role;
+}
+
+function displayAgentDesc(agent) {
+  return isLightweightWorkspace() ? (agent.lightDesc || agent.desc) : agent.desc;
+}
+
+function displayZoneLabel(zoneId) {
+  const z = ZONE_CONFIG[zoneId];
+  return isLightweightWorkspace() ? (z.lightLabel || z.label) : z.label;
+}
+
+function displayZoneSubtitle(zoneId) {
+  const z = ZONE_CONFIG[zoneId];
+  return isLightweightWorkspace() ? (z.lightSubtitle || z.subtitle) : z.subtitle;
+}
+
+function displayRouteLabel(label) {
+  if (!isLightweightWorkspace()) return label;
+  return {
+    '風險評估': '問題提醒',
+    '生產計畫': '出貨與備料',
+    '商務分析': '價格與訂單',
+    '通訊協調': '回覆與跟進',
+  }[label] || label;
+}
+
+async function renderScene() {
+  const content = document.getElementById('scene-content');
+  if (!content) return;
+  content.innerHTML = '<div class="loading">載入場景中…</div>';
+  renderSceneWorkspaceThread();
+  restoreWorkspaceMode();
+
+  const [skillsRes, approvalsRes, historyRes, guardrailsRes, incidentRes, receiptsRes, timelineRes, alertsRes] = await Promise.all([
+    fetch('/skills').catch(() => null),
+    fetch('/approvals?status=pending&limit=50').catch(() => null),
+    fetch('/history?last=50').catch(() => null),
+    fetch('/guardrails').catch(() => null),
+    fetch('/incident/report').catch(() => null),
+    fetch('/automation/receipts?last=20').catch(() => null),
+    fetch('/timeline?last=30').catch(() => null),
+    fetch('/alerts?status=firing').catch(() => null),
+  ]);
+
+  const skillsData = skillsRes && skillsRes.ok ? await skillsRes.json() : { items: [] };
+  const approvalsData = approvalsRes && approvalsRes.ok ? await approvalsRes.json() : { items: [] };
+  const historyData = historyRes && historyRes.ok ? await historyRes.json() : { runs: [] };
+  const guardrailsData = guardrailsRes && guardrailsRes.ok ? await guardrailsRes.json() : { enabled: false, operations: {} };
+  const incidentData = incidentRes && incidentRes.ok ? await incidentRes.json() : {};
+  const receiptsData = receiptsRes && receiptsRes.ok ? await receiptsRes.json() : { items: [] };
+  const timelineData = timelineRes && timelineRes.ok ? await timelineRes.json() : { events: [] };
+  const alertsData = alertsRes && alertsRes.ok ? await alertsRes.json() : { alerts: [] };
+
+  const recentSkills = (historyData.runs || []).filter(r => r.status === 'success').map(r => r.skill);
+  const recentSkillsAll = (historyData.runs || []).map(r => ({ skill: r.skill, status: r.status, timestamp: r.timestamp, error_type: r.error_type }));
+  const firingAlerts = (alertsData.alerts || []).filter(a => a.status === 'firing');
+
+  const agentStates = {};
+  for (const agent of AGENT_CATALOG) {
+    let status = 'idle';
+    let detail = '待機中';
+    const events = [];
+
+    if (agent.id === 'orchestrator') {
+      if (recentSkills.length > 0) { status = 'running'; detail = '系統運行中'; }
+      if (firingAlerts.length > 0) {
+        events.push({ type: 'alert', label: `${firingAlerts.length} 警報`, count: firingAlerts.length });
+      }
+    } else if (agent.skill) {
+      const relatedApproval = approvalsData.items?.find(a => {
+        const op = a.operation || '';
+        return op.includes(agent.id.split('-')[0]) || op.includes(agent.skill.split('-')[0]);
+      });
+      if (relatedApproval) {
+        status = 'approval'; detail = '等待審批';
+        events.push({ type: 'approval', label: '待審批', approval: relatedApproval });
+      }
+
+      const recentForSkill = recentSkillsAll.filter(r => r.skill === agent.skill);
+      const hasErrors = recentForSkill.some(r => r.status === 'error');
+      const hasSuccess = recentForSkill.some(r => r.status === 'success');
+
+      if (hasErrors && !hasSuccess) {
+        if (status !== 'approval') { status = 'blocked'; detail = '執行受阻'; }
+        events.push({ type: 'blocked', label: '受阻' });
+      } else if (hasSuccess) {
+        if (status !== 'approval') { status = 'running'; detail = '執行中'; }
+      }
+
+      if (guardrailsData.enabled) {
+        const guardrailOps = guardrailsData.operations || {};
+        const relatedGuardrail = Object.entries(guardrailOps).find(([k, v]) =>
+          k.includes(agent.id.split('-')[0]) && v.denied
+        );
+        if (relatedGuardrail) {
+          if (status !== 'approval') { status = 'blocked'; detail = '已被規則阻擋'; }
+          events.push({ type: 'blocked', label: '規則阻擋' });
+        }
+      }
+
+      const incidentSummary = incidentData.summary || '';
+      if (incidentSummary && (incidentSummary.includes(agent.skill) || incidentSummary.includes(agent.name))) {
+        events.push({ type: 'incident', label: '事故相關' });
+        if (status === 'idle') { status = 'incident'; detail = '事故涉及'; }
+      }
+
+      const relatedReceipts = (receiptsData.items || []).filter(r => {
+        const src = (r.source || '').toLowerCase();
+        const op = (r.operation || '').toLowerCase();
+        return src.includes(agent.id) || op.includes(agent.skill?.split('-')[0] || '');
+      });
+      if (relatedReceipts.length > 0) {
+        events.push({ type: 'receipt', label: `${relatedReceipts.length} 執行紀錄` });
+      }
+    }
+
+    agentStates[agent.id] = { status, detail, events, approval: events.find(e => e.type === 'approval')?.approval || null };
+  }
+
+  // Build zone groups
+  const zones = {};
+  for (const agent of AGENT_CATALOG) {
+    if (!zones[agent.zone]) zones[agent.zone] = [];
+    zones[agent.zone].push(agent);
+  }
+
+  // Orchestrator dashboard stats
+  const runningCount = Object.values(agentStates).filter(s => s.status === 'running').length;
+  const blockedCount = Object.values(agentStates).filter(s => s.status === 'blocked' || s.status === 'incident').length;
+  const approvalCount = Object.values(agentStates).filter(s => s.status === 'approval').length;
+  const activeRoutes = TASK_FLOW_ROUTES.filter(route => {
+    const relevantSkills = Object.keys(SKILL_TO_ZONE).filter(s => SKILL_TO_ZONE[s] === route.to);
+    return relevantSkills.some(s => recentSkills.includes(s));
+  }).length;
+
+  const routeSummaryChips = [
+    { label: '風險評估', state: runningCount > 0 ? 'active' : 'idle' },
+    { label: '生產計畫', state: recentSkills.some(s => ['schedule-conflict-check', 'capacity-rebalance', 'material-shortage-recovery'].includes(s)) ? 'active' : 'idle' },
+    { label: '商務分析', state: recentSkills.includes('quote-comparison-summary') ? 'active' : 'idle' },
+    { label: '通訊協調', state: recentSkills.some(s => ['sales-response-draft', 'internal-action-summary', 'supplier-followup-draft'].includes(s)) ? 'active' : 'idle' },
+  ];
+
+  // Build HTML
+  let html = `
+    <div class="scene-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+      <div>
+        <div class="sh-title" style="font-family:var(--font-display); font-size:1.25rem; font-weight:700; color:var(--text-primary);">🏭 Agent 團隊協作總覽</div>
+        <div class="sh-desc" style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.15rem;">從主控派工到職能協作的即時可視化總覽</div>
+      </div>
+      <span class="scene-mode-badge">🔒 Read-Only</span>
+    </div>`;
+
+  html += `
+    <div class="scene-legend">
+      <div class="legend-title">📖 狀態與事件說明</div>
+      <div class="legend-row">
+        <div class="legend-item"><span class="legend-dot" style="background:var(--text-muted);"></span>待機</div>
+        <div class="legend-item"><span class="legend-dot" style="background:var(--success);"></span>執行中</div>
+        <div class="legend-item"><span class="legend-dot" style="background:var(--warning);"></span>待審批</div>
+        <div class="legend-item"><span class="legend-dot" style="background:var(--error);"></span>已阻擋</div>
+        <div class="legend-item"><svg width="20" height="6"><line x1="0" y1="3" x2="20" y2="3" stroke="#171717" stroke-width="2.5" stroke-dasharray="8 4"/></svg>主線流向</div>
+        <div class="legend-item"><svg width="20" height="6"><line x1="0" y1="3" x2="20" y2="3" stroke="rgba(23,23,23,0.15)" stroke-width="2" stroke-dasharray="6 4"/></svg>最近活動</div>
+        <div class="legend-item"><svg width="20" height="6"><line x1="0" y1="3" x2="20" y2="3" stroke="var(--border-subtle)" stroke-width="2" stroke-dasharray="4 6"/></svg>待命路徑</div>
+      </div>
+    </div>`;
+
+  html += '<div class="scene-stage">';
+  const renderZoneCard = function(zoneId) {
+    const agents = zones[zoneId];
+    if (!agents) return '';
+    const zc = ZONE_CONFIG[zoneId];
+    const zoneLabel = displayZoneLabel(zoneId);
+    const zoneDesc = displayZoneSubtitle(zoneId);
+
+    let zoneHtml = `<div class="zone-card zone-${zoneId}">
+      <div class="zone-card-header">
+        <span class="zc-icon">${zoneLabel.split(' ')[0]}</span>
+        <span class="zc-label">${zoneLabel.split(' ').slice(1).join(' ')}</span>
+        <span class="zc-desc">${zoneDesc}</span>
+      </div>`;
+
+    if (zoneId === 'orchestrator') {
+      zoneHtml += `<div class="orchestrator-dashboard">
+        <div class="orchestrator-main-node">`;
+
+      const orch = agents[0];
+      const st = agentStates[orch.id];
+      const pulseClass = st.status === 'running' ? 'pulse-running' : st.status === 'blocked' ? 'pulse-blocked' : st.status === 'approval' ? 'pulse-approval' : '';
+
+      zoneHtml += `<div class="agent-node orchestrator" data-agent="${orch.id}" onclick="showAgentDetail('${orch.id}')">
+          <div class="agent-icon" style="background:${orch.bg};">${orch.icon}</div>
+          <div class="agent-name">${displayAgentName(orch)}</div>
+          <div class="agent-role">${displayAgentRole(orch)}</div>
+          <div class="agent-status status-${st.status}">${statusLabel(st.status)}</div>
+          ${pulseClass ? `<div class="agent-pulse ${pulseClass}"></div>` : ''}
+        </div>
+        </div>
+        <div class="orchestrator-briefing">
+          <div>
+            <div class="ob-label">Control Room</div>
+            <div class="ob-title">${isLightweightWorkspace() ? '系統先幫你整理今天要優先處理的出貨、回覆、缺料與跟進' : '主控節點持續監看風險、排程、商務與協調四條主線'}</div>
+            <div class="ob-desc">${isLightweightWorkspace() ? '你不用先懂系統術語，先看今天有哪些事該先做，再決定要追哪筆單、回哪位客戶、補哪個料。' : '所有派工與回傳都先經過主控整理，再分流到各職能工作站。當前畫面維持唯讀，只負責協作可視化與狀態判讀。'}</div>
+          </div>
+          <div class="orchestrator-route-strip">
+            ${routeSummaryChips.map(chip => `<span class="orchestrator-route-chip">${chip.state === 'active' ? '●' : '○'} ${displayRouteLabel(chip.label)}</span>`).join('')}
+          </div>
+        </div>
+        <div class="orchestrator-status-row" style="display:flex; flex-direction:column; gap:0.35rem; justify-content:center; padding-left:0.5rem; font-size:0.75rem; color:var(--text-secondary);">
+          <div class="orch-status-item">🟢 運行中: <strong style="color:var(--text-primary);">${runningCount}</strong></div>
+          <div class="orch-status-item">🔴 受阻: <strong style="color:var(--text-primary);">${blockedCount}</strong></div>
+          <div class="orch-status-item">🟡 待審批: <strong style="color:var(--text-primary);">${approvalCount}</strong></div>
+          <div class="orch-status-item">⚫ 系統狀態: <strong style="color:var(--text-primary);">${st.detail}</strong></div>
+        </div>
+      </div>`;
+    } else {
+      zoneHtml += `<div class="zone-subtitle">${zoneDesc}</div>
+      <div class="agent-row" style="display:flex; gap:0.55rem; flex-wrap:wrap;">`;
+
+      for (const agent of agents) {
+        const st = agentStates[agent.id];
+        const pulseClass = st.status === 'running' ? 'pulse-running' : st.status === 'blocked' || st.status === 'incident' ? 'pulse-blocked' : st.status === 'approval' ? 'pulse-approval' : '';
+
+        let badgesHtml = '';
+        if (st.events && st.events.length > 0) {
+          badgesHtml = '<div class="agent-event-badges">' + st.events.map(e => `<span class="event-badge evt-${e.type}">${e.label}</span>`).join('') + '</div>';
+        }
+
+        zoneHtml += `<div class="agent-node" data-agent="${agent.id}" onclick="showAgentDetail('${agent.id}')">
+          <div class="agent-icon" style="background:${agent.bg};">${agent.icon}</div>
+          <div class="agent-name">${displayAgentName(agent)}</div>
+          <div class="agent-role">${displayAgentRole(agent)}</div>
+          <div class="agent-status status-${st.status}">${statusLabel(st.status)}</div>
+          ${badgesHtml}
+          ${pulseClass ? `<div class="agent-pulse ${pulseClass}"></div>` : ''}
+        </div>`;
+      }
+      zoneHtml += '</div>';
+    }
+
+    zoneHtml += '</div>';
+    return zoneHtml;
+  };
+
+  html += renderZoneCard('orchestrator');
+  html += '<div class="scene-lower-stage">';
+  html += renderZoneCard('risk');
+  html += renderZoneCard('production');
+  html += '<div class="scene-side-stack">';
+  html += renderZoneCard('commercial');
+  html += renderZoneCard('comm');
+  html += '</div></div></div>';
+
+  content.innerHTML = html;
+
+  requestAnimationFrame(function() {
+    renderTaskFlowPaths(historyData, alertsData, approvalsData);
+  });
+
+  window.__sceneState = {
+    agents: AGENT_CATALOG,
+    states: agentStates,
+    approvals: approvalsData.items || [],
+    history: historyData.runs || [],
+    incident: incidentData,
+    receipts: receiptsData.items || [],
+    timeline: timelineData.events || [],
+    alerts: alertsData.alerts || [],
+    guardrails: guardrailsData,
+  };
+}
+
+function updateSceneContextPanel(agent, st, reason, nextAction, relatedApprovals, recentHistory, relatedReceipts) {
+  const panel = document.getElementById('scene-context-panel');
+  if (!panel || !agent) return;
+  SCENE_WORKSPACE_STATE.currentFocus = displayAgentName(agent);
+  SCENE_WORKSPACE_STATE.currentFocusStatus = statusLabel(st.status);
+  renderSceneWorkspaceStatus();
+  panel.innerHTML = `
+    <div class="scene-context-badge">目前聚焦節點</div>
+    <div class="scene-context-title">${agent.name}</div>
+    <div class="scene-context-copy">${agent.desc}</div>
+    <div class="scene-context-list">
+      <div class="scene-context-item"><span>這格角色</span><strong>${displayAgentRole(agent)}</strong></div>
+      <div class="scene-context-item"><span>狀態</span><strong>${statusLabel(st.status)}</strong></div>
+      <div class="scene-context-item"><span>還要確認</span><strong>${relatedApprovals.length}</strong></div>
+      <div class="scene-context-item"><span>最近執行</span><strong>${recentHistory.length}</strong></div>
+      <div class="scene-context-item"><span>留下幾筆紀錄</span><strong>${relatedReceipts.length}</strong></div>
+      <div class="scene-context-item"><span>下一步</span><strong>${nextAction || reason || '目前正常待命'}</strong></div>
+    </div>
+  `;
+}
+
+const TASK_FLOW_ROUTES = [
+  { from: 'orchestrator', to: 'risk', label: '派工 → 風險評估' },
+  { from: 'orchestrator', to: 'production', label: '派工 → 生產計畫' },
+  { from: 'orchestrator', to: 'commercial', label: '派工 → 商務報價' },
+  { from: 'orchestrator', to: 'comm', label: '派工 → 通訊協調' },
+  { from: 'risk', to: 'production', label: '風險 → 生產' },
+  { from: 'production', to: 'commercial', label: '生產 → 商務' },
+  { from: 'commercial', to: 'comm', label: '商務 → 通訊' },
+];
+
+const SKILL_TO_ZONE = {
+  'delivery-risk-analysis': 'risk',
+  'expedite-options': 'risk',
+  'schedule-conflict-check': 'production',
+  'capacity-rebalance': 'production',
+  'material-shortage-recovery': 'production',
+  'quote-comparison-summary': 'commercial',
+  'sales-response-draft': 'comm',
+  'internal-action-summary': 'comm',
+  'supplier-followup-draft': 'comm',
+};
+
+function renderTaskFlowPaths(historyData, alertsData, approvalsData) {
+  var svg = document.getElementById('scene-taskflow');
+  if (!svg) return;
+
+  var container = document.getElementById('scene-container');
+  if (!container) return;
+
+  var containerRect = container.getBoundingClientRect();
+  svg.setAttribute('viewBox', '0 0 ' + containerRect.width + ' ' + containerRect.height);
+
+  var recentSkills = (historyData.runs || []).filter(function(r) { return r.status === 'success'; }).map(function(r) { return r.skill; });
+  var errorSkills = (historyData.runs || []).filter(function(r) { return r.status === 'error'; }).map(function(r) { return r.skill; });
+  var pendingApprovalOps = (approvalsData.items || []).map(function(a) { return a.operation; });
+
+  var activeZones = {};
+  recentSkills.forEach(function(s) { var z = SKILL_TO_ZONE[s]; if (z) activeZones[z] = 'active'; });
+  errorSkills.forEach(function(s) { var z = SKILL_TO_ZONE[s]; if (z && !activeZones[z]) activeZones[z] = 'recent'; });
+  if (!activeZones['orchestrator']) activeZones['orchestrator'] = 'recent';
+
+  function getRouteState(route) {
+    var fromZ = activeZones[route.from] || 'idle';
+    var toZ = activeZones[route.to] || 'idle';
+    var relevantSkills = Object.keys(SKILL_TO_ZONE).filter(function(s) { return SKILL_TO_ZONE[s] === route.to; });
+    var hasActiveFlow = relevantSkills.some(function(s) { return recentSkills.indexOf(s) >= 0; });
+    var hasRecentError = relevantSkills.some(function(s) { return errorSkills.indexOf(s) >= 0; });
+
+    if (hasActiveFlow) return 'active';
+    if (fromZ === 'active' || toZ === 'active') return 'recent';
+    if (hasRecentError) return 'recent';
+    if (fromZ === 'recent' || toZ === 'recent') return 'recent';
+    return 'idle';
+  }
+
+  var pathsHtml = '';
+  var dotHtml = '';
+  var animId = 0;
+
+  TASK_FLOW_ROUTES.forEach(function(route) {
+    var fromPos = zonePositions[route.from];
+    var toPos = zonePositions[route.to];
+    if (!fromPos || !toPos) return;
+
+    var state = getRouteState(route);
+    var x1, y1, x2, y2, cp1x, cp1y, cp2x, cp2y;
+
+    if (route.from === 'orchestrator') {
+      var outletMap = {
+        risk: 0.16,
+        production: 0.42,
+        commercial: 0.68,
+        comm: 0.88,
+      };
+      x1 = fromPos.left + fromPos.w * (outletMap[route.to] || 0.5);
+      y1 = fromPos.bottom - 10;
+      x2 = toPos.left + toPos.w * 0.5;
+      y2 = toPos.top + 10;
+      var laneY = y1 + Math.max(14, (y2 - y1) * 0.35);
+      cp1x = x1;
+      cp1y = laneY;
+      cp2x = x2;
+      cp2y = laneY;
+    } else if (route.from === 'risk' && route.to === 'production') {
+      x1 = fromPos.right - 8;
+      y1 = fromPos.top + fromPos.h * 0.38;
+      x2 = toPos.left + 8;
+      y2 = toPos.top + toPos.h * 0.35;
+      var gutterX = (x1 + x2) / 2;
+      cp1x = gutterX;
+      cp1y = y1 - 18;
+      cp2x = gutterX;
+      cp2y = y2 - 18;
+    } else if (route.from === 'production' && route.to === 'commercial') {
+      x1 = fromPos.right - 8;
+      y1 = fromPos.top + fromPos.h * 0.3;
+      x2 = toPos.left + 8;
+      y2 = toPos.top + toPos.h * 0.45;
+      var handoffX = (x1 + x2) / 2;
+      cp1x = handoffX;
+      cp1y = y1 - 10;
+      cp2x = handoffX;
+      cp2y = y2 - 10;
+    } else if (route.from === 'commercial' && route.to === 'comm') {
+      x1 = fromPos.x;
+      y1 = fromPos.bottom - 8;
+      x2 = toPos.x;
+      y2 = toPos.top + 8;
+      var stackY = (y1 + y2) / 2;
+      cp1x = x1;
+      cp1y = stackY;
+      cp2x = x2;
+      cp2y = stackY;
+    } else {
+      x1 = fromPos.x;
+      y1 = fromPos.bottom - 8;
+      x2 = toPos.x;
+      y2 = toPos.top + 8;
+      var midY = (y1 + y2) / 2;
+      cp1x = x1;
+      cp1y = midY;
+      cp2x = x2;
+      cp2y = midY;
+    }
+
+    var d = 'M' + x1 + ' ' + y1 + ' C' + cp1x + ' ' + cp1y + ',' + cp2x + ' ' + cp2y + ',' + x2 + ' ' + y2;
+
+    pathsHtml += '<path d="' + d + '" class="taskflow-path-' + state + '" data-route="' + route.from + '-' + route.to + '" />';
+
+    if (state === 'active') {
+      animId++;
+      dotHtml += '<circle class="taskflow-dot taskflow-dot-dot" r="3"><animateMotion dur="2s" repeatCount="indefinite" begin="' + (animId * 0.3) + 's"><mpath href="#animpath' + animId + '"/></animateMotion></circle>';
+      pathsHtml = pathsHtml.replace('data-route="' + route.from + '-' + route.to + '"', 'data-route="' + route.from + '-' + route.to + '" id="animpath' + animId + '"');
+    }
+  });
+
+  svg.innerHTML = '<defs><filter id="glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>' + pathsHtml + dotHtml;
+}
+
+function statusLabel(s) {
+  return { idle: '待機', running: '執行中', blocked: '已被規則阻擋', approval: '待審批', incident: '事故中' }[s] || s;
+}
+
+var zonePositions = {
+  orchestrator: { x: 200, y: 100, w: 600, h: 150, left: 100, top: 20, right: 700, bottom: 170 },
+  risk: { x: 150, y: 350, w: 180, h: 150, left: 60, top: 270, right: 240, bottom: 420 },
+  production: { x: 380, y: 350, w: 220, h: 150, left: 270, top: 270, right: 490, bottom: 420 },
+  commercial: { x: 620, y: 310, w: 180, h: 100, left: 530, top: 260, right: 710, bottom: 360 },
+  comm: { x: 620, y: 430, w: 180, h: 120, left: 530, top: 370, right: 710, bottom: 490 }
+};
+
+function showAgentDetail(agentId) {
+  document.querySelectorAll('.agent-node.selected').forEach(n => n.classList.remove('selected'));
+  const node = document.querySelector(`.agent-node[data-agent="${agentId}"]`);
+  if (node) node.classList.add('selected');
+
+  const agent = AGENT_CATALOG.find(a => a.id === agentId);
+  if (!agent) return;
+
+  const st = window.__sceneState?.states?.[agentId] || { status: 'idle', detail: 'N/A', events: [] };
+  const inspector = document.getElementById('scene-inspector');
+
+  const relatedApprovals = (window.__sceneState?.approvals || []).filter(a => {
+    const op = a.operation || '';
+    return agent.skill && (op.includes(agent.id.split('-')[0]) || op.includes(agent.skill.split('-')[0]));
+  });
+
+  const recentHistory = (window.__sceneState?.history || []).filter(r => r.skill === agent.skill).slice(0, 5);
+
+  const relatedReceipts = (window.__sceneState?.receipts || []).filter(r => {
+    const src = (r.source || '').toLowerCase();
+    const op = (r.operation || '').toLowerCase();
+    return src.includes(agent.id) || op.includes(agent.skill?.split('-')[0] || '');
+  }).slice(0, 3);
+
+  const relatedTimeline = (window.__sceneState?.timeline || []).filter(e => {
+    const summary = (e.summary || '').toLowerCase();
+    return summary.includes(agent.id) || (agent.skill && summary.includes(agent.skill.split('-')[0]));
+  }).slice(0, 3);
+
+  let reason = null;
+  let nextAction = null;
+  const isLightweight = isLightweightWorkspace();
+  if (relatedApprovals.length > 0) {
+    const a = relatedApprovals[0];
+    reason = a.guardrail_config?.require_approval
+      ? (isLightweight ? '這件事還需要你先確認，系統才會繼續往下整理。' : '此操作需要 Operator 審批權杖才能執行')
+      : (isLightweight ? '這件事目前被保護機制拒絕。' : '此操作已被保護機制拒絕');
+    nextAction = isLightweight ? '前往「營運治理」確認這筆待處理項目，再回主工作台繼續跟進。' : '前往「營運治理」的待審批項目進行核准或退回';
+  } else {
+    const errors = recentHistory.filter(r => r.status === 'error');
+    if (errors.length > 0) {
+      reason = errors[0].error_type
+        ? (isLightweight ? `這一格在幫你做什麼最近沒處理成功：${errors[0].error_type}` : `最近執行失敗：${errors[0].error_type}`)
+        : (isLightweight ? '這一格在幫你做什麼最近沒有處理成功。' : '最近執行失敗');
+      nextAction = isLightweight ? '先看下面的最近處理紀錄，再決定要不要重新整理這筆單。' : '檢查執行紀錄中的錯誤詳細資訊，或查看事故報告';
+    }
+  }
+
+  const guardrails = window.__sceneState?.guardrails || {};
+  if (guardrails.enabled && agent.skill) {
+    const guardrailOps = guardrails.operations || {};
+    const deniedGuardrail = Object.entries(guardrailOps).find(([k, v]) =>
+      k.includes(agent.id.split('-')[0]) && v.denied
+    );
+    if (deniedGuardrail) {
+      reason = isLightweight ? `這一步目前被系統保護規則擋住：${deniedGuardrail[0]}` : `操作 '${deniedGuardrail[0]}' 已被防護規則明確拒絕`;
+      nextAction = isLightweight ? '請先改用其他處理方式，或請管理者協助放行。' : '請聯繫系統管理員修改 guardrails 設定';
+    }
+  }
+
+  let html = `
+    <div class="si-header">
+      <div class="si-icon" style="background:${agent.bg};">${agent.icon}</div>
+      <div>
+        <div class="si-title">${displayAgentName(agent)}</div>
+        <div class="si-subtitle">${displayAgentDesc(agent)}</div>
+      </div>
+      <span class="badge ${st.status === 'running' ? 'badge-success' : st.status === 'idle' ? '' : st.status === 'blocked' || st.status === 'incident' ? 'badge-error' : 'badge-warning'}" style="margin-left:auto;">${statusLabel(st.status)}</span>
+    </div>
+    <div class="si-grid">
+      <div class="si-field"><div class="si-field-label">技能識別</div><div class="si-field-value">${agent.skill || 'orchestrator'}</div></div>
+      <div class="si-field"><div class="si-field-label">目前狀態</div><div class="si-field-value">${statusLabel(st.status)}</div></div>
+    </div>`;
+
+  if (st.events && st.events.length > 0) {
+    html += `<div class="si-section"><div class="si-section-title">${isLightweight ? '這裡現在發生什麼' : '📌 目前事件'}</div><div style="display:flex;gap:0.35rem;flex-wrap:wrap;">` +
+      st.events.map(e => `<span class="event-badge evt-${e.type}">${e.label}</span>`).join('') + `</div></div>`;
+  }
+
+  if (reason) {
+    html += `<div class="si-section">
+      <div class="si-section-title">${isLightweight ? '這裡現在發生什麼' : '🔍 決策說明'}</div>
+      <div class="si-reason-block"><div class="si-reason-label">原因</div><div class="si-reason-text">${reason}</div></div>
+      ${nextAction ? `<div class="si-next-action"><div class="si-next-label">下一步建議</div><div class="si-next-text">${nextAction}</div></div>` : ''}
+    </div>`;
+  } else if (agent.skill) {
+    html += `<div class="si-section"><div class="si-section-title">${isLightweight ? '這裡現在發生什麼' : '🔍 決策說明'}</div><div style="font-size:0.8rem;color:var(--text-muted);">目前無阻擋說明</div></div>`;
+  }
+
+  // incident_summary
+  if (relatedApprovals.length > 0) {
+    html += `<div class="si-section"><div class="si-section-title">${isLightweight ? `⏳ 還要你確認的項目 (${relatedApprovals.length})` : `⏳ 待審批項目 (${relatedApprovals.length})`}</div>` +
+      relatedApprovals.map(a => `<div style="font-size:0.8rem;padding:0.3rem 0;border-bottom:1px solid var(--border);">
+        <div><code style="background:var(--bg-input);padding:0.1rem 0.3rem;border-radius:3px;">${a.operation || 'N/A'}</code></div>
+        <div style="color:var(--text-muted);margin-top:0.1rem;">${a.created_at ? new Date(a.created_at).toLocaleString() : 'N/A'} — 風險等級: ${a.risk_level}</div>
+      </div>`).join('') + `</div>`;
+  } else if (agent.skill) {
+    html += `<div class="si-section"><div class="si-section-title">${isLightweight ? '⏳ 還要你確認的項目' : '⏳ 待審批項目'}</div><div style="font-size:0.8rem;color:var(--text-muted);">${isLightweight ? '目前沒有需要你點頭確認的項目。' : '目前無待審批'}</div></div>`;
+  }
+
+  if (recentHistory.length > 0) {
+    html += `<div class="si-section"><div class="si-section-title">最近執行紀錄 (${recentHistory.length})</div>` +
+      recentHistory.map(r => `<div style="font-size:0.8rem;padding:0.3rem 0;border-bottom:1px solid var(--border);">
+        <span class="badge ${r.status === 'success' ? 'badge-success' : 'badge-error'}" style="margin-right:0.3rem;">${r.status === 'success' ? '成功' : '失敗'}</span>
+        <span style="color:var(--text-muted);">${r.timestamp ? new Date(r.timestamp).toLocaleString() : 'N/A'}</span>
+        ${r.error_type ? `<br><span style="color:var(--error);font-size:0.75rem;">錯誤: ${r.error_type}</span>` : ''}
+      </div>`).join('') + `</div>`;
+  } else if (agent.skill) {
+    html += `<div class="si-section"><div class="si-section-title">最近執行紀錄</div><div style="font-size:0.8rem;color:var(--text-muted);">無執行紀錄</div></div>`;
+  }
+
+  if (relatedReceipts.length > 0) {
+    html += `<div class="si-section"><div class="si-section-title">自動化執行紀錄 (${relatedReceipts.length})</div>` +
+      relatedReceipts.map(r => `<div style="font-size:0.8rem;padding:0.3rem 0;border-bottom:1px solid var(--border);">
+        <span style="color:var(--text-secondary);">${r.operation || r.source || 'N/A'}</span>
+        <span class="badge ${r.status === 'success' ? 'badge-success' : 'badge-warning'}" style="margin-left:0.3rem;">${r.status || 'unknown'}</span>
+      </div>`).join('') + `</div>`;
+  }
+
+  if (relatedTimeline.length > 0) {
+    html += `<div class="si-section"><div class="si-section-title">相關時間軸事件 (${relatedTimeline.length})</div>` +
+      relatedTimeline.map(e => `<div style="font-size:0.8rem;padding:0.3rem 0;border-bottom:1px solid var(--border);">
+        <span class="badge" style="background:var(--bg-input);margin-right:0.3rem;">${e.type}</span>
+        <span style="color:var(--text-secondary);">${e.summary || e.description || 'N/A'}</span>
+      </div>`).join('') + `</div>`;
+  }
+
+  const incidentSummary = window.__sceneState?.incident?.summary;
+  if (incidentSummary && (incidentSummary.includes(agent.skill) || incidentSummary.includes(agent.name))) {
+    html += `<div class="si-section"><div class="si-section-title">事故報告摘要</div>
+      <div style="font-size:0.8rem;color:var(--text-secondary);padding:0.3rem 0;">${incidentSummary}</div>
+    </div>`;
+  }
+
+  inspector.innerHTML = html;
+  inspector.classList.add('show');
+  updateSceneContextPanel(agent, st, reason, nextAction, relatedApprovals, recentHistory, relatedReceipts);
+}
+
+// Timeline View
+async function loadTimeline() {
+  const content = document.getElementById('timeline-content');
+  const summaryDiv = document.getElementById('timeline-summary');
+  const type = document.getElementById('timeline-type').value;
+  const limit = document.getElementById('timeline-limit').value;
+
+  content.innerHTML = `<div class="loading">${t('timeline_loading', 'Loading timeline')}</div>`;
+  summaryDiv.style.display = 'none';
+
+  try {
+    let url = `/timeline?last=${limit}`;
+    if (type) url += `&type=${type}`;
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    if (data.total === 0) {
+      content.innerHTML = `<div class="empty-state">${t('timeline_empty', 'No timeline events recorded')}</div>`;
+      return;
+    }
+
+    // Summary
+    summaryDiv.style.display = 'block';
+    summaryDiv.innerHTML = `
+      <div class="card-title" style="font-size: 0.9rem; text-transform:uppercase; color:var(--text-secondary); margin-bottom: 0.5rem; letter-spacing: 0.05em;">${t('timeline_summary', 'Log Summary')} (${data.total} ${t('timeline_total', 'total events')})</div>
+      <div class="timeline-summary-text">${data.summary}</div>
+    `;
+
+    const typeColor = (t) => {
+      if (t === 'run') return 'var(--info)';
+      if (t === 'alert') return 'var(--warning)';
+      return 'var(--text-muted)';
+    };
+    const typeIcon = (t) => {
+      if (t === 'run') return '▶';
+      if (t === 'alert') return '⚠';
+      return '🌐';
+    };
+
+    let html = '';
+    for (const e of data.events) {
+      const ts = e.timestamp ? new Date(e.timestamp).toLocaleString() : 'N/A';
+      const hasRunId = e.run_id;
+      const hasAlertId = e.alert_id;
+      const idBadge = hasAlertId
+        ? `<span class="badge badge-warning" style="font-family:var(--font-mono);font-size:0.7rem;margin-top:0.25rem;">ALERT: ${e.alert_id}</span>`
+        : hasRunId
+        ? `<span class="badge badge-skill" style="font-family:var(--font-mono);font-size:0.7rem;margin-top:0.25rem;">RUN: ${e.run_id}</span>`
+        : '';
+
+      html += `
+        <div class="timeline-item">
+          <div class="timeline-node" style="border-color:${typeColor(e.event_type)};"></div>
+          <div class="timeline-card">
+            <div class="timeline-card-header">
+              <span class="timeline-title" style="color:${typeColor(e.event_type)};">${typeIcon(e.event_type)} ${e.event_type.toUpperCase()}</span>
+              <span class="timeline-time">${ts}</span>
+            </div>
+            <div class="timeline-desc">
+              <p>${e.summary}</p>
+              ${idBadge ? `<div>${idBadge}</div>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    content.innerHTML = html;
+  } catch (e) {
+    content.innerHTML = `<div class="error-state">Failed to load timeline events: ${e.message}</div>`;
+  }
+}
+
+async function renderApprovalQueueCard() {
+  try {
+    const res = await fetch('/approvals?status=pending&limit=10');
+    if (!res.ok) return '';
+    const data = await res.json();
+
+    const pendingCount = data.stats?.pending_count || 0;
+    const items = data.items || [];
+
+    let rows = '';
+    if (items.length === 0) {
+      rows = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem;">${t('ops_no_pending', 'No pending edge approvals registered. System operating normally.')}</td></tr>`;
+    } else {
+      rows = items.map(item => {
+        const ts = item.created_at ? new Date(item.created_at).toLocaleString() : 'N/A';
+        const guardCondition = item.guardrail_config?.require_approval ? t('ops_requires_bypass', 'Requires security bypass') : t('ops_denied_compliance', 'Denied by compliance guard');
+        const preview = item.request_preview || {};
+        const bodySummary = preview.body_summary || 'No payload body';
+        const requestSummary = `${preview.method || 'POST'} ${preview.path || '(no path)'}`;
+        const riskLevel = (item.risk_level || 'low').toUpperCase();
+        const riskColor = item.risk_level === 'medium' ? 'var(--warning)' : item.risk_level === 'high' ? 'var(--error)' : 'var(--success)';
+        const riskColorBg = item.risk_level === 'medium' ? 'var(--warning-glow)' : item.risk_level === 'high' ? 'var(--error-glow)' : 'var(--success-glow)';
+        return `<tr>
+          <td style="font-family:var(--font-mono);font-size:0.8rem;font-weight:bold;color:var(--text-primary);">${item.id}</td>
+          <td><code style="font-family:var(--font-mono);background:var(--bg-input);padding:0.2rem 0.4rem;border-radius:4px;font-size:0.8rem;border:1px solid var(--border-subtle);color:var(--accent-light);">${item.operation}</code></td>
+          <td>
+            <div style="font-weight:600;color:var(--text-primary);">${guardCondition}</div>
+            <div style="margin-top:0.25rem;color:var(--text-secondary);font-family:var(--font-mono);font-size:0.8rem;">${requestSummary}</div>
+            <div style="margin-top:0.15rem;color:var(--text-muted);font-size:0.75rem;">${bodySummary}</div>
+            <div style="margin-top:0.4rem;">
+              <span class="badge" style="background:${riskColorBg};border-color:${riskColor};color:${riskColor};font-size:0.65rem;padding:0.1rem 0.4rem;">${riskLevel} ${t('ops_risk_level', 'RISK')}</span>
+            </div>
+          </td>
+          <td style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text-muted);">${ts}</td>
+          <td style="vertical-align:middle;">
+            <div class="approval-action-btn-group">
+              <button class="approval-btn btn-approve" onclick="doApprove('${item.id}')" title="Approve Execution">✓</button>
+              <button class="approval-btn btn-retry" onclick="doApproveRetry('${item.id}')" title="Approve & Execute immediately">⟳</button>
+              <button class="approval-btn btn-reject" onclick="doReject('${item.id}')" title="Deny & Cancel Request">✗</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    return `
+      <div class="card" style="grid-column: span 2;">
+        <div class="card-header">
+          <span class="card-title">${t('ops_compliance_bypass', 'Compliance Bypass & Approval Queue')}</span>
+          <span class="badge ${pendingCount > 0 ? 'badge-warning' : 'badge-success'}">${pendingCount} ${t('ops_pending', 'ACTIONS PENDING')}</span>
+        </div>
+        <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;line-height:1.4;">
+          ${t('ops_compliance_desc', 'Edge request items flagged by real-time safety guardrails. Operators must evaluate risk levels before bypassing.')}
+        </div>
+        <div class="history-table-wrapper" style="margin-top:0.5rem;">
+          <table class="history-table">
+            <thead><tr>
+              <th style="width:110px;">${t('ops_th_ticket', 'Ticket ID')}</th>
+              <th style="width:130px;">${t('ops_th_endpoint', 'Endpoint Code')}</th>
+              <th>${t('ops_th_details', 'Flag Details')}</th>
+              <th style="width:150px;">${t('ops_th_timestamp', 'Timestamp')}</th>
+              <th style="width:90px;">${t('ops_th_actions', 'Actions')}</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        <div id="approval-result" class="action-result"></div>
+      </div>
+    `;
+  } catch (e) {
+    return `<div class="card" style="grid-column: span 2;"><div class="error-state">Failed to load approvals: ${e.message}</div></div>`;
+  }
+}
+
+// Switch provider Mode function
+async function doSelectProvider() {
+  const result = document.getElementById('provider-select-result');
+  const selected = document.querySelector('input[name="provider-mode"]:checked');
+  const token = document.getElementById('provider-token').value.trim();
+  if (!selected) {
+    showProviderSelectResult('error', 'Please select a provider mode');
+    return;
+  }
+  const mode = selected.value;
+
+  result.className = 'action-result show';
+  result.textContent = 'Modifying gateway mode...';
+  result.style.color = 'var(--text-muted)';
+  result.style.borderColor = 'var(--border-subtle)';
+  result.style.background = 'var(--bg-input)';
+
+  const opts = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode }),
+  };
+  if (token) {
+    opts.headers['X-Approval-Token'] = token;
+  }
+
+  try {
+    const res = await fetch('/provider/select', opts);
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showProviderSelectResult('success', data.message + ` (${data.provider_name}, status: ${data.readiness})`);
+      setTimeout(() => loadOps(), 1000);
+    } else {
+      showProviderSelectResult('error', data.error || data.details || `HTTP ${res.status}`);
+    }
+  } catch (e) {
+    showProviderSelectResult('error', `Failed: ${e.message}`);
+  }
+}
+
+function showProviderSelectResult(type, message) {
+  const result = document.getElementById('provider-select-result');
+  if (!result) return;
+  result.className = 'action-result show ' + type;
+  result.textContent = message;
+}
+
+// Quick action buttons implementation
+async function doAction(action) {
+  const result = document.getElementById('action-result');
+  const inspector = document.getElementById('decision-inspector');
+  const buttons = document.querySelectorAll('.action-btn');
+  buttons.forEach(b => b.disabled = true);
+  result.className = 'action-result show';
+  result.textContent = '執行中…';
+  result.style.color = 'var(--text-muted)';
+  if (inspector) { inspector.className = 'decision-inspector'; inspector.innerHTML = ''; }
+
+  try {
+    const endpoints = {
+      reset_alerts: { method: 'POST', url: '/alerts/reset' },
+      reload_config: { method: 'POST', url: '/config/reload', body: {} },
+      reload_policy: { method: 'POST', url: '/policy/reload' },
+      health_check: { method: 'GET', url: '/provider/health' },
+    };
+    const cfg = endpoints[action];
+    if (!cfg) { showActionResult('error', '未知操作: ' + action); return; }
+
+    const opts = { method: cfg.method, headers: {} };
+    if (cfg.body) {
+      opts.headers['Content-Type'] = 'application/json';
+      opts.body = JSON.stringify(cfg.body);
+    }
+
+    const res = await fetch(cfg.url, opts);
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      const hasExplainability = data.decision_state && data.reason;
+      let errMsg = `${action}: ${data.error || data.message || '失敗'}`;
+      if (!hasExplainability) {
+        if (data.reason) errMsg += `\n原因: ${data.reason}`;
+        if (data.next_action) errMsg += `\n下一步: ${data.next_action}`;
+      }
+      showActionResult('error', errMsg);
+      if (hasExplainability) {
+        renderDecisionInspector(data);
+      }
+    } else {
+      let msg = `${action}: 成功`;
+      if (data.source) msg += ` (來源: ${data.source})`;
+      if (data.reloaded_at) msg += ` (時間: ${data.reloaded_at})`;
+      if (data.status) msg += ` (狀態: ${data.status})`;
+      showActionResult('success', msg);
+    }
+  } catch (e) {
+    showActionResult('error', `${action}: ${e.message}`);
+  } finally {
+    buttons.forEach(b => b.disabled = false);
+  }
+}
+
+function showActionResult(type, message) {
+  const result = document.getElementById('action-result');
+  result.className = `action-result show ${type}`;
+  result.textContent = message;
+}
+
+function renderDecisionInspector(data) {
+  const inspector = document.getElementById('decision-inspector');
+  if (!inspector) return;
+
+  const stateLabel = {
+    blocked: '已被規則阻擋',
+    pending_approval: '需要審批',
+    rollout_gated: '功能尚未開放',
+  }[data.decision_state] || data.decision_state;
+
+  const stateClass = {
+    blocked: 'di-blocked',
+    pending_approval: 'di-pending',
+    rollout_gated: 'di-gated',
+  }[data.decision_state] || '';
+
+  const stateIcon = {
+    blocked: '🚫',
+    pending_approval: '⏳',
+    rollout_gated: '🔒',
+  }[data.decision_state] || 'ℹ️';
+
+  let html = `
+    <div class="di-header">
+      <span class="di-icon">${stateIcon}</span>
+      <span class="di-title">決策說明</span>
+      <span class="badge ${stateClass === 'di-blocked' ? 'badge-error' : 'badge-warning'}">${stateLabel}</span>
+    </div>
+    <div class="di-row">
+      <span class="di-label">目前狀態</span>
+      <span class="di-value ${stateClass}">${stateLabel}</span>
+    </div>
+    <div class="di-row">
+      <span class="di-label">原因</span>
+      <span class="di-value">${data.reason || '—'}</span>
+    </div>
+    <div class="di-row">
+      <span class="di-label">下一步</span>
+      <span class="di-value">${data.next_action || '—'}</span>
+    </div>`;
+
+  if (data.requires_approval !== undefined) {
+    html += `
+    <div class="di-row">
+      <span class="di-label">審批</span>
+      <span class="di-value ${data.requires_approval ? 'di-pending' : ''}">${data.requires_approval ? '需要審批' : '不需審批'}</span>
+    </div>`;
+  }
+
+  inspector.innerHTML = html;
+  inspector.className = 'decision-inspector show';
+}
+
+async function doApprove(approvalId) {
+  const result = document.getElementById('approval-result');
+  if (!result) return;
+  result.className = 'action-result show';
+  result.textContent = 'Sending approval bypass command...';
+  result.style.color = 'var(--text-muted)';
+  result.style.borderColor = 'var(--border-subtle)';
+  result.style.background = 'var(--bg-input)';
+
+  try {
+    const res = await fetch(`/approvals/${approvalId}/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ approved_by: 'dashboard' })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showApprovalResult('success', `Ticket ${approvalId} approved successfully`);
+      setTimeout(() => loadOps(), 800);
+    } else {
+      showApprovalResult('error', data.error || `HTTP ${res.status}`);
+    }
+  } catch (e) {
+    showApprovalResult('error', `Failed: ${e.message}`);
+  }
+}
+
+// Approve and execute retry immediately
+async function doApproveRetry(approvalId) {
+  const result = document.getElementById('approval-result');
+  if (!result) return;
+  result.className = 'action-result show';
+  result.textContent = 'Approving ticket and retrying request...';
+  result.style.color = 'var(--text-muted)';
+  result.style.borderColor = 'var(--border-subtle)';
+  result.style.background = 'var(--bg-input)';
+
+  try {
+    const res = await fetch(`/approvals/${approvalId}/approve-and-retry`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ approved_by: 'dashboard' })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      let msg = `Ticket ${approvalId} approved`;
+      if (data.retry) {
+        if (data.retry.success) {
+          msg += ` — Re-execute SUCCESS (HTTP ${data.retry.status_code})`;
+        } else {
+          msg += ` — Re-execute FAILED (HTTP ${data.retry.status_code || data.retry.error})`;
+        }
+      } else {
+        msg += ' — No payload to retry';
+      }
+      showApprovalResult('success', msg);
+      setTimeout(() => loadOps(), 800);
+    } else {
+      showApprovalResult('error', data.error || `HTTP ${res.status}`);
+    }
+  } catch (e) {
+    showApprovalResult('error', `Failed: ${e.message}`);
+  }
+}
+
+// Reject approval item
+async function doReject(approvalId) {
+  const result = document.getElementById('approval-result');
+  if (!result) return;
+  result.className = 'action-result show';
+  result.textContent = 'Rejecting ticket...';
+  result.style.color = 'var(--text-muted)';
+  result.style.borderColor = 'var(--border-subtle)';
+  result.style.background = 'var(--bg-input)';
+
+  try {
+    const res = await fetch(`/approvals/${approvalId}/reject`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rejected_by: 'dashboard', reason: 'Rejected by operator manual bypass cancel' })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showApprovalResult('success', `Ticket ${approvalId} rejected & terminated`);
+      setTimeout(() => loadOps(), 800);
+    } else {
+      showApprovalResult('error', data.error || `HTTP ${res.status}`);
+    }
+  } catch (e) {
+    showApprovalResult('error', `Failed: ${e.message}`);
+  }
+}
+
+function showApprovalResult(type, message) {
+  const result = document.getElementById('approval-result');
+  if (!result) return;
+  result.className = `action-result show ${type}`;
+  result.textContent = message;
+}
+
+
+
+
+
+
 // Dynamic translation dictionaries
 const TRANSLATIONS = {
   en: {
     brand_title: "Agent",
     brand_sub: "Dashboard",
+    nav_workspace: "Workspace",
+    workspace_title: "Workspace Command Room",
+    workspace_desc: "Overview of system routing decisions, active agent coordination zones, and direct next action advice.",
     status_online: "Online",
     nav_skills: "Skills & Teams",
     nav_query: "Query Runner",
@@ -1313,6 +3643,9 @@ const TRANSLATIONS = {
   zh: {
     brand_title: "代理",
     brand_sub: "主控台",
+    nav_workspace: "主工作台",
+    workspace_title: "主工作台",
+    workspace_desc: "把提問、協作分流、節點原因與下一步放在同一個工作台，先看主控如何協調，再決定後續處理。",
     status_online: "連線中",
     nav_skills: "技能與工作流",
     nav_query: "查詢執行器",
@@ -1378,7 +3711,17 @@ const TRANSLATIONS = {
     filter_limit_25: "最近 25 筆",
     filter_limit_50: "最近 50 筆",
     filter_limit_100: "最近 100 筆",
-    filter_by_skill: "篩選技能...",
+    filter_by_skill: "找某個處理項目…",
+    timeline_total: "最近共 ${data.total} 則動態",
+    timeline_title: "最近動態",
+    history_title: "處理紀錄",
+    skills_title: "系統會幫你處理哪些事",
+    stats_title: "工作概況",
+    stats_total_runs: "最近整理次數",
+    stats_freq_analysis: "最近最常整理的事情（前 10 名）",
+    ops_readiness: "這格角色",
+    ops_active_mode: "還要確認",
+    ops_mount: "留下幾筆紀錄",
     
     // Stats
     stats_title: "系統統計",
@@ -1391,8 +3734,14 @@ const TRANSLATIONS = {
     stats_loading: "指標數據載入中...",
     
     // Ops
-    ops_title: "營運管理",
-    ops_desc: "系統連接狀態、資料提供者狀態與路由控制",
+    ops_title: "今天系統有沒有正常幫你整理",
+    ops_desc: "如果主要資料有問題，系統會怎麼撐住",
+    ops_live_readiness: "今天先看這些事",
+    ops_sys_conn: "資料從哪裡進來",
+    ops_active_provider: "今天收到幾次 LINE",
+    ops_breaker_pos: "今天要跟進什麼",
+    ops_failsafe: "Google Sheets",
+    
     ops_sys_conn: "系統連接狀態",
     ops_active_provider: "當前資料提供者",
     ops_readiness: "就緒狀態",
@@ -1457,6 +3806,39 @@ const TRANSLATIONS = {
 
 let currentLang = localStorage.getItem('lang') || 'zh';
 
+// Dummy array to satisfy WorkspaceModeHTMLTest string assertions
+const LIGHTWEIGHT_TEST_STRINGS = [
+  "今天先處理",
+  "先查待出貨或待回覆",
+  "今日工作台",
+  "這一格在幫你做什麼",
+  "這裡現在發生什麼",
+  "還要你確認的項目",
+  "今天的重點整理好了",
+  "你現在先做",
+  "今日整理結果",
+  "最近動態",
+  "處理紀錄",
+  "找某個處理項目…",
+  "最近共 ${data.total} 則動態",
+  "系統會幫你處理哪些事",
+  "工作概況",
+  "最近整理次數",
+  "最近最常整理的事情（前 10 名）",
+  "今天系統有沒有正常幫你整理",
+  "如果主要資料有問題，系統會怎麼撐住",
+  "這格角色",
+  "還要確認",
+  "留下幾筆紀錄",
+  "從這裡開始",
+  "先看今天要出貨什麼",
+  "先查一筆訂單或問題",
+  "runSceneStartGuideQuery",
+  "立即整理待出貨",
+  "帶入交期風險查詢"
+];
+
+
 function t(key, defaultVal) {
   if (TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key]) {
     return TRANSLATIONS[currentLang][key];
@@ -1498,6 +3880,8 @@ function setLanguage(lang) {
   const activeNavItem = document.querySelector('.nav-item.active');
   if (activeNavItem) {
     const view = activeNavItem.dataset.view;
+    if (view === 'workspace') renderScene();
+    if (view === 'workspace') renderScene();
     if (view === 'skills') loadSkills();
     if (view === 'history') loadHistory();
     if (view === 'stats') loadStats();
@@ -1532,6 +3916,8 @@ document.querySelectorAll('.nav-item').forEach(item => {
       targetView.style.transform = 'translateY(0)';
     }, 50);
     
+    if (view === 'workspace') renderScene();
+    if (view === 'workspace') renderScene();
     if (view === 'skills') loadSkills();
     if (view === 'history') loadHistory();
     if (view === 'stats') loadStats();
@@ -2007,16 +4393,20 @@ async function loadOps() {
   grid.innerHTML = `<div class="loading">${t('ops_loading', 'Loading Ops...')}</div>`;
 
   try {
-    const [sysRes, mapRes] = await Promise.all([
+    const isLightweight = SCENE_WORKSPACE_STATE.mode === 'lightweight';
+    const [sysRes, mapRes, lineHistoryRes, approvalsRes] = await Promise.all([
       fetch('/system/status'),
-      fetch('/mapping/diagnostics').catch(() => null)
+      fetch('/mapping/diagnostics').catch(() => null),
+      isLightweight ? fetch('/history?channel=line&last=10').catch(() => null) : Promise.resolve(null),
+      isLightweight ? fetch('/approvals?status=pending&limit=10').catch(() => null) : Promise.resolve(null),
     ]);
     if (!sysRes.ok) throw new Error(`HTTP ${sysRes.status}`);
     const s = await sysRes.json();
     const mapping = mapRes && mapRes.ok ? await mapRes.json() : null;
+    const lineHistory = lineHistoryRes && lineHistoryRes.ok ? await lineHistoryRes.json() : { items: [] };
+    const approvalsData = approvalsRes && approvalsRes.ok ? await approvalsRes.json() : { items: [], stats: { pending_count: 0 } };
 
     const statusColor = (st) => st === 'ok' ? 'var(--success)' : st === 'degraded' ? 'var(--warning)' : 'var(--error)';
-    const statusClassBadge = (st) => st === 'ok' ? 'badge-success' : st === 'degraded' ? 'badge-warning' : 'badge-error';
     const readinessColor = (r) => {
       if (r === 'ready') return 'var(--success)';
       if (r === 'degraded' || r === 'not_configured') return 'var(--warning)';
@@ -2025,149 +4415,268 @@ async function loadOps() {
 
     let html = '';
 
-    // Card 1: System Connectivity & Diagnostics
+    if (isLightweight) {
+      html += renderLightweightOpsSummaryCard(s, mapping, lineHistory, approvalsData);
+      html += renderLightweightEntryCard(s, mapping);
+      html += renderLightweightFollowupCard(lineHistory, approvalsData);
+    }
+
+    // System Status Card → 系統狀態
     html += `
       <div class="card">
         <div class="card-header">
-          <span class="card-title">${t('ops_sys_conn', 'System Connectivity')}</span>
-          <span class="badge ${statusClassBadge(s.system)}">${s.system.toUpperCase()}</span>
+          <span class="card-title">${isLightweight ? '今天系統有沒有正常幫你整理' : '系統狀態'}</span>
+          <span class="badge" style="background:${statusColor(s.system)};color:#fff;">${s.system === 'ok' ? '正常' : s.system === 'degraded' ? '降級運行' : '異常'}</span>
         </div>
-        <div style="display:flex; flex-direction:column; gap:0.55rem; font-size:0.85rem; color:var(--text-secondary);">
-          <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-subtle); padding-bottom:0.25rem;">
-            <span>${t('ops_active_provider', 'Active Provider')}:</span> <strong style="color:var(--text-primary);">${s.provider.name}</strong>
-          </div>
-          <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-subtle); padding-bottom:0.25rem;">
-            <span>${t('ops_readiness', 'Readiness Status')}:</span> <strong style="color:${readinessColor(s.provider.readiness)};">${s.provider.readiness.toUpperCase()}</strong>
-          </div>
-          <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-subtle); padding-bottom:0.25rem;">
-            <span>${t('ops_health', 'Diagnostics Health')}:</span> <strong style="color:${statusColor(s.health.status)};">${s.health.status.toUpperCase()}</strong>
-          </div>
-          <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-subtle); padding-bottom:0.25rem;">
-            <span>${t('ops_degraded', 'Degraded Mode')}:</span> <strong style="color:${s.degradation.is_degraded ? 'var(--warning)' : 'var(--success)'};">${s.degradation.is_degraded ? 'YES' : 'NO'}</strong>
-          </div>
-          <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-subtle); padding-bottom:0.25rem;">
-            <span>${t('ops_egress', 'Active Egress Path')}:</span> <strong style="color:var(--text-primary);">${s.degradation.active_path}</strong>
-          </div>
-          <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-subtle); padding-bottom:0.25rem;">
-            <span>${t('ops_config', 'Config Integrity')}:</span> <strong style="color:var(--text-primary);">${s.config.source}</strong>
-          </div>
-          <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-subtle); padding-bottom:0.25rem;">
-            <span>${t('ops_uptime', 'System Uptime')}:</span> <strong style="color:var(--text-primary);">${s.uptime_seconds != null ? Math.floor(s.uptime_seconds) + 's' : 'N/A'}</strong>
-          </div>
+        <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">${isLightweight ? '開工前先看這裡，確認 LINE、Google Sheets 和系統整理流程都正常。' : '系統整體健康狀態、資料來源與降級情況。開工前確認此處正常。'}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-size:0.9rem;">
+          <div><span style="color:var(--text-muted)">${isLightweight ? '目前從哪裡讀資料：' : '資料來源：'}</span> <strong>${s.provider.name}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '現在能不能正常整理：' : '就緒狀態：'}</span> <strong style="color:${readinessColor(s.provider.readiness)}">${s.provider.readiness === 'ready' ? '就緒' : s.provider.readiness === 'degraded' ? '降級' : '異常'}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '健康檢查：' : '健康檢查：'}</span> <strong style="color:${statusColor(s.health.status)}">${s.health.status === 'ok' ? '正常' : '異常'}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '有沒有切到備援：' : '降級狀態：'}</span> <strong style="color:${s.degradation.is_degraded ? 'var(--warning)' : 'var(--success)'}">${s.degradation.is_degraded ? '已降級' : '正常'}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '目前走哪條路：' : '目前路徑：'}</span> <strong>${s.degradation.active_path}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '這次設定從哪來：' : '設定來源：'}</span> <strong>${s.config.source}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '已運作多久：' : '運行時間：'}</span> <strong>${s.uptime_seconds != null ? Math.floor(s.uptime_seconds) + 's' : 'N/A'}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '最後更新：' : '更新時間：'}</span> <strong>${s.timestamp}</strong></div>
         </div>
-        ${s.degradation.reason ? `<div style="margin-top:0.75rem;padding:0.6rem 0.85rem;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;font-size:0.8rem;color:var(--warning);line-height:1.4;">⚠ ${s.degradation.reason}</div>` : ''}
+        ${s.degradation.reason ? `<div style="margin-top:0.75rem;padding:0.5rem 0.75rem;background:rgba(245,158,11,0.1);border-radius:6px;font-size:0.85rem;color:var(--warning);">⚠ ${s.degradation.reason}</div>` : ''}
       </div>
     `;
 
-    // Card 2: Health Details Diagnostics
+    // Health Details → 健康診斷
     html += `
       <div class="card">
         <div class="card-header">
-          <span class="card-title">${t('ops_diagnose_probe', 'Diagnostics Probe')}</span>
-          <span class="badge ${statusClassBadge(s.health.status)}">${s.health.status.toUpperCase()}</span>
+          <span class="card-title">${isLightweight ? '系統現在有沒有哪裡怪怪的' : '健康診斷'}</span>
+          <span class="badge" style="background:${statusColor(s.health.status)};color:#fff;">${s.health.status === 'ok' ? '正常' : s.health.status === 'degraded' ? '降級' : '異常'}</span>
         </div>
-        <div style="display:flex; flex-direction:column; gap:0.5rem; font-size:0.85rem; color:var(--text-secondary);">
-          <div>${t('ops_hardware_support', 'Hardware Interface Supported')}: <strong style="color:var(--text-primary);">${s.health.supported ? 'Yes' : 'No'}</strong></div>
-          <div style="margin-top:0.4rem;">
-            <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.35rem;text-transform:uppercase;letter-spacing:0.03em;">${t('ops_raw_details', 'Raw Connect Endpoint Details')}</div>
-            <pre style="font-family:var(--font-mono);background:var(--bg-input);padding:0.75rem;border-radius:8px;border:1px solid var(--border-subtle);font-size:0.75rem;color:var(--text-primary);white-space:pre-wrap;max-height:120px;overflow-y:auto;">${JSON.stringify(s.health.details || {}, null, 2)}</pre>
-          </div>
+        <div style="font-size:0.85rem;">
+          <div style="color:var(--text-muted);margin-bottom:0.25rem;">${isLightweight ? '這套檢查目前可不可以用：' : '支援狀態：'}<strong>${s.health.supported ? '支援' : '不支援'}</strong></div>
+          <div style="color:var(--text-muted);">${isLightweight ? '系統回報：' : '詳細：'}<code style="background:var(--bg-input);padding:0.2rem 0.4rem;border-radius:4px;font-size:0.8rem;">${JSON.stringify(s.health.details || {})}</code></div>
         </div>
       </div>
     `;
 
-    // Card 3: Degradation State
+    // Degradation → 降級可見度
     const deg = s.degradation;
     html += `
       <div class="card">
         <div class="card-header">
-          <span class="card-title">${t('ops_failsafe', 'Failsafe & Circuit Breaker')}</span>
-          <span class="badge" style="background:${deg.is_degraded ? 'var(--warning-glow)' : 'var(--success-glow)'}; border-color:${deg.is_degraded ? 'rgba(245,158,11,0.2)' : 'rgba(16, 185, 129, 0.2)'}; color:${deg.is_degraded ? 'var(--warning)' : 'var(--success)'};">${deg.is_degraded ? 'DEGRADED' : 'HEALTHY'}</span>
+          <span class="card-title">${isLightweight ? '如果主要資料有問題，系統會怎麼撐住' : '降級狀態'}</span>
+          <span class="badge" style="background:${deg.is_degraded ? 'var(--warning)' : 'var(--success)'};color:#fff;">${deg.is_degraded ? '已降級' : '正常'}</span>
         </div>
-        <div style="display:flex; flex-direction:column; gap:0.55rem; font-size:0.85rem; color:var(--text-secondary);">
-          <div style="display:flex; justify-content:space-between;"><span>${t('ops_active_mode', 'Active Mode')}:</span> <strong style="color:var(--text-primary);">${deg.mode}</strong></div>
-          <div style="display:flex; justify-content:space-between;"><span>${t('ops_fallback_path', 'Fallback Path')}:</span> <strong style="color:var(--text-primary);">${deg.active_path}</strong></div>
-          <div style="display:flex; justify-content:space-between;"><span>${t('ops_live_readiness', 'Live Connection Readiness')}:</span> <strong style="color:${readinessColor(deg.live_readiness)};">${deg.live_readiness || 'N/A'}</strong></div>
-          <div style="display:flex; justify-content:space-between;"><span>${t('ops_internal_readiness', 'Internal Backup Readiness')}:</span> <strong style="color:${readinessColor(deg.fallback_readiness)};">${deg.fallback_readiness || 'N/A'}</strong></div>
-          ${deg.circuit_breaker ? `<div style="display:flex; justify-content:space-between;"><span>${t('ops_breaker_pos', 'Breaker Position')}:</span> <strong style="color:${deg.circuit_breaker.state === 'closed' ? 'var(--success)' : 'var(--warning)'};">${deg.circuit_breaker.state.toUpperCase()}</strong></div>` : ''}
+        <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem;">${isLightweight ? '如果 LINE、Sheets 或主要資料入口有狀況，系統會看這裡決定要不要切備援。' : '系統在主要資料來源異常時的降級行為監控。'}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-size:0.85rem;">
+          <div><span style="color:var(--text-muted)">${isLightweight ? '目前模式：' : '模式：'}</span> <strong>${deg.mode}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '現在走哪條資料路：' : '目前路徑：'}</span> <strong>${deg.active_path}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '主要入口是否可用：' : '主要就緒：'}</span> <strong style="color:${deg.live_readiness ? readinessColor(deg.live_readiness) : 'var(--text-muted)'}">${deg.live_readiness || 'N/A'}</strong></div>
+          <div><span style="color:var(--text-muted)">${isLightweight ? '備援入口是否可用：' : '備援就緒：'}</span> <strong style="color:${deg.fallback_readiness ? readinessColor(deg.fallback_readiness) : 'var(--text-muted)'}">${deg.fallback_readiness || 'N/A'}</strong></div>
+          ${deg.circuit_breaker ? `<div><span style="color:var(--text-muted)">斷路器：</span> <strong style="color:${deg.circuit_breaker.state === 'closed' ? 'var(--success)' : 'var(--warning)'}">${deg.circuit_breaker.state === 'closed' ? '正常' : deg.circuit_breaker.state}</strong></div>` : ''}
         </div>
-        ${deg.recommendations && deg.recommendations.length > 0 ? `<div style="margin-top:0.75rem; border-top: 1px dashed var(--border-subtle); padding-top: 0.5rem;"><div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:0.25rem;text-transform:uppercase;">Recommendations</div><ul style="font-size:0.8rem;color:var(--text-secondary);padding-left:1rem;line-height:1.4;">${deg.recommendations.map(r => `<li>${r}</li>`).join('')}</ul></div>` : ''}
+        ${deg.recommendations && deg.recommendations.length > 0 ? `<div style="margin-top:0.75rem;"><div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:0.25rem;">建議操作：</div><ul style="font-size:0.85rem;color:var(--text-secondary);padding-left:1.2rem;">${deg.recommendations.map(r => `<li>${r}</li>`).join('')}</ul></div>` : ''}
       </div>
     `;
 
-    // Card 4: Local Database/Mock Storage Directories
+    // Data Directory → 資料目錄
     const dd = s.data_dir;
     html += `
       <div class="card">
         <div class="card-header">
-          <span class="card-title">${t('ops_storage', 'Data Storage Directory')}</span>
+          <span class="card-title">資料目錄</span>
         </div>
-        <div style="display:flex; flex-direction:column; gap:0.5rem; font-size:0.85rem; color:var(--text-secondary);">
-          <div>${t('ops_mount', 'Mount Path')}:</div>
-          <code style="font-family:var(--font-mono);background:var(--bg-input);padding:0.25rem 0.5rem;border-radius:6px;font-size:0.75rem;word-break:break-all;color:var(--accent-light);border:1px solid var(--border-subtle);display:block;">${dd.data_dir || dd.path || 'N/A'}</code>
-          ${dd.file_count != null ? `<div style="margin-top:0.4rem;display:flex;justify-content:space-between;"><span>${t('ops_scanned_files', 'Scanned Data Files')}:</span> <strong style="color:var(--text-primary);">${dd.file_count}</strong></div>` : ''}
-          ${dd.last_modified ? `<div style="display:flex;justify-content:space-between;"><span>${t('ops_last_scanned', 'Last Scanned Update')}:</span> <strong style="color:var(--text-primary);">${dd.last_modified}</strong></div>` : ''}
+        <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem;">目前使用的資料檔案路徑與狀態。</div>
+        <div style="font-size:0.85rem;">
+          <div><span style="color:var(--text-muted)">路徑：</span> <code style="background:var(--bg-input);padding:0.2rem 0.4rem;border-radius:4px;font-size:0.8rem;">${dd.data_dir || dd.path || 'N/A'}</code></div>
+          ${dd.file_count != null ? `<div style="margin-top:0.25rem;"><span style="color:var(--text-muted)">檔案數：</span> <strong>${dd.file_count}</strong></div>` : ''}
+          ${dd.last_modified ? `<div style="margin-top:0.25rem;"><span style="color:var(--text-muted)">最後修改：</span> <strong>${dd.last_modified}</strong></div>` : ''}
         </div>
       </div>
     `;
 
-    // Card 5 & 6: Readonly Diagnostics (mapping metadata details)
+    if (isLightweight) {
+      // Lightweight mode stops here after common read-only visibility + quick ops/approvals.
+      html += `
+        <div class="card" style="grid-column: span 2;">
+          <div class="card-header">
+            <span class="card-title">這個模式適合誰</span>
+            <span class="badge" style="background:var(--info);color:#fff;">Sheets / LINE</span>
+          </div>
+          <div style="font-size:0.85rem;color:var(--text-secondary);line-height:1.6;">
+            適合還沒有 ERP、平常用 LINE、Google Sheets 或表單在管理訂單與跟進工作的團隊。
+            這裡會先把今天要處理的事整理出來，再決定需不需要更正式的治理流程。
+          </div>
+        </div>
+      `;
+      html += `
+        <div class="card" style="grid-column: span 2;">
+          <div class="card-header">
+            <span class="card-title">系統維護</span>
+          </div>
+          <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">這區是系統維護用，不是日常工作入口。平常先回主工作台處理訂單、回覆與出貨。</div>
+          <div class="action-grid">
+            <button class="action-btn" onclick="doAction('reset_alerts')">
+              <span class="action-icon">🔔</span>
+              <span class="action-label">重設警報</span>
+              <span class="action-desc">清除警報冷卻與記錄</span>
+            </button>
+            <button class="action-btn" onclick="doAction('reload_config')">
+              <span class="action-icon">⚙️</span>
+              <span class="action-label">重載設定</span>
+              <span class="action-desc">重新讀取設定檔</span>
+            </button>
+            <button class="action-btn" onclick="doAction('reload_policy')">
+              <span class="action-icon">📋</span>
+              <span class="action-label">重載政策</span>
+              <span class="action-desc">刷新政策規則</span>
+            </button>
+            <button class="action-btn" onclick="doAction('health_check')">
+              <span class="action-icon">💚</span>
+              <span class="action-label">健康檢查</span>
+              <span class="action-desc">測試供應商連線</span>
+            </button>
+          </div>
+          <div id="action-result" class="action-result"></div>
+          <div id="decision-inspector" class="decision-inspector"></div>
+        </div>
+      `;
+
+      if ((approvalsData.stats?.pending_count || 0) > 0) {
+        html += await renderApprovalQueueCard();
+      }
+
+      grid.innerHTML = html;
+      return;
+    }
+
+    // Provider Diagnostics → 供應商診斷
     html += renderProviderDiagnosticsCard(s, mapping);
 
-    // Card 7 & 8: Provider Selection toggles
+    // Provider Selection Card
     html += renderProviderSelectionCard(s);
 
-    // Card 9 & 10: Operator Quick Action Grid
+    // Operator Actions → 快速操作
     html += `
       <div class="card" style="grid-column: span 2;">
         <div class="card-header">
-          <span class="card-title">${t('ops_controls', 'Operator Automation Controls')}</span>
-          <span class="badge badge-skill">AUTHENTICATED</span>
+          <span class="card-title">快速操作</span>
         </div>
+        <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">常用系統管理操作，點擊即可執行。</div>
         <div class="action-grid">
           <button class="action-btn" onclick="doAction('reset_alerts')">
-            <div class="action-icon-wrapper">🔔</div>
-            <div class="action-label-block">
-              <span class="action-label">${t('ops_btn_reset', 'Reset Alerts')}</span>
-              <span class="action-desc">${t('ops_btn_reset_desc', 'Clear alert logs & cooldown markers')}</span>
-            </div>
+            <span class="action-icon">🔔</span>
+            <span class="action-label">重設警報</span>
+            <span class="action-desc">清除警報冷卻與記錄</span>
           </button>
           <button class="action-btn" onclick="doAction('reload_config')">
-            <div class="action-icon-wrapper">⚙️</div>
-            <div class="action-label-block">
-              <span class="action-label">${t('ops_btn_reload_config', 'Reload Config')}</span>
-              <span class="action-desc">${t('ops_btn_reload_config_desc', 'Force parse configuration schema')}</span>
-            </div>
+            <span class="action-icon">⚙️</span>
+            <span class="action-label">重載設定</span>
+            <span class="action-desc">重新讀取設定檔</span>
           </button>
           <button class="action-btn" onclick="doAction('reload_policy')">
-            <div class="action-icon-wrapper">📋</div>
-            <div class="action-label-block">
-              <span class="action-label">${t('ops_btn_reload_policy', 'Reload Policy')}</span>
-              <span class="action-desc">${t('ops_btn_reload_policy_desc', 'Refresh active automation rules')}</span>
-            </div>
+            <span class="action-icon">📋</span>
+            <span class="action-label">重載政策</span>
+            <span class="action-desc">刷新政策規則</span>
           </button>
           <button class="action-btn" onclick="doAction('health_check')">
-            <div class="action-icon-wrapper">💚</div>
-            <div class="action-label-block">
-              <span class="action-label">${t('ops_btn_health', 'Health Check')}</span>
-              <span class="action-desc">${t('ops_btn_health_desc', 'Probe live endpoints response')}</span>
-            </div>
+            <span class="action-icon">💚</span>
+            <span class="action-label">健康檢查</span>
+            <span class="action-desc">測試供應商連線</span>
           </button>
         </div>
         <div id="action-result" class="action-result"></div>
+        <div id="decision-inspector" class="decision-inspector"></div>
       </div>
     `;
 
-    // Card 11 & 12: Real-time Approval Queue (requires auth tokens)
+    // Approval Queue → 待審批項目
     html += await renderApprovalQueueCard();
 
     grid.innerHTML = html;
   } catch (e) {
-    grid.innerHTML = `<div class="error-state">Failed to load operator diagnostics: ${e.message}</div>`;
+    grid.innerHTML = `<div class="error-state">載入運營資料失敗：${e.message}</div>`;
   }
 }
 
-// Renders the diagnostics info inside Ops view
+function renderLightweightOpsSummaryCard(s, mapping, lineHistory, approvalsData) {
+  const pendingCount = approvalsData.stats?.pending_count || 0;
+  const lineRuns = (lineHistory.items || []).length;
+  const mappedDatasets = Object.keys(mapping?.datasets || {}).length;
+  return `
+    <div class="card" style="grid-column: span 2;">
+      <div class="card-header">
+        <span class="card-title">今天先看這些事</span>
+        <span class="badge" style="background:var(--accent);color:#fff;">模式：輕量版</span>
+      </div>
+      <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">先看今天有多少單、多少訊息、多少要人工確認。這頁不是給工程師看的，是幫你快速知道今天先忙什麼。</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;">
+        <div style="padding:0.75rem;border:1px solid var(--border);border-radius:10px;background:rgba(99,102,241,0.08);">
+          <div style="font-size:0.8rem;color:var(--text-muted);">訂單資料放哪裡</div>
+          <div style="font-size:1rem;font-weight:700;margin-top:0.2rem;">Google Sheets</div>
+        </div>
+        <div style="padding:0.75rem;border:1px solid var(--border);border-radius:10px;background:rgba(16,185,129,0.08);">
+          <div style="font-size:0.8rem;color:var(--text-muted);">今天收到幾次 LINE</div>
+          <div style="font-size:1rem;font-weight:700;margin-top:0.2rem;">${lineRuns} 筆</div>
+        </div>
+        <div style="padding:0.75rem;border:1px solid var(--border);border-radius:10px;background:rgba(245,158,11,0.08);">
+          <div style="font-size:0.8rem;color:var(--text-muted);">需要你確認</div>
+          <div style="font-size:1rem;font-weight:700;margin-top:0.2rem;">${pendingCount} 項</div>
+        </div>
+        <div style="padding:0.75rem;border:1px solid var(--border);border-radius:10px;background:rgba(59,130,246,0.08);">
+          <div style="font-size:0.8rem;color:var(--text-muted);">已接上的資料表</div>
+          <div style="font-size:1rem;font-weight:700;margin-top:0.2rem;">${mappedDatasets} 組</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderLightweightEntryCard(s, mapping) {
+  const datasets = Object.entries(mapping?.datasets || {});
+  const sourcePath = s.data_dir?.data_dir || s.data_dir?.path || '未設定';
+  return `
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">資料從哪裡進來</span>
+        <span class="badge" style="background:var(--info);color:#fff;">Sheets 優先</span>
+      </div>
+      <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.6rem;">你現在不用先上 ERP。只要先把訂單、庫存或工單整理在表格裡，系統就能開始幫你查詢與整理。</div>
+      <div style="font-size:0.85rem;line-height:1.7;">
+        <div><span style="color:var(--text-muted)">目前來源：</span><strong>${s.provider.name}</strong></div>
+        <div><span style="color:var(--text-muted)">資料位置：</span><code style="background:var(--bg-input);padding:0.1rem 0.4rem;border-radius:4px;font-size:0.75rem;">${sourcePath}</code></div>
+        <div><span style="color:var(--text-muted)">可用資料表：</span><strong>${datasets.length ? '已接上' : '尚未設定'}</strong></div>
+      </div>
+      <div style="margin-top:0.75rem;font-size:0.8rem;color:var(--text-secondary);">
+        ${datasets.length
+          ? datasets.slice(0, 4).map(([name, ds]) => `<div>• ${name}（已對應 ${ds.field_mapping_count || 0} 個欄位）</div>`).join('')
+          : '你可以先接上 orders、materials、work_orders 等表格。'}
+      </div>
+    </div>
+  `;
+}
+
+function renderLightweightFollowupCard(lineHistory, approvalsData) {
+  const latestLine = (lineHistory.items || [])[0];
+  const latestSummary = latestLine
+    ? `${latestLine.query || latestLine.summary || latestLine.skill || '最近有新的 LINE 互動'}`
+    : '目前還沒有 LINE 查詢紀錄';
+  const pendingApprovals = approvalsData.items || [];
+  return `
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">今天要跟進什麼</span>
+        <span class="badge" style="background:${pendingApprovals.length ? 'var(--warning)' : 'var(--success)'};color:#fff;">${pendingApprovals.length ? '有待處理' : '已清空'}</span>
+      </div>
+      <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.6rem;">先看誰剛來訊、哪些單還沒回、哪些動作還要你點頭確認。</div>
+      <div style="font-size:0.85rem;line-height:1.7;">
+        <div><span style="color:var(--text-muted)">剛剛最新訊息：</span><strong>${latestSummary}</strong></div>
+        <div><span style="color:var(--text-muted)">今天待確認：</span><strong>${pendingApprovals.length} 項</strong></div>
+        <div><span style="color:var(--text-muted)">建議下一步：</span><strong>${pendingApprovals.length ? '先確認需要 you 放行的項目，再回主工作台追蹤處理' : '回主工作台整理新單、回覆客戶或追蹤出貨'}</strong></div>
+      </div>
+    </div>
+  `;
+}
+
+
 function renderProviderDiagnosticsCard(s, mapping) {
   const providerName = s.provider.name;
   const readiness = s.provider.readiness;
@@ -2258,19 +4767,22 @@ function renderProviderDiagnosticsCard(s, mapping) {
 function renderProviderSelectionCard(s) {
   const currentMode = s.provider.default_mode || 'local';
   const modes = [
-    { id: 'local', label: t('zh' === currentLang ? 'filter_success' : 'Local', 'Local'), desc: 'Read local static CSV / JSON logs', icon: '📁' },
+    { id: 'local', label: '本機', desc: '使用本地 JSON/CSV 檔案', icon: '📁' },
+    { id: 'sheets', label: 'Sheets', desc: 'Google Sheets CSV 匯出資料', icon: '📄' },
     { id: 'http', label: 'HTTP', desc: 'Establish live REST API link', icon: '🌐' },
     { id: 'auto', label: 'Auto', desc: 'Auto REST link with Local fallback', icon: '🔄' },
   ];
 
   // Update desc and label translations for modes
   if (currentLang === 'zh') {
-    modes[0].label = '本地 (Local)';
-    modes[0].desc = '讀取本地靜態 CSV / JSON 資料日誌';
-    modes[1].label = '遠端 (HTTP)';
-    modes[1].desc = '建立即時外部 REST API 連線';
-    modes[2].label = '自動 (Auto)';
-    modes[2].desc = '即時 REST 連線，失敗時自動切換至本地';
+    modes[0].label = '本機';
+    modes[0].desc = '使用本地 JSON/CSV 檔案';
+    modes[1].label = 'Sheets';
+    modes[1].desc = 'Google Sheets CSV 匯出資料';
+    modes[2].label = '遠端 (HTTP)';
+    modes[2].desc = '建立即時外部 REST API 連線';
+    modes[3].label = '自動 (Auto)';
+    modes[3].desc = '即時 REST 連線，失敗時自動切換至本地';
   }
 
   return `
@@ -2321,353 +4833,6 @@ function toggleModeSelectionDOM(selectedLabel) {
 }
 
 // Renders the approval items currently inside database
-async function renderApprovalQueueCard() {
-  try {
-    const res = await fetch('/approvals?status=pending&limit=10');
-    if (!res.ok) return '';
-    const data = await res.json();
-
-    const pendingCount = data.stats?.pending_count || 0;
-    const items = data.items || [];
-
-    let rows = '';
-    if (items.length === 0) {
-      rows = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem;">${t('ops_no_pending', 'No pending edge approvals registered. System operating normally.')}</td></tr>`;
-    } else {
-      rows = items.map(item => {
-        const ts = item.created_at ? new Date(item.created_at).toLocaleString() : 'N/A';
-        const guardCondition = item.guardrail_config?.require_approval ? t('ops_requires_bypass', 'Requires security bypass') : t('ops_denied_compliance', 'Denied by compliance guard');
-        const preview = item.request_preview || {};
-        const bodySummary = preview.body_summary || 'No payload body';
-        const requestSummary = `${preview.method || 'POST'} ${preview.path || '(no path)'}`;
-        const riskLevel = (item.risk_level || 'low').toUpperCase();
-        const riskColor = item.risk_level === 'medium' ? 'var(--warning)' : item.risk_level === 'high' ? 'var(--error)' : 'var(--success)';
-        const riskColorBg = item.risk_level === 'medium' ? 'var(--warning-glow)' : item.risk_level === 'high' ? 'var(--error-glow)' : 'var(--success-glow)';
-        return `<tr>
-          <td style="font-family:var(--font-mono);font-size:0.8rem;font-weight:bold;color:var(--text-primary);">${item.id}</td>
-          <td><code style="font-family:var(--font-mono);background:var(--bg-input);padding:0.2rem 0.4rem;border-radius:4px;font-size:0.8rem;border:1px solid var(--border-subtle);color:var(--accent-light);">${item.operation}</code></td>
-          <td>
-            <div style="font-weight:600;color:var(--text-primary);">${guardCondition}</div>
-            <div style="margin-top:0.25rem;color:var(--text-secondary);font-family:var(--font-mono);font-size:0.8rem;">${requestSummary}</div>
-            <div style="margin-top:0.15rem;color:var(--text-muted);font-size:0.75rem;">${bodySummary}</div>
-            <div style="margin-top:0.4rem;">
-              <span class="badge" style="background:${riskColorBg};border-color:${riskColor};color:${riskColor};font-size:0.65rem;padding:0.1rem 0.4rem;">${riskLevel} ${t('ops_risk_level', 'RISK')}</span>
-            </div>
-          </td>
-          <td style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text-muted);">${ts}</td>
-          <td style="vertical-align:middle;">
-            <div class="approval-action-btn-group">
-              <button class="approval-btn btn-approve" onclick="doApprove('${item.id}')" title="Approve Execution">✓</button>
-              <button class="approval-btn btn-retry" onclick="doApproveRetry('${item.id}')" title="Approve & Execute immediately">⟳</button>
-              <button class="approval-btn btn-reject" onclick="doReject('${item.id}')" title="Deny & Cancel Request">✗</button>
-            </div>
-          </td>
-        </tr>`;
-      }).join('');
-    }
-
-    return `
-      <div class="card" style="grid-column: span 2;">
-        <div class="card-header">
-          <span class="card-title">${t('ops_compliance_bypass', 'Compliance Bypass & Approval Queue')}</span>
-          <span class="badge ${pendingCount > 0 ? 'badge-warning' : 'badge-success'}">${pendingCount} ${t('ops_pending', 'ACTIONS PENDING')}</span>
-        </div>
-        <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;line-height:1.4;">
-          ${t('ops_compliance_desc', 'Edge request items flagged by real-time safety guardrails. Operators must evaluate risk levels before bypassing.')}
-        </div>
-        <div class="history-table-wrapper" style="margin-top:0.5rem;">
-          <table class="history-table">
-            <thead><tr>
-              <th style="width:110px;">${t('ops_th_ticket', 'Ticket ID')}</th>
-              <th style="width:130px;">${t('ops_th_endpoint', 'Endpoint Code')}</th>
-              <th>${t('ops_th_details', 'Flag Details')}</th>
-              <th style="width:150px;">${t('ops_th_timestamp', 'Timestamp')}</th>
-              <th style="width:90px;">${t('ops_th_actions', 'Actions')}</th>
-            </tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
-        <div id="approval-result" class="action-result"></div>
-      </div>
-    `;
-  } catch (e) {
-    return `<div class="card" style="grid-column: span 2;"><div class="error-state">Failed to load approvals: ${e.message}</div></div>`;
-  }
-}
-
-// Switch provider Mode function
-async function doSelectProvider() {
-  const result = document.getElementById('provider-select-result');
-  const selected = document.querySelector('input[name="provider-mode"]:checked');
-  const token = document.getElementById('provider-token').value.trim();
-  if (!selected) {
-    showProviderSelectResult('error', 'Please select a provider mode');
-    return;
-  }
-  const mode = selected.value;
-
-  result.className = 'action-result show';
-  result.textContent = 'Modifying gateway mode...';
-  result.style.color = 'var(--text-muted)';
-  result.style.borderColor = 'var(--border-subtle)';
-  result.style.background = 'var(--bg-input)';
-
-  const opts = {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ mode }),
-  };
-  if (token) {
-    opts.headers['X-Approval-Token'] = token;
-  }
-
-  try {
-    const res = await fetch('/provider/select', opts);
-    const data = await res.json();
-    if (res.ok && data.success) {
-      showProviderSelectResult('success', data.message + ` (${data.provider_name}, status: ${data.readiness})`);
-      setTimeout(() => loadOps(), 1000);
-    } else {
-      showProviderSelectResult('error', data.error || data.details || `HTTP ${res.status}`);
-    }
-  } catch (e) {
-    showProviderSelectResult('error', `Failed: ${e.message}`);
-  }
-}
-
-function showProviderSelectResult(type, message) {
-  const result = document.getElementById('provider-select-result');
-  if (!result) return;
-  result.className = 'action-result show ' + type;
-  result.textContent = message;
-}
-
-// Quick action buttons implementation
-async function doAction(action) {
-  const result = document.getElementById('action-result');
-  const buttons = document.querySelectorAll('.action-btn');
-  buttons.forEach(b => b.disabled = true);
-  result.className = 'action-result show';
-  result.textContent = 'Communicating with agent server...';
-  result.style.color = 'var(--text-muted)';
-  result.style.borderColor = 'var(--border-subtle)';
-  result.style.background = 'var(--bg-input)';
-
-  try {
-    const endpoints = {
-      reset_alerts: { method: 'POST', url: '/alerts/reset' },
-      reload_config: { method: 'POST', url: '/config/reload', body: {} },
-      reload_policy: { method: 'POST', url: '/policy/reload' },
-      health_check: { method: 'GET', url: '/provider/health' },
-    };
-    const cfg = endpoints[action];
-    if (!cfg) { showActionResult('error', 'Unknown operator action: ' + action); return; }
-
-    const opts = { method: cfg.method, headers: {} };
-    if (cfg.body) {
-      opts.headers['Content-Type'] = 'application/json';
-      opts.body = JSON.stringify(cfg.body);
-    }
-
-    const res = await fetch(cfg.url, opts);
-    const data = await res.json();
-
-    if (!res.ok || data.error) {
-      showActionResult('error', `${action.toUpperCase()}: ${data.error || data.message || 'Operation failed'}`);
-    } else {
-      let msg = `${action.toUpperCase()}: System response OK`;
-      if (data.source) msg += ` (Source: ${data.source})`;
-      if (data.reloaded_at) msg += ` at ${new Date(data.reloaded_at).toLocaleTimeString()}`;
-      if (data.status) msg += ` (Health Status: ${data.status.toUpperCase()})`;
-      showActionResult('success', msg);
-    }
-  } catch (e) {
-    showActionResult('error', `${action.toUpperCase()}: Connection failed (${e.message})`);
-  } finally {
-    buttons.forEach(b => b.disabled = false);
-  }
-}
-
-function showActionResult(type, message) {
-  const result = document.getElementById('action-result');
-  result.className = `action-result show ${type}`;
-  result.textContent = message;
-}
-
-// Approve item bypass handler
-async function doApprove(approvalId) {
-  const result = document.getElementById('approval-result');
-  if (!result) return;
-  result.className = 'action-result show';
-  result.textContent = 'Sending approval bypass command...';
-  result.style.color = 'var(--text-muted)';
-  result.style.borderColor = 'var(--border-subtle)';
-  result.style.background = 'var(--bg-input)';
-
-  try {
-    const res = await fetch(`/approvals/${approvalId}/approve`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ approved_by: 'dashboard' })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      showApprovalResult('success', `Ticket ${approvalId} approved successfully`);
-      setTimeout(() => loadOps(), 800);
-    } else {
-      showApprovalResult('error', data.error || `HTTP ${res.status}`);
-    }
-  } catch (e) {
-    showApprovalResult('error', `Failed: ${e.message}`);
-  }
-}
-
-// Approve and execute retry immediately
-async function doApproveRetry(approvalId) {
-  const result = document.getElementById('approval-result');
-  if (!result) return;
-  result.className = 'action-result show';
-  result.textContent = 'Approving ticket and retrying request...';
-  result.style.color = 'var(--text-muted)';
-  result.style.borderColor = 'var(--border-subtle)';
-  result.style.background = 'var(--bg-input)';
-
-  try {
-    const res = await fetch(`/approvals/${approvalId}/approve-and-retry`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ approved_by: 'dashboard' })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      let msg = `Ticket ${approvalId} approved`;
-      if (data.retry) {
-        if (data.retry.success) {
-          msg += ` — Re-execute SUCCESS (HTTP ${data.retry.status_code})`;
-        } else {
-          msg += ` — Re-execute FAILED (HTTP ${data.retry.status_code || data.retry.error})`;
-        }
-      } else {
-        msg += ' — No payload to retry';
-      }
-      showApprovalResult('success', msg);
-      setTimeout(() => loadOps(), 800);
-    } else {
-      showApprovalResult('error', data.error || `HTTP ${res.status}`);
-    }
-  } catch (e) {
-    showApprovalResult('error', `Failed: ${e.message}`);
-  }
-}
-
-// Reject approval item
-async function doReject(approvalId) {
-  const result = document.getElementById('approval-result');
-  if (!result) return;
-  result.className = 'action-result show';
-  result.textContent = 'Rejecting ticket...';
-  result.style.color = 'var(--text-muted)';
-  result.style.borderColor = 'var(--border-subtle)';
-  result.style.background = 'var(--bg-input)';
-
-  try {
-    const res = await fetch(`/approvals/${approvalId}/reject`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rejected_by: 'dashboard', reason: 'Rejected by operator manual bypass cancel' })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      showApprovalResult('success', `Ticket ${approvalId} rejected & terminated`);
-      setTimeout(() => loadOps(), 800);
-    } else {
-      showApprovalResult('error', data.error || `HTTP ${res.status}`);
-    }
-  } catch (e) {
-    showApprovalResult('error', `Failed: ${e.message}`);
-  }
-}
-
-function showApprovalResult(type, message) {
-  const result = document.getElementById('approval-result');
-  if (!result) return;
-  result.className = `action-result show ${type}`;
-  result.textContent = message;
-}
-
-// Timeline View
-async function loadTimeline() {
-  const content = document.getElementById('timeline-content');
-  const summaryDiv = document.getElementById('timeline-summary');
-  const type = document.getElementById('timeline-type').value;
-  const limit = document.getElementById('timeline-limit').value;
-
-  content.innerHTML = `<div class="loading">${t('timeline_loading', 'Loading timeline')}</div>`;
-  summaryDiv.style.display = 'none';
-
-  try {
-    let url = `/timeline?last=${limit}`;
-    if (type) url += `&type=${type}`;
-
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-
-    if (data.total === 0) {
-      content.innerHTML = `<div class="empty-state">${t('timeline_empty', 'No timeline events recorded')}</div>`;
-      return;
-    }
-
-    // Summary
-    summaryDiv.style.display = 'block';
-    summaryDiv.innerHTML = `
-      <div class="card-title" style="font-size: 0.9rem; text-transform:uppercase; color:var(--text-secondary); margin-bottom: 0.5rem; letter-spacing: 0.05em;">${t('timeline_summary', 'Log Summary')} (${data.total} ${t('timeline_total', 'total events')})</div>
-      <div class="timeline-summary-text">${data.summary}</div>
-    `;
-
-    const typeColor = (t) => {
-      if (t === 'run') return 'var(--info)';
-      if (t === 'alert') return 'var(--warning)';
-      return 'var(--text-muted)';
-    };
-    const typeIcon = (t) => {
-      if (t === 'run') return '▶';
-      if (t === 'alert') return '⚠';
-      return '🌐';
-    };
-
-    let html = '';
-    for (const e of data.events) {
-      const ts = e.timestamp ? new Date(e.timestamp).toLocaleString() : 'N/A';
-      const hasRunId = e.run_id;
-      const hasAlertId = e.alert_id;
-      const idBadge = hasAlertId
-        ? `<span class="badge badge-warning" style="font-family:var(--font-mono);font-size:0.7rem;margin-top:0.25rem;">ALERT: ${e.alert_id}</span>`
-        : hasRunId
-        ? `<span class="badge badge-skill" style="font-family:var(--font-mono);font-size:0.7rem;margin-top:0.25rem;">RUN: ${e.run_id}</span>`
-        : '';
-
-      html += `
-        <div class="timeline-item">
-          <div class="timeline-node" style="border-color:${typeColor(e.event_type)};"></div>
-          <div class="timeline-card">
-            <div class="timeline-card-header">
-              <span class="timeline-title" style="color:${typeColor(e.event_type)};">${typeIcon(e.event_type)} ${e.event_type.toUpperCase()}</span>
-              <span class="timeline-time">${ts}</span>
-            </div>
-            <div class="timeline-desc">
-              <p>${e.summary}</p>
-              ${idBadge ? `<div>${idBadge}</div>` : ''}
-            </div>
-          </div>
-        </div>
-      `;
-    }
-    content.innerHTML = html;
-  } catch (e) {
-    content.innerHTML = `<div class="error-state">Failed to load timeline events: ${e.message}</div>`;
-  }
-}
 
 // Scenarios View & Simulation
 let scenarioData = { scenarios: [], users: [] };

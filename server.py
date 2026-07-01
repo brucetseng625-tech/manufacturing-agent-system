@@ -1881,6 +1881,8 @@ class AgentHandler(BaseHTTPRequestHandler):
                 response_body["scenario_matched"] = result["scenario_matched"]
             if "restricted_notes" in result:
                 response_body["restricted_notes"] = result["restricted_notes"]
+            if "routing_reason" in result:
+                response_body["routing_reason"] = result["routing_reason"]
             status_code = 200
         else:
             error_type = result.get("type", "unknown")

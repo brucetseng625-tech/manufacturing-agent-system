@@ -1,0 +1,6 @@
+{
+  "llm": {
+    "local_model": "qwen2.5:0.5b",
+    "local_api_url": "http://localhost:11434/v1"
+  }
+}

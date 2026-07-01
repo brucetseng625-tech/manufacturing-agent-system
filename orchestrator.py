@@ -52,7 +52,7 @@ def batch_queries(queries, data_dir):
     }
 
 def extract_order_ids(query):
-    match = re.findall(r"\bORD-[A-Z0-9-]+\b", query, re.IGNORECASE)
+    match = re.findall(r"ORD-[A-Z0-9]+(?:-[A-Z0-9]+)*", query, re.IGNORECASE)
     return [m.upper() for m in match]
 
 def validate_data_dir(data_dir, data_files=None):
@@ -220,24 +220,30 @@ def route_query(query, data_dir, user_id=None, env_context=None):
 
     matched_skill = get_registry().match_skill(query, order_ids)
 
-    if matched_skill is None:
-        # Check if the query is a general query or matches custom scenarios
-        from ai_gateway import AIGateway
-        gateway = AIGateway()
-        matched_sc = False
-        try:
-            if user_id:
-                sc_info = gateway._check_scenarios(query, user_id, env_context)
-                if sc_info:
-                    matched_sc = True
-        except PermissionError:
-            matched_sc = True
-        except Exception:
-            pass
+    # Check scenarios and general triggers first
+    gateway = AIGateway()
+    matched_sc = False
+    try:
+        if user_id:
+            sc_info = gateway._check_scenarios(query, user_id, env_context)
+            if sc_info:
+                matched_sc = True
+    except PermissionError:
+        matched_sc = True
+    except Exception:
+        pass
 
-        query_lower = query.lower()
-        general_triggers = ["生產", "訂單", "工廠", "製造", "排程", "機台", "物料", "報價", "list", "orders", "production", "schedule"]
-        if matched_sc or any(w in query_lower for w in general_triggers):
+    query_lower = query.lower()
+    general_triggers = ["生產", "訂單", "工廠", "製造", "排程", "機台", "物料", "報價", "list", "orders", "production", "schedule"]
+    is_general_or_scenario = matched_sc or any(w in query_lower for w in general_triggers)
+
+    # Discard matched skill if order ID is missing but the intent is general/scenario
+    if matched_skill and matched_skill.get("requires_order_id") and not order_ids:
+        if is_general_or_scenario:
+            matched_skill = None
+
+    if matched_skill is None:
+        if is_general_or_scenario:
             try:
                 orders_data = load_json_or_csv(data_dir, "orders.json")
                 work_orders_data = load_json_or_csv(data_dir, "work_orders.json")
