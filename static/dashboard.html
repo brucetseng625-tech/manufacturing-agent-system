@@ -2411,7 +2411,7 @@ function summarizeSceneResponse(data) {
     `;
   }
 
-  if (data.skill === 'auto-scheduler') {
+  if (data.skill === 'auto-scheduler' || data.skill === 'team:auto-scheduler' || (data.skill && data.skill.includes('auto-scheduler'))) {
     html += `
         <div class="result-row accent" style="flex-direction: column; align-items: flex-end; gap: 0.5rem; border-top: 1px solid var(--border-subtle); padding-top: 0.75rem; margin-top: 0.75rem;">
           <button id="apply-schedule-btn" class="btn btn-primary" onclick="applyRescheduling()" style="padding:0.4rem 1.2rem; font-size:0.8rem; border-radius:6px; background:var(--success); border-color:var(--success); cursor:pointer;">
@@ -5101,6 +5101,7 @@ async function runSimulation() {
       <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
     `;
     setLanguage(currentLang); // Re-apply current language tags to reset button texts if needed
+  }
 }
 
 async function applyRescheduling() {
