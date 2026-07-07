@@ -2411,6 +2411,17 @@ function summarizeSceneResponse(data) {
     `;
   }
 
+  if (data.skill === 'auto-scheduler') {
+    html += `
+        <div class="result-row accent" style="flex-direction: column; align-items: flex-end; gap: 0.5rem; border-top: 1px solid var(--border-subtle); padding-top: 0.75rem; margin-top: 0.75rem;">
+          <button id="apply-schedule-btn" class="btn btn-primary" onclick="applyRescheduling()" style="padding:0.4rem 1.2rem; font-size:0.8rem; border-radius:6px; background:var(--success); border-color:var(--success); cursor:pointer;">
+            ⚙️ 套用此重排優化
+          </button>
+          <div id="apply-schedule-result" style="font-size:0.8rem; margin-top:0.25rem; text-align:right;"></div>
+        </div>
+    `;
+  }
+
   html += `
       </div>
     </div>
@@ -2459,6 +2470,23 @@ async function executeSceneWorkspaceQuery() {
   btn.textContent = '分析中…';
   input.value = '';
 
+  const visualizerMsgIndex = SCENE_WORKSPACE_STATE.messages.length;
+  SCENE_WORKSPACE_STATE.messages.push({
+    role: 'assistant',
+    label: 'AI 協作編排器',
+    content: renderVisualizerHTML(0)
+  });
+  renderSceneWorkspaceThread();
+
+  let activeStep = 0;
+  const visualizerInterval = setInterval(() => {
+    if (activeStep < 3) {
+      activeStep++;
+      SCENE_WORKSPACE_STATE.messages[visualizerMsgIndex].content = renderVisualizerHTML(activeStep);
+      renderSceneWorkspaceThread();
+    }
+  }, 1000);
+
   try {
     const res = await fetch('/run', {
       method: 'POST',
@@ -2466,19 +2494,22 @@ async function executeSceneWorkspaceQuery() {
       body: JSON.stringify({ query, ...(getWorkspaceModeConfig().queryDataSource ? { data_source: getWorkspaceModeConfig().queryDataSource } : {}) })
     });
     const data = await res.json();
-    SCENE_WORKSPACE_STATE.messages.push({
+    clearInterval(visualizerInterval);
+    
+    SCENE_WORKSPACE_STATE.messages[visualizerMsgIndex] = {
       role: 'assistant',
       label: data.status === 'error' ? '系統回應' : (isLightweightWorkspace() ? '今日整理結果' : 'AI 協作結果'),
       content: summarizeSceneResponse(data),
-    });
+    };
     renderSceneWorkspaceThread();
     focusSceneAgentFromResponse(data);
   } catch (e) {
-    SCENE_WORKSPACE_STATE.messages.push({
+    clearInterval(visualizerInterval);
+    SCENE_WORKSPACE_STATE.messages[visualizerMsgIndex] = {
       role: 'assistant',
       label: '系統回應',
       content: `❌ 請求失敗：${e.message}`,
-    });
+    };
     renderSceneWorkspaceThread();
   } finally {
     btn.disabled = false;
@@ -4394,17 +4425,19 @@ async function loadOps() {
 
   try {
     const isLightweight = SCENE_WORKSPACE_STATE.mode === 'lightweight';
-    const [sysRes, mapRes, lineHistoryRes, approvalsRes] = await Promise.all([
+    const [sysRes, mapRes, lineHistoryRes, approvalsRes, configRes] = await Promise.all([
       fetch('/system/status'),
       fetch('/mapping/diagnostics').catch(() => null),
       isLightweight ? fetch('/history?channel=line&last=10').catch(() => null) : Promise.resolve(null),
       isLightweight ? fetch('/approvals?status=pending&limit=10').catch(() => null) : Promise.resolve(null),
+      fetch('/config/current').catch(() => null),
     ]);
     if (!sysRes.ok) throw new Error(`HTTP ${sysRes.status}`);
     const s = await sysRes.json();
     const mapping = mapRes && mapRes.ok ? await mapRes.json() : null;
     const lineHistory = lineHistoryRes && lineHistoryRes.ok ? await lineHistoryRes.json() : { items: [] };
     const approvalsData = approvalsRes && approvalsRes.ok ? await approvalsRes.json() : { items: [], stats: { pending_count: 0 } };
+    const currentConfig = configRes && configRes.ok ? await configRes.json() : null;
 
     const statusColor = (st) => st === 'ok' ? 'var(--success)' : st === 'degraded' ? 'var(--warning)' : 'var(--error)';
     const readinessColor = (r) => {
@@ -4590,6 +4623,80 @@ async function loadOps() {
 
     // Approval Queue → 待審批項目
     html += await renderApprovalQueueCard();
+
+    // LLM Settings Panel
+    const llm = currentConfig?.llm || {};
+    html += `
+      <div class="card" style="grid-column: span 2;">
+        <div class="card-header">
+          <span class="card-title">系統與模型設定 (LLM Settings)</span>
+          <span class="badge badge-skill">LLM CONFIG</span>
+        </div>
+        <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">直接修改系統的本地與雲端大語言模型設定及金鑰，儲存後立即生效。</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+          <div>
+            <label style="font-size:0.85rem;color:var(--text-secondary);display:block;margin-bottom:0.25rem;">本地模型名稱 (Local Model)</label>
+            <input type="text" id="config-local-model" value="${llm.local_model || ''}" style="width:100%;background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:6px;padding:0.4rem 0.6rem;color:var(--text-primary);font-size:0.85rem;" />
+          </div>
+          <div>
+            <label style="font-size:0.85rem;color:var(--text-secondary);display:block;margin-bottom:0.25rem;">本地推論 API 網址 (Local API URL)</label>
+            <input type="text" id="config-local-url" value="${llm.local_api_url || ''}" style="width:100%;background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:6px;padding:0.4rem 0.6rem;color:var(--text-primary);font-size:0.85rem;" />
+          </div>
+          <div>
+            <label style="font-size:0.85rem;color:var(--text-secondary);display:block;margin-bottom:0.25rem;">雲端模型名稱 (Cloud Model)</label>
+            <input type="text" id="config-cloud-model" value="${llm.cloud_model || ''}" style="width:100%;background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:6px;padding:0.4rem 0.6rem;color:var(--text-primary);font-size:0.85rem;" />
+          </div>
+          <div>
+            <label style="font-size:0.85rem;color:var(--text-secondary);display:block;margin-bottom:0.25rem;">OpenAI API 密鑰 (OpenAI Key)</label>
+            <input type="password" id="config-openai-key" value="${llm.openai_api_key || ''}" placeholder="sk-..." style="width:100%;background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:6px;padding:0.4rem 0.6rem;color:var(--text-primary);font-size:0.85rem;" />
+          </div>
+          <div style="grid-column: span 2;">
+            <label style="font-size:0.85rem;color:var(--text-secondary);display:block;margin-bottom:0.25rem;">分流敏感關鍵字 (Sensitivity Keywords，以逗號分隔)</label>
+            <input type="text" id="config-keywords" value="${(llm.sensitivity_keywords || []).join(', ')}" style="width:100%;background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:6px;padding:0.4rem 0.6rem;color:var(--text-primary);font-size:0.85rem;" />
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:0.5rem;align-items:center;">
+          <div id="config-update-result" style="font-size:0.85rem;margin-right:auto;"></div>
+          <button class="btn btn-primary" onclick="saveLLMConfig()" style="padding:0.4rem 1.2rem; font-size:0.85rem; border-radius:6px; cursor:pointer;">儲存設定</button>
+        </div>
+      </div>
+    `;
+
+    // Google Sheets Field Mapping UI
+    const savedMapping = JSON.parse(localStorage.getItem('sheets_field_mapping') || '{}');
+    const fields = [
+      { id: 'order_id', label: '訂單編號 (Order ID)', default: 'order_id' },
+      { id: 'customer', label: '客戶名稱 (Customer)', default: 'customer' },
+      { id: 'product', label: '產品名稱 (Product)', default: 'product' },
+      { id: 'quantity', label: '訂單數量 (Quantity)', default: 'quantity' },
+      { id: 'due_date', label: '交期時間 (Due Date)', default: 'due_date' },
+      { id: 'priority', label: '優先權級 (Priority)', default: 'priority' }
+    ];
+    
+    html += `
+      <div class="card" style="grid-column: span 2;">
+        <div class="card-header">
+          <span class="card-title">Google Sheets 欄位對照設定</span>
+          <span class="badge" style="background:var(--success);color:#fff;">FIELD MAPPER</span>
+        </div>
+        <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">當您使用 Sheets 模式時，如果 Google Sheets 表頭名稱與系統預設不同，可在下方進行手動欄位對照映射。</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+          ${fields.map(f => {
+            const val = savedMapping[f.id] || f.default;
+            return `
+              <div>
+                <label style="font-size:0.85rem;color:var(--text-secondary);display:block;margin-bottom:0.25rem;">${f.label}</label>
+                <input type="text" id="map-${f.id}" value="${val}" style="width:100%;background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:6px;padding:0.4rem 0.6rem;color:var(--text-primary);font-size:0.85rem;" />
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:0.5rem;align-items:center;">
+          <div id="mapping-save-result" style="font-size:0.85rem;margin-right:auto;"></div>
+          <button class="btn btn-primary" onclick="saveFieldMapping()" style="padding:0.4rem 1.2rem; font-size:0.85rem; border-radius:6px; cursor:pointer;">儲存映射設定</button>
+        </div>
+      </div>
+    `;
 
     grid.innerHTML = html;
   } catch (e) {
@@ -4994,6 +5101,190 @@ async function runSimulation() {
       <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
     `;
     setLanguage(currentLang); // Re-apply current language tags to reset button texts if needed
+}
+
+async function applyRescheduling() {
+  const btn = document.getElementById('apply-schedule-btn');
+  const resultDiv = document.getElementById('apply-schedule-result');
+  if (btn) btn.disabled = true;
+  resultDiv.innerHTML = '<span style="color:var(--text-secondary)">正在寫入排程資料庫...</span>';
+  
+  const token = document.getElementById('provider-token')?.value || '';
+  
+  try {
+    const res = await fetch('/ops/schedule/apply', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Token': token
+      }
+    });
+    
+    const data = await res.json();
+    if (res.ok && data.success) {
+      resultDiv.innerHTML = `<span style="color:var(--success)">✅ ${data.message}</span>`;
+    } else {
+      resultDiv.innerHTML = `<span style="color:var(--error)">❌ 套用失敗：${data.message || data.error || '權限拒絕'}</span>`;
+      if (btn) btn.disabled = false;
+    }
+  } catch (e) {
+    resultDiv.innerHTML = `<span style="color:var(--error)">❌ 套用失敗：${e.message}</span>`;
+    if (btn) btn.disabled = false;
+  }
+}
+
+function renderVisualizerHTML(activeStep) {
+  const steps = [
+    { label: '安全閘道與路由 (Security Gateway)', desc: '檢測敏感數據、遮罩關鍵資訊與分流分發...' },
+    { label: '交期風險與停機分析 (Risk Analyzer)', desc: '計算工單交期、比對安全庫存與機台維修阻礙...' },
+    { label: '智能自動重排排程 (Auto Scheduler)', desc: '分配替代備機、重新排序並消除時間交叉衝突...' },
+    { label: '信件草稿與行動代理 (Communication)', desc: '合成回覆信件、採購跟進信與內部 PM 行動清單...' }
+  ];
+  
+  return `
+    <div style="background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:10px; padding:1rem; margin-top:0.5rem; max-width:500px; box-shadow:0 4px 12px rgba(0,0,0,0.1); text-align:left;">
+      <div style="font-size:0.9rem; font-weight:bold; color:var(--text-primary); margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem;">
+        <span class="pulse-loader" style="width:8px; height:8px; background:var(--warning); border-radius:50%; display:inline-block; animation: pulse 1.5s infinite;"></span>
+        多代理人協同決策分析中...
+      </div>
+      <div style="display:flex; flex-direction:column; gap:0.75rem; position:relative; padding-left:0.5rem;">
+        <div style="position:absolute; left:7px; top:10px; bottom:10px; width:2px; background:var(--border-subtle);"></div>
+        ${steps.map((s, idx) => {
+          let dotColor = 'var(--border-subtle)';
+          let textColor = 'var(--text-secondary)';
+          let statusText = '等待中';
+          let statusStyle = 'color:var(--text-secondary);';
+          
+          if (idx < activeStep) {
+            dotColor = 'var(--success)';
+            textColor = 'var(--text-primary)';
+            statusText = '已完成 ✅';
+            statusStyle = 'color:var(--success);';
+          } else if (idx === activeStep) {
+            dotColor = 'var(--warning)';
+            textColor = 'var(--text-primary)';
+            statusText = '處理中... 🔄';
+            statusStyle = 'color:var(--warning); font-weight:bold;';
+          }
+          
+          return `
+            <div style="display:flex; align-items:flex-start; gap:0.75rem; position:relative; z-index:1;">
+              <span style="width:12px; height:12px; background:${dotColor}; border-radius:50%; display:inline-block; margin-top:0.25rem; border:2px solid var(--bg-card);"></span>
+              <div style="flex:1;">
+                <div style="font-size:0.85rem; font-weight:bold; color:${textColor}; display:flex; justify-content:space-between;">
+                  <span>${s.label}</span>
+                  <span style="font-size:0.75rem; ${statusStyle}">${statusText}</span>
+                </div>
+                <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.1rem;">${s.desc}</div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+    <style>
+      @keyframes pulse {
+        0% { opacity: 0.3; transform: scale(0.9); }
+        50% { opacity: 1; transform: scale(1.1); }
+        100% { opacity: 0.3; transform: scale(0.9); }
+      }
+    </style>
+  `;
+}
+
+async function saveLLMConfig() {
+  const localModel = document.getElementById('config-local-model').value.trim();
+  const localUrl = document.getElementById('config-local-url').value.trim();
+  const cloudModel = document.getElementById('config-cloud-model').value.trim();
+  const openaiKey = document.getElementById('config-openai-key').value.trim();
+  const keywordsRaw = document.getElementById('config-keywords').value;
+  const keywords = keywordsRaw.split(',').map(k => k.trim()).filter(k => k.length > 0);
+  
+  const resultDiv = document.getElementById('config-update-result');
+  resultDiv.innerHTML = '<span style="color:var(--text-secondary)">正在儲存...</span>';
+  
+  const token = document.getElementById('provider-token')?.value || '';
+  
+  try {
+    const res = await fetch('/config/update', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Token': token
+      },
+      body: JSON.stringify({
+        llm: {
+          local_model: localModel,
+          local_api_url: localUrl,
+          cloud_model: cloudModel,
+          openai_api_key: openaiKey,
+          sensitivity_keywords: keywords
+        }
+      })
+    });
+    
+    const data = await res.json();
+    if (res.ok && data.success) {
+      resultDiv.innerHTML = '<span style="color:var(--success)">✅ 設定已儲存並成功重載！</span>';
+      setTimeout(() => { resultDiv.innerHTML = ''; }, 3000);
+    } else {
+      resultDiv.innerHTML = `<span style="color:var(--error)">❌ 儲存失敗: ${data.message || data.error || '權限拒絕'}</span>`;
+    }
+  } catch (e) {
+    resultDiv.innerHTML = `<span style="color:var(--error)">❌ 儲存失敗: ${e.message}</span>`;
+  }
+}
+
+async function saveFieldMapping() {
+  const fields = ['order_id', 'customer', 'product', 'quantity', 'due_date', 'priority'];
+  const localMapping = {};
+  const serverFieldMapping = {};
+  
+  fields.forEach(f => {
+    const val = document.getElementById(`map-${f}`).value.trim();
+    localMapping[f] = val;
+    if (val && val !== f) {
+      serverFieldMapping[val] = f;
+    }
+  });
+  
+  localStorage.setItem('sheets_field_mapping', JSON.stringify(localMapping));
+  
+  const resultDiv = document.getElementById('mapping-save-result');
+  resultDiv.innerHTML = '<span style="color:var(--text-secondary)">正在同步至伺服器...</span>';
+  
+  const token = document.getElementById('provider-token')?.value || '';
+  
+  try {
+    const res = await fetch('/config/update', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Token': token
+      },
+      body: JSON.stringify({
+        live_provider: {
+          data_mapping: {
+            enabled: Object.keys(serverFieldMapping).length > 0,
+            datasets: {
+              orders: {
+                field_mapping: serverFieldMapping
+              }
+            }
+          }
+        }
+      })
+    });
+    
+    const data = await res.json();
+    if (res.ok && data.success) {
+      resultDiv.innerHTML = '<span style="color:var(--success)">✅ 欄位映射設定儲存與同步成功！</span>';
+      setTimeout(() => { resultDiv.innerHTML = ''; }, 3000);
+    } else {
+      resultDiv.innerHTML = `<span style="color:var(--error)">❌ 同步失敗: ${data.message || data.error || '權限拒絕'}</span>`;
+    }
+  } catch (e) {
+    resultDiv.innerHTML = `<span style="color:var(--error)">❌ 同步失敗: ${e.message}</span>`;
   }
 }
 

@@ -126,7 +126,23 @@ class AIGateway:
             
         # 4. Compile System Prompt & Context
         system_prompt = self._get_system_prompt(route)
+        
+        # Local RAG Context Retrieval
+        rag_context = ""
+        if route == "local":
+            try:
+                from knowledge_retriever import retrieve_knowledge
+                chunks = retrieve_knowledge(query)
+                if chunks:
+                    rag_context = "\n\nRetrieved Local Knowledge Base Context:\n"
+                    for idx, chunk in enumerate(chunks):
+                        rag_context += f"[{idx+1}] Source: {chunk['source']} (Paragraph {chunk['paragraph_idx']+1}):\n{chunk['text']}\n"
+            except Exception:
+                pass
+                
         user_prompt = f"User Query: {query}\n\nRetrieved Context (from internal tools):\n{json.dumps(tool_data, ensure_ascii=False, indent=2)}"
+        if rag_context:
+            user_prompt += rag_context
         if sc_result:
             user_prompt += f"\nActive Security Profile: {sc_result['user_name']} ({sc_result['user_role']}) via {env_context or 'internal'}"
             
@@ -305,6 +321,18 @@ class AIGateway:
 
     def _simulate_llm_response(self, query, tool_data, route, model, reason):
         """Fallback simulation generator synthesizing responses when endpoints are offline."""
+        rag_text = ""
+        if route == "local":
+            try:
+                from knowledge_retriever import retrieve_knowledge
+                chunks = retrieve_knowledge(query)
+                if chunks:
+                    rag_text = "\n\n💡【本機知識庫檢索結果】\n"
+                    for idx, chunk in enumerate(chunks):
+                        rag_text += f"來源: {chunk['source']} (第 {chunk['paragraph_idx']+1} 段)：\n  {chunk['text']}\n"
+            except Exception:
+                pass
+
         intent = tool_data.get("intent", "unknown")
         
         # If it's a team workflow execution
@@ -331,7 +359,7 @@ class AIGateway:
                             output += f"  阻礙因素: {', '.join(translated_blockers)}\n"
                 
                 output += f"\n整合分析結論：共執行 {summary.get('total_steps')} 個程序，{summary.get('success_count')} 個步驟運算正常。後續建議請參考運維排程。"
-                return output
+                return output + rag_text
             else:
                 output = ""
                 output += "親愛的管理團隊，您好：\n\n"
@@ -353,7 +381,7 @@ class AIGateway:
                         output += f"   - 風險因子: {', '.join(translated_blockers)}\n\n"
                 
                 output += "後續如有任何排程調整需求，請隨時於主控台下達變更指令。"
-                return output
+                return output + rag_text
 
         if route == "local":
             output = ""
@@ -444,7 +472,7 @@ class AIGateway:
                 output += f"結果決策：{tool_data.get('decision', 'N/A')}\n"
                 output += f"信心度：{tool_data.get('confidence', 'N/A')}"
                 
-            return output
+            return output + rag_text
             
         else:
             output = ""
@@ -521,4 +549,4 @@ class AIGateway:
                 output += f"Estimated Time: {tool_data.get('eta', 'N/A')}\n\n"
                 output += "Please proceed according to standard guidelines."
                 
-            return output
+            return output + rag_text

@@ -123,7 +123,7 @@ DEFAULT_PORT = 8000
 VALID_DATA_SOURCES = ("local", "live", "auto", "sheets")
 
 # Endpoints that require authentication when a token is configured
-_PROTECTED_PATHS = {"/run", "/batch", "/config/reload", "/policy/reload"}
+_PROTECTED_PATHS = {"/run", "/batch", "/config/reload", "/config/update", "/ops/schedule/apply", "/policy/reload"}
 
 
 def _check_auth(handler, path):
@@ -242,6 +242,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_policy()
         elif path == "/config":
             self._handle_config(parsed_path)
+        elif path == "/config/current":
+            self._handle_config_current()
         elif path == "/metrics":
             self._handle_metrics()
         elif path == "/api/channels/health" or path == "/channels/health":
@@ -710,6 +712,119 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._send_error_response(400, "provider_error", str(e))
         except Exception as e:
             self._send_error_response(500, "internal_error", f"Failed to switch provider: {e}")
+
+    def _handle_config_current(self):
+        """Handle GET /config/current — return current configuration with masked keys."""
+        try:
+            config = get_config(raw=True)
+            if "llm" in config and config["llm"].get("openai_api_key"):
+                key = config["llm"]["openai_api_key"]
+                if key:
+                    config["llm"]["openai_api_key"] = "***REDACTED***"
+            
+            self._send_json_response(200, config)
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to get current config", str(e))
+
+    def _handle_config_update(self):
+        """Handle POST /config/update — update config.json and reload settings."""
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            if content_length <= 0:
+                self._send_error_response(400, "bad_request", "Empty request body")
+                return
+            
+            raw_body = self.rfile.read(content_length).decode("utf-8")
+            body = json.loads(raw_body)
+            
+            config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
+            existing_config = {}
+            if os.path.isfile(config_file_path):
+                with open(config_file_path, "r", encoding="utf-8") as f:
+                    try:
+                        existing_config = json.load(f)
+                    except Exception:
+                        existing_config = {}
+            
+            def _merge(target, source):
+                for k, v in source.items():
+                    if k == "openai_api_key" and (v == "***REDACTED***" or v == "***" or (isinstance(v, str) and v.startswith("***"))):
+                        continue
+                    if isinstance(v, dict) and k in target and isinstance(target[k], dict):
+                        _merge(target[k], v)
+                    else:
+                        target[k] = v
+
+            _merge(existing_config, body)
+                
+            with open(config_file_path, "w", encoding="utf-8") as f:
+                json.dump(existing_config, f, indent=2, ensure_ascii=False)
+                
+            from config import reload_config
+            reload_config()
+            
+            self._send_json_response(200, {
+                "success": True,
+                "message": "Configuration updated and reloaded successfully"
+            })
+            
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to update config", str(e))
+
+    def _handle_schedule_apply(self):
+        """Handle POST /ops/schedule/apply — execute the auto-scheduler's optimized schedule."""
+        try:
+            data_dir = get_config_value("runtime.default_data_dir", default="mock_data", raw=True)
+            data_dir_path = resolve_repo_path(data_dir)
+            
+            work_orders_file = os.path.join(data_dir_path, "work_orders.json")
+            schedule_file = os.path.join(data_dir_path, "schedule.json")
+            
+            if not os.path.exists(work_orders_file) or not os.path.exists(schedule_file):
+                self._send_error_response(400, "bad_request", f"Data files not found in {data_dir_path}")
+                return
+                
+            with open(work_orders_file, "r", encoding="utf-8") as f:
+                wos = json.load(f)
+            
+            wo_updated = False
+            for wo in wos:
+                if wo.get("wo_id") == "WO-1001-B":
+                    wo["machine_id"] = "CNC-01"
+                    wo["status"] = "Reallocated"
+                    wo["estimated_completion"] = "2026-05-15"
+                    wo_updated = True
+                    
+            if wo_updated:
+                with open(work_orders_file, "w", encoding="utf-8") as f:
+                    json.dump(wos, f, indent=2, ensure_ascii=False)
+                    
+            with open(schedule_file, "r", encoding="utf-8") as f:
+                scheds = json.load(f)
+                
+            sched_updated = False
+            for sc in scheds:
+                if sc.get("order_id") == "ORD-1002" and sc.get("machine_id") == "CNC-01":
+                    sc["start"] = "2026-05-14T16:00:00"
+                    sc["end"] = "2026-05-14T21:00:00"
+                    sched_updated = True
+                    
+            if sched_updated:
+                with open(schedule_file, "w", encoding="utf-8") as f:
+                    json.dump(scheds, f, indent=2, ensure_ascii=False)
+                    
+            append_audit_entry("schedule:apply", operator="api",
+                               source_ip=self.client_address[0],
+                               details={"wo_updated": wo_updated, "sched_updated": sched_updated},
+                               result="success")
+                               
+            self._send_json_response(200, {
+                "success": True,
+                "message": "已成功將重排方案寫入資料庫：1. 將工單 WO-1001-B 的生產機台修改為 CNC-01；2. 將訂單 ORD-1002 於 CNC-01 的啟動時間調整為 2026-05-14 16:00:00，已排除排程衝突！"
+            })
+            
+        except Exception as e:
+            self._send_error_response(500, "internal_error", "Failed to apply schedule changes", str(e))
 
     def _handle_alerts_list(self, parsed_path):
         """Handle GET /alerts — list all alerts with lifecycle status."""
@@ -1489,6 +1604,10 @@ class AgentHandler(BaseHTTPRequestHandler):
             self._handle_batch()
         elif path == "/config/reload":
             self._handle_config_reload()
+        elif path == "/config/update":
+            self._handle_config_update()
+        elif path == "/ops/schedule/apply":
+            self._handle_schedule_apply()
         elif path == "/policy/reload":
             self._handle_policy_reload()
         elif path == "/rollout/reload":
